@@ -1,0 +1,57 @@
+{
+  "properties": {
+    "esId": {
+      "type": "keyword"
+    },
+    "landPlotId": {
+      "type": "long"
+    },
+    "landName": {
+      "type": "text",
+      "analyzer": "standard"
+    },
+    "landType": {
+      "type": "keyword"
+    },
+    "landArea": {
+      "type": "float"
+    },
+    "isDeleted": {
+      "type": "integer"
+    },
+    "address": {
+      "type": "text",
+      "analyzer": "standard"
+    },
+    "createBy": {
+      "type": "keyword"
+    },
+    "createTime": {
+      "type": "keyword"
+    },
+    "updateBy": {
+      "type": "keyword"
+    },
+    "updateTime": {
+      "type": "keyword"
+    },
+    "image": {
+      "type": "keyword"
+    },
+    "measurementMethod": {
+      "type": "keyword"
+    },
+    "boundary": {
+      "type": "keyword"
+    },
+    "centerPoint": {
+      "type": "keyword"
+    },
+    "ownerName": {
+      "type": "keyword"
+    },
+    "ownerPhone": {
+      "type": "keyword"
+    }
+  }
+}

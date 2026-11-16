@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Farm Detail Item Labels -->
+    <string name="item_farm_detail_plot_size">地块亩数</string>
+    <string name="item_farm_detail_crop_type">作物类型</string>
+    <string name="item_farm_detail_operation_type">作业类型</string>
+    <string name="item_farm_detail_valid_period">作业有效期</string>
+
+    <!-- Button Labels -->
+    <string name="item_farm_detail_view_details">查看详情</string>
+    <string name="item_farm_detail_edit_info">修改信息</string>
+    <string name="item_farm_detail_remove">下架</string>
+    <!-- Card View Dimensions -->
+    <dimen name="item_farm_detail_card_height">300dp</dimen>
+    <dimen name="item_farm_detail_card_margin">5dp</dimen>
+    <dimen name="item_farm_detail_card_corner_radius">8dp</dimen>
+    <dimen name="item_farm_detail_card_stroke_width">3dp</dimen>
+    <dimen name="item_farm_detail_card_elevation">2dp</dimen>
+
+    <!-- Image View Dimensions -->
+    <dimen name="item_farm_detail_image_height">150dp</dimen>
+
+    <!-- Text Sizes -->
+    <dimen name="item_farm_detail_title_text_size">12sp</dimen>
+    <dimen name="item_farm_detail_label_text_size">11sp</dimen>
+    <dimen name="item_farm_detail_button_text_size">16sp</dimen>
+
+    <!-- Padding and Margins -->
+    <dimen name="item_farm_detail_content_margin_top">5dp</dimen>
+    <dimen name="item_farm_detail_content_margin_left">2dp</dimen>
+    <dimen name="item_farm_detail_task_margin">0.5dp</dimen>
+    <dimen name="item_farm_detail_task_height">0dp</dimen>
+    <dimen name="item_farm_detail_text_padding">3dp</dimen>
+    <dimen name="item_farm_detail_button_padding">10dp</dimen>
+    <dimen name="item_farm_detail_button_width">100dp</dimen>
+    <dimen name="item_farm_detail_button_margin_bottom">10dp</dimen>
+</resources>

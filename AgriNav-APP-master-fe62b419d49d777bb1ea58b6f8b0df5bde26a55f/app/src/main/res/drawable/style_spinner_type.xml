@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <corners android:bottomLeftRadius="@dimen/spinner_corner_bottomRadius" android:topLeftRadius="@dimen/spinner_corner_bottomRadius" android:bottomRightRadius="@dimen/spinner_corner_bottomRadius" android:topRightRadius="@dimen/spinner_corner_bottomRadius"/>
+            <solid android:color="@color/grey_s"/>
+        </shape>
+    </item>
+    <item android:top="1dp" android:bottom="1dp" android:left="1dp"  android:right="1dp">
+        <shape>
+            <corners android:bottomLeftRadius="@dimen/spinner_corner_bottomRadius" android:topLeftRadius="@dimen/spinner_corner_bottomRadius" android:bottomRightRadius="@dimen/spinner_corner_bottomRadius" android:topRightRadius="@dimen/spinner_corner_bottomRadius"/>
+            <solid android:color="@color/white"/>
+        </shape>
+    </item>
+</layer-list>

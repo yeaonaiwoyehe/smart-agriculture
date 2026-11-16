@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="column_num">2</integer>
+    <integer name="page_size">6</integer>
+    <string name="font_plot_detail_list_request_get_plot_by_condition">/landPlot/query</string>
+    <string name="font_plot_detail_list_request_get_plot_no_condition">/landPlot/queryByAddress</string>
+    <string name="font_plot_detail_list_request_get_plot_by_condition_param_size">size</string>
+    <string name="font_plot_detail_list_request_get_plot_by_condition_param_current">current</string>
+    <string name="font_plot_detail_list_request_get_plot_by_condition_param_address">address</string>
+    <string name="font_plot_detail_list_request_get_plot_by_condition_param_area_min">beginArea</string>
+    <string name="font_plot_detail_list_request_get_plot_by_condition_param_area_max">endArea</string>
+    <string name="font_plot_detail_list">地块详情</string>
+    <string name="font_plot_detail_list_min_area">最小面积(亩)</string>
+    <string name="font_plot_detail_list_max_area">最大面积(亩)</string>
+    <string name="font_plot_detail_list_line">——</string>
+    <dimen name="font_plot_detail_list_padding_min">5dp</dimen>
+    <dimen name="font_plot_detail_list_padding_mid">10dp</dimen>
+    <dimen name="font_plot_detail_list_text_min">12sp</dimen>
+    <dimen name="font_plot_detail_list_text_mid">14sp</dimen>
+    <dimen name="font_plot_detail_list_text_big">16sp</dimen>
+    <string name="font_plot_detail_list_intent_plot_id">plotId</string>
+    <string name="front_plot_detail_list_log_tag_activity_item">AgriNavPlotDetailItem</string>
+    <string name="front_plot_detail_list_log_tag_activity_list">AgriNavPlotDetailList</string>
+    <string name="request_plot_exclude_boundary">/landPlotExclude/queryByLandPlotId</string>
+    <string name="request_plot_exclude_boundary_param_id">landPlotId</string>
+    <string name="request_plot_exclude_boundary_error_net">网络开小差了,插花地故障</string>
+    <string name="request_plot_exclude_boundary_error_request">请求有问题，请联系开发者</string>
+    <string name="request_plot_exclude_boundary_error_no_data">暂无插花地内空洞数据</string>
+    <string name="plot_type_insert">插花地</string>
+</resources>

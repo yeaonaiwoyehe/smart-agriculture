@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/grey_background"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/personal_margin_around_max"
+        android:focusableInTouchMode="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="left"
+                android:text="@string/feedback_question_tag"
+                android:textSize="@dimen/feedback_text_size"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                tools:ignore="RtlHardcoded" />
+
+            <TextView
+                android:id="@+id/tv_feedback_mine"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:text="@string/feedback_question_mine"
+                android:textSize="@dimen/feedback_text_size"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+        <!-- 修改标签选择区域：添加圆角背景 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/feedback_margin_top"
+            android:background="@drawable/bg_white_rounded"
+            android:padding="@dimen/feedback_padding">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_all_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                card_view:chipSpacingHorizontal="@dimen/feedback_card_corner"
+                card_view:chipSpacingVertical="@dimen/feedback_card_corner"/>
+
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/feedback_margin_top"
+            card_view:cardCornerRadius="@dimen/feedback_card_corner"
+            card_view:cardElevation="@dimen/feedback_card_elevation">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/edt_feedback"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:padding="@dimen/feedback_padding"
+                    android:hint="@string/feedback_input"
+                    android:textSize="@dimen/feedback_size_input"
+                    android:inputType="textMultiLine"
+                    android:background="@null"
+                    android:maxLines="@integer/feedback_text_line"
+                    android:minHeight="@dimen/feedback_text_height"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <Button
+            android:id="@+id/btn_send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/feedback_submit"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/feedback_margin_top"/>
+
+    </LinearLayout>
+
+</LinearLayout>

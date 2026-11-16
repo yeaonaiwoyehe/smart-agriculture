@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/trajectory_text_background_time">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/trajectory_text_background_time_color" />
+            <corners android:radius="@dimen/radio_corner_small" />
+        </shape>
+    </item>
+</layer-list>

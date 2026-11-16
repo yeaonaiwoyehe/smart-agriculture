@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.agri.cms.system.mapper.LandPlotMapper">
+    <update id="subtractArea">
+        UPDATE public.land_plot
+        SET land_area = land_area - #{area}
+        WHERE id = #{landPlotId}
+    </update>
+    <select id="queryByConditions" parameterType="java.util.Map" resultType="com.agri.cms.system.domain.LandPlot">
+        SELECT lp.*
+        FROM public.land_plot lp
+        WHERE 1=1
+        <if test="landType != null and landType != ''">
+            AND lp.land_type = #{landType}
+        </if>
+        <if test="landName != null and landName != '' ">
+            AND lp.land_name LIKE CONCAT('%', #{landName}, '%')
+        </if>
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            AND lp.create_time BETWEEN TO_TIMESTAMP(#{startTime}, 'YYYY-MM-DD HH24:MI:SS') AND TO_TIMESTAMP(#{endTime},
+            'YYYY-MM-DD HH24:MI:SS')
+        </if>
+        <if test="beginArea != null and endArea != null">
+            AND lp.land_area BETWEEN CAST(#{beginArea} AS REAL) AND CAST(#{endArea} AS REAL)
+        </if>
+        <if test="phoneNumber != null and phoneNumber != ''">
+            AND lp.create_by = #{phoneNumber}
+        </if>
+        <if test="measurementMethod != null and measurementMethod != ''">
+            AND lp.measurement_method = #{measurementMethod}
+        </if>
+        <if test="address != null and address != ''">
+            AND lp.address LIKE CONCAT('%', #{address}, '%')
+        </if>
+        <!-- 按创建时间降序排序 -->
+        ORDER BY lp.create_time DESC
+        <!-- 添加分页逻辑 -->
+        -- 如果存在，则使用limit和offset进行分页，否则直接返回全部数据
+        <if test="size != null and size != ''">
+            <if test="current != null and current != ''">
+                LIMIT #{size} OFFSET (#{current} - 1) * #{size}
+            </if>
+        </if>
+    </select>
+    <select id="queryBoundaryByLocation" resultType="java.lang.String" parameterType="java.lang.String">
+        WITH university_boundary AS (
+        SELECT ST_Union(ST_Buffer(boundary, 0.005)) AS merged_geometry
+        FROM public.land_plot
+        WHERE address LIKE '%' || #{location} || '%'
+        AND land_area > 0
+        )
+        SELECT ST_AsText(
+        ST_Simplify(
+        ST_Envelope(merged_geometry),
+        0.0001
+        )
+        ) AS university_boundary_wkt
+        FROM university_boundary
+    </select>
+    <select id="countByConditions" parameterType="java.util.Map" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM public.land_plot lp
+        WHERE 1=1
+        <if test="landType != null and landType != ''">
+            AND lp.land_type = #{landType}
+        </if>
+        <if test="landName != null and landName != '' ">
+            AND lp.land_name LIKE CONCAT('%', #{landName}, '%')
+        </if>
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            AND lp.create_time BETWEEN TO_TIMESTAMP(#{startTime}, 'YYYY-MM-DD HH24:MI:SS') AND TO_TIMESTAMP(#{endTime},
+            'YYYY-MM-DD HH24:MI:SS')
+        </if>
+        <if test="beginArea != null and endArea != null">
+            AND lp.land_area BETWEEN CAST(#{beginArea} AS REAL) AND CAST(#{endArea} AS REAL)
+        </if>
+        <if test="phoneNumber != null and phoneNumber != ''">
+            AND lp.create_by = #{phoneNumber}
+        </if>
+        <if test="measurementMethod != null and measurementMethod != ''">
+            AND lp.measurement_method = #{measurementMethod}
+        </if>
+        <if test="address != null and address != ''">
+            AND lp.address LIKE CONCAT('%', #{address}, '%')
+        </if>
+    </select>
+    <select id="queryPointByLocation" resultType="java.lang.String">
+        SELECT ST_AsText(ST_ForcePolygonCCW(boundary)) AS polygon_wkt
+        FROM public.land_plot
+        WHERE address LIKE '%' || #{location} || '%'
+        AND ST_GeometryType(boundary) = 'ST_Polygon'
+    </select>
+    <select id="queryHeatmapData" resultType="com.agri.cms.system.domain.vo.HeatmapDataVO">
+    SELECT
+        id,
+        ST_X(center_point::geometry) AS latitude,
+        ST_Y(center_point::geometry) AS longitude,
+        land_area AS weight
+    FROM public.land_plot
+    WHERE is_deleted = 0
+    AND center_point IS NOT NULL
+</select>
+</mapper>

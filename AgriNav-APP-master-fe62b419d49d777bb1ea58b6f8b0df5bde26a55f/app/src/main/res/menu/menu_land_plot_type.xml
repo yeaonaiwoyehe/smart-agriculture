@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_add"
+        android:title="@string/land_plot_add"/>
+    <item android:id="@+id/menu_again"
+        android:title="@string/land_plot_again"/>
+    <item android:id="@+id/menu_small"
+        android:title="@string/land_plot_small"/>
+</menu>

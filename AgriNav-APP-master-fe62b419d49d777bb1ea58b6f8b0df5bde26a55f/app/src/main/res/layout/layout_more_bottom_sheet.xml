@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/style_bottom_sheet">
+
+    <TextView
+        android:id="@+id/tv_login_finger_more_change"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_finger_item_height"
+        android:gravity="center"
+        android:text="@string/login_finger_change_bottom"
+        android:textColor="@color/black"
+        android:textSize="@dimen/login_finger_text_size_mid" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_finger_bottom_division_small"
+        android:background="@color/grey" />
+
+    <TextView
+        android:id="@+id/tv_login_finger_more_register"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_finger_item_height"
+        android:gravity="center"
+        android:text="@string/login_finger_bottom_register"
+        android:textColor="@color/black"
+        android:textSize="@dimen/login_finger_text_size_mid" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_finger_bottom_division_mid"
+        android:background="@color/grey" />
+
+    <TextView
+        android:id="@+id/tv_login_finger_more_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_finger_item_height"
+        android:gravity="center"
+        android:text="@string/login_finger_cancel"
+        android:textColor="@color/black"
+        android:textSize="@dimen/login_finger_text_size_mid" />
+
+</LinearLayout>

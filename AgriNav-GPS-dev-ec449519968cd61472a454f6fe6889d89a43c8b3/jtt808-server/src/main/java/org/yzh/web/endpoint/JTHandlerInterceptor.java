@@ -1,0 +1,123 @@
+package org.yzh.web.endpoint;
+
+import io.github.yezhihao.netmc.core.HandlerInterceptor;
+import io.github.yezhihao.netmc.session.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yzh.protocol.basics.JTMessage;
+import org.yzh.protocol.commons.JT808;
+import org.yzh.protocol.t808.T0001;
+import org.yzh.protocol.t808.T0200;
+import org.yzh.web.model.entity.DeviceDO;
+import org.yzh.web.model.enums.SessionKey;
+
+public class JTHandlerInterceptor implements HandlerInterceptor<JTMessage> {
+
+    private static final Logger log = LoggerFactory.getLogger(JTHandlerInterceptor.class);
+
+    /** 未找到对应的Handle */
+    @Override
+    public JTMessage notSupported(JTMessage request, Session session) {
+        T0001 response = new T0001();
+        response.copyBy(request);
+        response.setMessageId(JT808.平台通用应答);
+        response.setSerialNo(session.nextSerialNo());
+
+        response.setResponseSerialNo(request.getSerialNo());
+        response.setResponseMessageId(request.getMessageId());
+        response.setResultCode(T0001.NotSupport);
+
+        log.info("{}\n<<<<-未识别的消息{}\n>>>>-{}", session, request, response);
+        return response;
+    }
+
+
+    /** 调用之后，返回值为void的 */
+    @Override
+    public JTMessage successful(JTMessage request, Session session) {
+        T0001 response = new T0001();
+        response.copyBy(request);
+        response.setMessageId(JT808.平台通用应答);
+        response.setSerialNo(session.nextSerialNo());
+
+        response.setResponseSerialNo(request.getSerialNo());
+        response.setResponseMessageId(request.getMessageId());
+        response.setResultCode(T0001.Success);
+
+//        log.info("{}\n<<<<-{}\n>>>>-{}", session, request, response);
+        return response;
+    }
+
+    /** 调用之后抛出异常的 */
+    @Override
+    public JTMessage exceptional(JTMessage request, Session session, Exception e) {
+        T0001 response = new T0001();
+        response.copyBy(request);
+        response.setMessageId(JT808.平台通用应答);
+        response.setSerialNo(session.nextSerialNo());
+
+        response.setResponseSerialNo(request.getSerialNo());
+        response.setResponseMessageId(request.getMessageId());
+        response.setResultCode(T0001.Failure);
+
+        log.warn(session + "\n<<<<-" + request + "\n>>>>-" + response + '\n', e);
+        return response;
+    }
+
+    /** 调用之前 */
+    @Override
+    public boolean beforeHandle(JTMessage request, Session session) {
+        int messageId = request.getMessageId();
+        
+        // 终端注册和终端鉴权消息不需要拦截
+        if (messageId == JT808.终端注册 || messageId == JT808.终端鉴权) {
+            return true;
+        }
+
+        
+        // 位置信息汇报只需要设备已注册
+        if (messageId == JT808.位置信息汇报) {
+            if (session.isRegistered()) {
+                DeviceDO device = SessionKey.getDevice(session);
+                if (device != null) {
+                    device.setLocation((T0200) request);
+                }
+                return true;
+            } else {
+                log.warn("{}未注册的设备尝试发送位置信息<<<<-{}", session, request);
+                return false;
+            }
+        }
+
+        
+        // 对于其他所有消息，设备必须已注册且已鉴权
+        if (!session.isRegistered()) {
+            log.warn("{}未注册或未鉴权的设备尝试发送消息<<<<-{}", session, request);
+            return false;
+        }
+        
+        // 位置信息汇报的特殊处理
+        if (messageId == JT808.位置信息汇报) {
+            DeviceDO device = SessionKey.getDevice(session);
+            if (device != null) {
+                device.setLocation((T0200) request);
+            }
+        }
+        
+        return request.transform();
+    }
+
+    /** 调用之后 */
+    @Override
+    public void afterHandle(JTMessage request, JTMessage response, Session session) {
+        if (response != null) {
+            response.copyBy(request);
+            response.setSerialNo(session.nextSerialNo());
+
+            if (response.getMessageId() == 0) {
+                response.setMessageId(response.reflectMessageId());
+            }
+        }
+//        log.info("{}\n<<<<-{}\n>>>>-{}", session, request, response);
+    }
+}

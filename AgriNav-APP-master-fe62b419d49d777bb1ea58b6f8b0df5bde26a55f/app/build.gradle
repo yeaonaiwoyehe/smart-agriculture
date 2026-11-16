@@ -1,0 +1,102 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+// 端点地址从 app/endpoint.properties 读取（已加入 .gitignore，不入库）
+// 缺省使用 10.0.2.2，即 Android 模拟器访问宿主机 localhost 的专用地址
+def endpointProps = new Properties()
+def endpointFile = file("endpoint.properties")
+if (endpointFile.exists()) {
+    endpointProps.load(new FileInputStream(endpointFile))
+}
+def serverUrl = endpointProps.getProperty("serverUrl", "http://10.0.2.2:8088")
+def jtt808Ip = endpointProps.getProperty("jtt808Ip", "http://10.0.2.2:7100")
+
+android {
+    namespace 'cn.agrinav'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "cn.agrinav"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        resValue "string", "server_url", serverUrl
+        resValue "string", "jtt808_ip", jtt808Ip
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    packagingOptions {
+        exclude 'META-INF/io.netty.versions.properties'
+        exclude 'META-INF/INDEX.LIST'
+    }
+    buildFeatures{
+        dataBinding true
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation "io.noties.markwon:core:4.6.2"
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'io.netty:netty-all:4.1.86.Final'
+    implementation 'com.github.bumptech.glide:glide:5.0.0-rc01'
+    implementation libs.firebase.crashlytics.buildtools
+    annotationProcessor 'com.github.bumptech.glide:compiler:5.0.0-rc01'
+    // 增加如下库
+    implementation "androidx.biometric:biometric:1.1.0"
+    implementation group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    implementation 'io.github.youth5201314:banner:2.2.3'
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    implementation 'androidx.room:room-runtime:2.6.1'
+    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+    api 'com.tencent.mm.opensdk:wechat-sdk-android:+'
+    implementation  'io.github.scwang90:refresh-layout-kernel:2.1.0'      //核心必须依赖
+    implementation  'io.github.scwang90:refresh-header-classics:2.1.0'    //经典刷新头
+    implementation  'io.github.scwang90:refresh-header-radar:2.1.0'       //雷达刷新头
+    implementation  'io.github.scwang90:refresh-header-falsify:2.1.0'     //虚拟刷新头
+    implementation  'io.github.scwang90:refresh-header-material:2.1.0'    //谷歌刷新头
+    implementation  'io.github.scwang90:refresh-header-two-level:2.1.0'   //二级刷新头
+    implementation  'io.github.scwang90:refresh-footer-ball:2.1.0'        //球脉冲加载
+    implementation  'io.github.scwang90:refresh-footer-classics:2.1.0'    //经典加载
+
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    //扫码的库
+    // https://mvnrepository.com/artifact/com.google.zxing/core
+    implementation 'com.google.zxing:core:3.5.3'
+// https://mvnrepository.com/artifact/com.journeyapps/zxing-android-embedded
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+
+    //滑动的库
+    implementation 'com.github.donkingliang:ConsecutiveScroller:4.6.4'
+
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
+    def camerax_version = "1.1.0-beta01"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    implementation "androidx.camera:camera-video:${camerax_version}"
+    implementation "androidx.camera:camera-view:${camerax_version}"
+    implementation "androidx.camera:camera-extensions:${camerax_version}"
+}

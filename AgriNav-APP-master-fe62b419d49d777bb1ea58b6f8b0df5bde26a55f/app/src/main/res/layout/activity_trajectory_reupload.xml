@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:background="@color/grey_background"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@color/green_final"
+        app:titleCentered="true">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reload_text_action_bar"
+            android:textColor="@color/white"
+            android:layout_gravity="center"
+            android:textSize="18sp"/>
+    </com.google.android.material.appbar.MaterialToolbar>
+    <GridView
+        android:verticalSpacing="@dimen/margin_component_tiny"
+        android:layout_marginHorizontal="@dimen/margin_component_tiny"
+        android:id="@+id/list_trajectory_reload"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+  </LinearLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item >
+        <shape>
+            <corners android:radius="@dimen/btn_style_radius_conner"/>
+            <padding android:bottom="@dimen/btn_style_padding_v" android:top="@dimen/btn_style_padding_v" android:left="@dimen/btn_style_padding_h" android:right="@dimen/btn_style_padding_h"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="find_farm_linearlayout_padding">10dp</dimen>
+    <dimen name="find_farm_line_margin_top">10dp</dimen>
+    <dimen name="find_farm_line_margin_start">10dp</dimen>
+    <dimen name="find_farm_list_title_padding">50dp</dimen>
+    <dimen name="find_farm_arrowhead_margin_start">1dp</dimen>
+    <dimen name="find_farm_more_selection_margin_top">3dp</dimen>
+    <dimen name="find_farm_tags_padding">8dp</dimen>
+    <dimen name="find_farm_line_height">52dp</dimen>
+
+    <dimen name="find_farm_list_title_size">20sp</dimen>
+    <dimen name="find_farm_more_selection_size">14sp</dimen>
+    <dimen name="find_farm_list_title">18sp</dimen>
+    <dimen name="find_farm_list_hint">18sp</dimen>
+
+    
+    <string name="required_logo">*</string>
+    <string name="find_farm_selector_tag">></string>
+    <string name="find_farm_multiple_choices">(多选)</string>
+    <string name="find_farm_detail_first_title">提交信息</string>
+    <string name="find_farm_detail_update_title">修改信息</string>
+    <string name="find_farm_task_name">任务名</string>
+    <string name="find_farm_land_plots">地块</string>
+    <string name="find_farm_land_size">地块亩数</string>
+    <string name="find_farm_crops">作物</string>
+    <string name="find_farm_operation_type">作业类型</string>
+    <string name="find_farm_operation_date">作业期限</string>
+    <string name="find_farm_contact_method">联系方式</string>
+
+
+
+    <string name="find_farm_task_name_hint">请输入任务名</string>
+    <string name="find_farm_land_plot_select">请选择地块</string>
+    <string name="find_farm_land_size_hint">请输入亩数</string>
+    <string name="find_farm_crop_select">请选择作物</string>
+    <string name="find_farm_operation_type_select">请选择作业类型</string>
+    <string name="find_farm_operation_date_select">请选择作业期限</string>
+    <string name="find_farm_contact_method_hint">请输入联系方式</string>
+
+    <string name="find_farm_detail_publish">发布</string>
+    <string name="find_farm_detail_update">保存</string>
+</resources>

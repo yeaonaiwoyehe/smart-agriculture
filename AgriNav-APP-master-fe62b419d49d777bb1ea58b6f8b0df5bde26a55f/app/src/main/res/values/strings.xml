@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">田界智航</string>
+    <string name="font">首页</string>
+    <string name="measure">量地</string>
+    <string name="trajectory">轨迹</string>
+    <string name="personal">我的</string>
+    <string name="fragment_index">跳转回的首页的fragment序号</string>
+    <integer name="fragment_index_front">0</integer>
+    <integer name="fragment_index_measure">1</integer>
+    <integer name="fragment_index_trajectory">2</integer>
+    <integer name="fragment_index_personal">3</integer>
+    <!--引导页文本-->
+    <string name="jump">跳过</string>
+    <!-- server_url、jtt808_ip 由 app/build.gradle 根据 app/endpoint.properties 生成，
+         默认指向模拟器宿主机 10.0.2.2，真实地址不要写进版本库，参考 endpoint.properties.example -->
+    <integer name="request_success">200</integer>
+    <string name="request_header_key_token">Authorization</string>
+    <dimen name="page_padding">35dp</dimen>
+
+    <dimen name="radio_corner_mini">7dp</dimen>
+    <dimen name="radio_corner_small">10dp</dimen>
+    <dimen name="radio_corner_mid">15dp</dimen>
+    <dimen name="radio_corner_big">20dp</dimen>
+    <dimen name="border_width_small">1dp</dimen>
+    <dimen name="border_width_mid">2dp</dimen>
+    <dimen name="border_width_big">3dp</dimen>
+
+    <dimen name="margin_component_tiny">10dp</dimen>
+    <dimen name="margin_component_small">15dp</dimen>
+    <dimen name="margin_component_mid">20dp</dimen>
+    <dimen name="margin_component_big">30dp</dimen>
+
+
+    <!--    屏幕尺寸-->
+    <dimen name="screen_width">375dp</dimen>
+    <dimen name="screen_height">812dp</dimen>
+    <integer name="take_photo_interval">30000</integer>
+</resources>

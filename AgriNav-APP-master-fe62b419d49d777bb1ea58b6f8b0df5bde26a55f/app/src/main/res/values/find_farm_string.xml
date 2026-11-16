@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="find_farm_head">寻找农机</string>
+    <dimen name="find_farm_title">48dp</dimen>
+    <dimen name="find_farm_image_size">24dp</dimen>
+    <dimen name="find_farm_padding_horizontal">16dp</dimen>
+    <dimen name="find_farm_grid_layout_margin">8dp</dimen>
+    <dimen name="find_farm_horizontal_spacing">7dp</dimen>
+    <dimen name="find_farm_vertical_spacing">10dp</dimen>
+    <dimen name="find_farm_top_title_size">20sp</dimen>
+</resources>

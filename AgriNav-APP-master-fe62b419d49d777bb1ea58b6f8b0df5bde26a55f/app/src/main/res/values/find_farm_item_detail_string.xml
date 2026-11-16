@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="find_item_banner_page">345dp</dimen>
+    <dimen name="find_item_icon_lay_width">30dp</dimen>
+    <dimen name="find_item_icon_lay_height">48dp</dimen>
+    <dimen name="find_item_icon_width">5dp</dimen>
+    <dimen name="find_item_icon_height">18dp</dimen>
+    <dimen name="find_item_detail_title_height">48dp</dimen>
+    <dimen name="find_item_detail_title_size">18sp</dimen>
+
+    <string name="find_item_detail_title">详情</string>
+    <string name="find_item_task_name">任务名</string>
+    <string name="find_item_land_plot">地块</string>
+    <string name="find_item_land_plot_area">地块亩数</string>
+    <string name="find_item_work_location">作业区域</string>
+    <string name="find_item_crops">作物</string>
+    <string name="find_item_operation">作业类型</string>
+    <string name="find_item_work_time">作业有效期</string>
+
+</resources>

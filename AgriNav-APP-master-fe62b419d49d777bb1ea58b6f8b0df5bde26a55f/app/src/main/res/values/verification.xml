@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="verification_toast_to_input">输入短信验证码</string>
+    <string name="verification_send">验证码已发送至</string>
+    <string name="verification_get">获取验证码</string>
+    <string name="verification_get_repeat">重新获取验证码</string>
+    <dimen name="verification_code_line_width">290dp</dimen>
+    <dimen name="verification_btn_width">210dp</dimen>
+    <dimen name="verification_btn_margin_top">18dp</dimen>
+    <dimen name="verification_btn_text_size">16sp</dimen>
+    <dimen name="verification_text_view_text_size_small">15sp</dimen>
+    <dimen name="verification_text_view_text_size_big">30sp</dimen>
+</resources>

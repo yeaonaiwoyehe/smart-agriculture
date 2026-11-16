@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".user.login.otherways.GestureActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/bg" />
+
+    <TextView
+        android:id="@+id/tv_login_gesture_more_protocol"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/gesture_margin_end"
+        android:layout_marginTop="@dimen/gesture_margin_top"
+        android:gravity="end"
+        android:text="@string/gesture_more_way"
+        android:textSize="@dimen/gesture_text_size_mid" />
+
+    <TextView
+        android:id="@+id/gesture_paint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gesture_text"
+        android:textSize="@dimen/gesture_text_size_big"
+        android:textColor="@color/black_text"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="@dimen/gesture_margin_small"
+        android:layout_above="@id/id_gestureLockViewGroup"
+        android:fontFamily="@font/ping_fang" />
+    <cn.agrinav.user.login.otherways.gesture.GestureLockViewGroup
+        android:layout_centerInParent="true"
+        android:id="@+id/id_gestureLockViewGroup"
+        android:layout_width="270dp"
+        android:layout_height="270dp"
+        app:barrierMargin="20dp"
+        app:color_no_finger_outer_circle="@color/grey"
+        app:color_finger_up="@color/green"
+        app:color_finger_on="@color/green"
+        android:gravity="center_vertical"
+        app:count="3"
+        app:tryTimes="5"/>
+    <TextView
+        android:id="@+id/gesture_other_way"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gesture_other_way"
+        android:textSize="@dimen/gesture_text_size_mid"
+        android:textColor="@color/black_text"
+        android:layout_marginBottom="@dimen/gesture_margin_small"
+        android:layout_marginTop="@dimen/gesture_margin_big"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/id_gestureLockViewGroup"
+        android:fontFamily="@font/ping_fang"/>
+        <RelativeLayout
+            android:id="@+id/gesture_on"
+            android:layout_width="270dp"
+            android:layout_height="270dp"
+            android:layout_centerInParent="true"/>
+</RelativeLayout>

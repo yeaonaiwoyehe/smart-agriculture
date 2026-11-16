@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--指纹登录-->
+    <string name="login_finger_more">更多</string>
+    <string name="login_finger_text">指纹登录</string>
+    <string name="login_finger_change_text">换个登录方式</string>
+    <string name="login_finger_more_bottom">短信验证码登录</string>
+    <string name="login_finger_more_wechat">微信登录</string>
+    <string name="login_finger_cancel">取消</string>
+    <string name="login_finger_change_bottom">换个账号登录</string>
+    <string name="login_finger_bottom_register">注册</string>
+    <string name="login_finger_no_device">手机不支持指纹</string>
+    <string name="login_finger_no_support">指纹不可用</string>
+    <string name="login_finger_no_finger">暂无指纹信息</string>
+    <string name="login_finger_app_error">出错了，请用手机号登录</string>
+    <string name="login_finger_toast_error">指纹有误</string>
+    <string name="login_finger_message_title">请验证指纹</string>
+    <string name="login_finger_negative">退出指纹验证</string>
+    <dimen name="login_finger_margin_small">15dp</dimen>
+    <dimen name="login_finger_margin_mid">20dp</dimen>
+    <dimen name="login_finger_margin_max">30dp</dimen>
+    <dimen name="login_finger_margin_max_more">40dp</dimen>
+    <dimen name="login_finger_bottom_division_small">1dp</dimen>
+    <dimen name="login_finger_bottom_division_mid">5dp</dimen>
+    <dimen name="login_finger_bottom_division_big">10dp</dimen>
+    <dimen name="login_finger_avatar_size">100dp</dimen>
+    <dimen name="login_finger_text_size_small">12sp</dimen>
+    <dimen name="login_finger_text_size_mid">16sp</dimen>
+    <dimen name="login_finger_text_size_max">30sp</dimen>
+    <dimen name="login_finger_item_height">50dp</dimen>
+</resources>

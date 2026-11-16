@@ -1,0 +1,40 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.AgriNav" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/green</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="fontFamily">@font/ping_fang</item>
+    </style>
+
+
+    <style name="Theme.AgriNav" parent="Base.Theme.AgriNav" />
+    <style name="point" parent="Theme.MaterialComponents.DayNight.Bridge">
+        <item name="background">@drawable/style_button_point_mode</item>
+    </style>
+    <!--设置背景透明-->
+    <style name="BottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
+    </style>
+
+    <style name="bottomSheetStyleWrapper" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+<!--下面是关于时间选择器的主题-->
+    <style name="ThemeOverlay.App.DatePicker" parent="@style/ThemeOverlay.Material3.MaterialCalendar">
+        <item name="colorPrimary">@color/green</item>
+        <item name="colorOnPrimary">@color/green</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.MaterialComponents.LargeComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.MaterialComponents.LargeComponent</item>
+        <!-- Customize text field of the text input mode. -->
+        <item name="textInputStyle">@style/Widget.Design.TextInputLayout</item>
+    </style>
+<!--    关于筛选里面按钮的主题-->
+<!--    确认按钮-->
+    <style name="ThemeOverlay.App.Button" parent="ThemeOverlay.Material3.Button">
+        <item name="colorContainer">@color/green</item>
+        <item name="colorOnContainer">@color/green</item>
+    </style>
+</resources>

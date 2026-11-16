@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_err_net_or_server">网络开小差了,请稍后再试…</string>
+    <string name="toast_err_server">后端故障,无响应体</string>
+    <string name="toast_err_request">登录信息失效,请重新登录</string>
+    <string name="toast_err_json">json解析失败</string>
+    <string name="toast_err_data">暂无数据</string>
+
+
+    <string name="toast_trajectory_location_error">定位失败，请稍后再试</string>
+    <string name="toast_trajectory_location_ing">正在定位，请稍后再试</string>
+    <string name="toast_trajectory_location_province">请先选择省</string>
+    <string name="toast_trajectory_location_city">请先选择市</string>
+    <string name="toast_trajectory_location_country">请先选择县</string>
+    <string name="toast_trajectory_location_town">请先选择镇</string>
+    <string name="toast_trajectory_data_address_error">暂无地址数据</string>
+</resources>

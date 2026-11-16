@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/tool_bar"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@color/green_final"
+        app:titleCentered="true">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/personal_info"
+        android:textSize="@dimen/personal_info_text_size_mid"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:layout_margin="@dimen/personal_margin_around_mid"/>
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <LinearLayout
+        android:id="@+id/personal_snack_bar_container"
+        android:layout_marginTop="100dp"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:orientation="horizontal"
+        android:visibility="invisible">
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@+id/tool_bar">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/personal_margin_around_small"
+            android:background="@color/grey" />
+
+        <LinearLayout
+            android:id="@+id/person_edit_avatar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/personal_info_height"
+            android:layout_marginTop="@dimen/personal_info_margin_top"
+            android:layout_marginLeft="@dimen/personal_info_margin_around"
+            android:layout_marginRight="@dimen/personal_info_margin_around">
+
+
+            <TextView
+                android:layout_width="@dimen/personal_info_size_avatar"
+                android:layout_height="@dimen/personal_info_size_avatar"
+                android:gravity="center_vertical"
+                android:text="@string/personal_info_avatar"
+                android:textColor="@color/black"
+                android:textSize="@dimen/personal_size_text_max" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/personal_info_height"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/iv_edit_avatar"
+                    android:layout_width="@dimen/personal_info_size_avatar"
+                    android:layout_height="@dimen/personal_info_size_avatar" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/personal_margin_around_small"
+            android:background="@color/grey" />
+
+        <LinearLayout
+            android:id="@+id/person_edit_name"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/personal_info_height"
+            android:layout_marginLeft="@dimen/personal_info_margin_around"
+            android:layout_marginRight="@dimen/personal_info_margin_around">
+
+
+            <TextView
+                android:layout_width="@dimen/personal_info_height"
+                android:layout_height="@dimen/personal_info_height"
+                android:gravity="center_vertical"
+                android:text="@string/personal_info_name"
+                android:textColor="@color/black"
+                android:textSize="@dimen/personal_size_text_max" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tv_edit_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/personal_info_height"
+                    android:gravity="center"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/personal_size_text_max" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>

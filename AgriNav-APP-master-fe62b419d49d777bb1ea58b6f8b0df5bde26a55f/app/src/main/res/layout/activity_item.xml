@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.amap.api.maps.MapView
+            android:id="@+id/mapView_item"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        <cn.agrinav.trajectory.component.SwitchView
+            android:id="@+id/switch_choose_view"
+            android:layout_width="@dimen/switch_width"
+            android:layout_height="@dimen/switch_height"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="@dimen/margin_component_big"
+            android:layout_marginEnd="@dimen/margin_component_mid"
+            app:text_left="@string/trajectory_switch_text_left"
+            app:text_right="@string/trajectory_switch_text_right" />
+    </RelativeLayout>
+
+</RelativeLayout>

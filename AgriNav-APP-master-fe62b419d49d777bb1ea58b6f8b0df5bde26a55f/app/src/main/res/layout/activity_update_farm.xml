@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey_background">
+
+    <LinearLayout
+        android:id="@+id/toolbar_update_find_farm"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/find_farm_list_title_padding"
+        android:background="@color/white"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/find_farm_detail_update_title"
+            android:textColor="@color/black"
+            android:layout_gravity="center"
+            android:textSize="@dimen/find_farm_list_title_size"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar_update_find_farm">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/find_farm_linearlayout_padding">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/find_farm_line_height"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/find_farm_linearlayout_padding"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_logo"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_work_name_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_task_name"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold"/>
+
+                <EditText
+                    android:id="@+id/edt_work_name_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/find_farm_line_margin_start"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:hint="@string/find_farm_task_name_hint"
+                    android:textSize="@dimen/find_farm_list_hint" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/find_farm_line_height"
+                android:layout_marginTop="@dimen/find_farm_line_margin_top"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/find_farm_linearlayout_padding"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tv_earth_select_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_land_plots"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_multiple_choices"
+                    android:textSize="@dimen/find_farm_more_selection_size"
+                    android:layout_marginTop="@dimen/find_farm_more_selection_margin_top"
+                    android:textColor="@color/grey_hint" />
+
+                <EditText
+                    android:id="@+id/edt_earth_select_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/find_farm_line_margin_start"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:focusable="false"
+                    android:hint="@string/find_farm_land_plot_select"
+                    android:textSize="@dimen/find_farm_list_hint" />
+
+                <TextView
+                    android:id="@+id/tv_tap_update"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:paddingStart="7dp"
+                    android:hint="@string/find_farm_selector_tag"
+                    android:textSize="@dimen/find_farm_list_hint" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_land_plot_tags_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="@dimen/find_farm_tags_padding"
+                android:paddingBottom="@dimen/find_farm_tags_padding"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/find_farm_line_height"
+                android:layout_marginTop="@dimen/find_farm_line_margin_top"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/find_farm_linearlayout_padding"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_logo"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_earth_num_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_land_size"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edt_earth_num_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/find_farm_line_margin_start"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:hint="@string/find_farm_land_size_hint"
+                    android:inputType="numberDecimal"
+                    android:textSize="@dimen/find_farm_list_hint" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rl_crop_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/find_farm_line_height"
+                android:layout_marginTop="@dimen/find_farm_line_margin_top"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/find_farm_linearlayout_padding"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tv_crop_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_crops"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_multiple_choices"
+                    android:textSize="@dimen/find_farm_more_selection_size"
+                    android:layout_marginTop="@dimen/find_farm_more_selection_margin_top"
+                    android:textColor="@color/grey_hint" />
+
+                <EditText
+                    android:id="@+id/edt_farm_crop_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/find_farm_line_margin_start"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:focusable="false"
+                    android:hint="@string/find_farm_crop_select"
+                    android:textSize="@dimen/find_farm_list_hint" />
+
+                <TextView
+                    android:id="@+id/tv_tap_one_update"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:paddingStart="7dp"
+                    android:hint="@string/find_farm_selector_tag"
+                    android:textSize="@dimen/find_farm_list_hint"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_crop_tags_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="@dimen/find_farm_tags_padding"
+                android:paddingBottom="@dimen/find_farm_tags_padding"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/find_farm_line_height"
+                android:layout_marginTop="@dimen/find_farm_line_margin_top"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/find_farm_linearlayout_padding"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_logo"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_earth_type_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_operation_type"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_multiple_choices"
+                    android:textSize="@dimen/find_farm_more_selection_size"
+                    android:layout_marginTop="@dimen/find_farm_more_selection_margin_top"
+                    android:textColor="@color/grey_hint" />
+
+                <EditText
+                    android:id="@+id/edt_earth_type_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/find_farm_line_margin_start"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:focusable="false"
+                    android:hint="@string/find_farm_operation_type_select"
+                    android:textSize="@dimen/find_farm_list_hint" />
+
+                <TextView
+                    android:id="@+id/tv_tap_two_update"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:paddingStart="7dp"
+                    android:hint="@string/find_farm_selector_tag"
+                    android:textSize="@dimen/find_farm_list_hint" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_operation_tags_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="@dimen/find_farm_tags_padding"
+                android:paddingBottom="@dimen/find_farm_tags_padding"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/find_farm_line_height"
+                android:layout_marginTop="@dimen/find_farm_line_margin_top"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/find_farm_linearlayout_padding"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_logo"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_farm_phone_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_contact_method"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold"/>
+
+                <EditText
+                    android:id="@+id/edt_farm_phone_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/find_farm_line_margin_start"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:hint="@string/find_farm_contact_method_hint"
+                    android:inputType="phone"
+                    android:textSize="@dimen/find_farm_list_hint" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/find_farm_line_height"
+                android:layout_marginTop="@dimen/find_farm_line_margin_top"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/find_farm_linearlayout_padding"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_logo"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_farm_time_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_farm_operation_date"
+                    android:textSize="@dimen/find_farm_list_title"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edt_farm_time_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/find_farm_line_margin_start"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:hint="@string/find_farm_operation_date_select"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:textSize="@dimen/find_farm_list_hint" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_find_farm_publish_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/find_farm_line_margin_top"
+                android:text="@string/find_farm_detail_update"
+                android:textSize="@dimen/find_farm_list_hint"/>
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:width="@dimen/gridView_item_image_width" android:height="@dimen/gridView_item_image_height">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/white" />
+            <corners android:topLeftRadius="@dimen/gridView_item_image_radius" android:topRightRadius="@dimen/gridView_item_image_radius"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,160 @@
+# 生产环境通过环境变量注入，不允许在版本库中保留真实凭据
+username: ${DEPLOY_USER:root}
+password: ${DEPLOY_PASSWORD:agrinav}
+server:
+  port: 8088
+# 数据源配置
+spring:
+  datasource:
+    druid:
+      stat-view-servlet:
+        enabled: true
+        loginUsername: ruoyi
+        loginPassword: 123456
+    dynamic:
+      druid:
+        initial-size: 5
+        min-idle: 5
+        maxActive: 20
+        maxWait: 60000
+        connectTimeout: 30000
+        socketTimeout: 60000
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: SELECT 1 FROM DUAL
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        filters: stat,slf4j
+        connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+      datasource:
+        # 主库数据源
+        master:
+          type: com.alibaba.druid.pool.DruidDataSource
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://10.2.20.6:3306/agri-navi?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${username}
+          password: ${password}
+        # 从库数据源
+        pg:
+          type: com.alibaba.druid.pool.DruidDataSource
+          lazy: true
+          driver-class-name: org.postgis.DriverWrapper
+          url: jdbc:postgresql_postGIS://10.2.20.11:5432/AgriNav
+          username: ${username}
+          password: ${password}
+          druid:
+            initial-size: 5                      # 初始连接数
+            max-active: 20                       # 最大活跃连接数
+            min-idle: 5                          # 最小空闲连接数
+            max-wait: 60000                      # 最大等待时间
+            validation-query: SELECT 1           # 验证查询
+            test-while-idle: true                # 空闲连接检测
+            time-between-eviction-runs-millis: 60000  # 检测间隔
+            min-evictable-idle-time-millis: 300000   # 连接最小空闲时间
+  data:
+    # redis 配置
+    redis:
+      # 地址
+      #      host: 82.156.217.74
+      host: 10.2.20.16
+      # 端口，默认为6379
+      port: 6379
+      # 数据库索引
+      database: 0
+      # 密码
+      password: ${password}
+      # 连接超时时间
+      timeout: 10s
+      lettuce:
+        pool:
+          # 连接池中的最小空闲连接
+          min-idle: 0
+          # 连接池中的最大空闲连接
+          max-idle: 8
+          # 连接池的最大数据库连接数
+          max-active: 8
+          # #连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-wait: -1ms
+      geo-distance: 1000
+  kafka:
+    bootstrap-servers: 10.2.20.16:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        acks: all
+        retries: 5
+        max.in.flight.requests.per.connection: 5
+  influxdb:
+    url: http://10.2.20.11:8086
+    token: J41htS3-Jv_TALRJi7srziWq92xmnHgKqRO7q0YSeTdFdYF0SJxKtWFWIuHd_kQnpc2aGPxzjcnsH091X-4Wwg==
+    bucket: trajectory
+    measurement: effective_point
+    org: agrinavi
+    startTime: 2024-09-01T00:00:00Z
+    tag:
+      phoneNumber: phoneNumber
+      plotId: plotId
+      token: token
+    field:
+      latitude: latitude
+      longitude: longitude
+      deviceTime: deviceTime
+  elasticsearch:
+    host: 10.2.20.3
+    port: 9200
+    username: ${username}
+    password: ${password}
+    scheme: http
+    index: original_point
+    request-size: 5000       # 添加请求大小配置
+
+    # 连接超时配置
+    connection-timeout: 30000     # 增加到30秒，考虑网络延迟
+    socket-timeout: 600000        # 增加到10分钟，适应大数据量查询
+
+    # 连接池配置
+    pool:
+      max-conn-total: 100        # 增加总连接数
+      max-conn-per-route: 40     # 增加每个路由的最大连接数
+      validate-after-inactivity: 2000  # 降低验证间隔
+
+    # 添加重试配置
+    retry:
+      max-retries: 3
+      initial-backoff: 1000
+
+    # 添加空闲连接配置
+    idle:
+      time: 10000                # 空闲连接超时时间
+      connections-per-route: 2    # 每个路由保持的最小空闲连接
+
+minio:
+  url: http://140.143.189.217:9000
+  accessKey: ${username}
+  secretKey: ${password}
+  bucketName: bkt-map
+
+
+tencentcloud:
+  account:
+    secret-id: ${TENCENT_SECRET_ID:}
+    secret-key: ${TENCENT_SECRET_KEY:}
+  sms:
+    sdk-app-id: ${SMS_APP_ID:}
+    sign-name: ${SMS_SIGN:田界智航APP}
+    template-id: ${SMS_TEMPLATE_ID:}
+justAuth:
+  mobile:
+    wechat:
+      client-id: ${WX_MOBILE_CLIENT_ID:}
+      client-secret: ${WX_MOBILE_CLIENT_SECRET:}
+  web:
+    wechat:
+      client-id: ${WX_WEB_CLIENT_ID:}
+      client-secret: ${WX_WEB_CLIENT_SECRET:}
+      redirect-uri: ${WX_WEB_REDIRECT_URI:http://localhost:8088/loginOAuth}

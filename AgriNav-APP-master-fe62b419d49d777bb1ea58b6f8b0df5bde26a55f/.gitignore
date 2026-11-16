@@ -1,0 +1,28 @@
+# Gradle / Android 构建产物
+*.iml
+.gradle
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# 本地配置（含端点地址，禁止入库）
+local.properties
+/app/endpoint.properties
+
+# IDE
+/.idea/
+*.swp
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志与临时文件
+*.log
+*.tmp

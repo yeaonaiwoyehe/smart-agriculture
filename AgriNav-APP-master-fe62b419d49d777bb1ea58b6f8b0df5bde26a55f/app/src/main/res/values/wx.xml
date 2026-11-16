@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 微信开放平台 AppID 属于公开客户端标识，供微信 SDK 注册使用 -->
+    <string name="wx_app_id">wx078ee4049701e25d</string>
+    <!-- AppSecret 属敏感信息，禁止入库；当前仅在注释代码中引用，如需启用请改用 Gradle 注入 -->
+    <string name="wx_secret"></string>
+    <string name="wx_url">https://api.weixin.qq.com</string>
+    <string name="wx_intent_code">code</string>
+    <string name="wx_intent_state">state</string>
+    <string name="wx_login_request_scope">snsapi_userinfo</string>
+    <string name="wx_login_request_state">agrinav</string>
+<!--    "wechat_sdk_demo_test"-->
+    <string name="wx_login_path">/loginWechatMobile</string>
+    <string name="wx_login_bind_phone_path">/system/user/bind</string>
+    <string name="wx_login_grant_type">authorization_code</string>
+    <string name="wx_request_login_path_get_access_token">/sns/oauth2/access_token</string>
+    <string name="wx_request_login_path_refresh_access_token">/sns/oauth2/refresh_token</string>
+    <string name="wx_request_login_path_confirm_access_token">/sns/auth</string>
+    <string name="wx_request_login_path_get_userinfo">/sns/userinfo</string>
+<!--    获取access_token接口的参数-->
+    <string name="wx_request_login_param_access_token_appid">appid</string>
+    <string name="wx_request_login_param_access_token_secret">grant_type</string>
+    <string name="wx_request_login_param_access_token_code">grant_type</string>
+    <string name="wx_request_login_param_access_token_grant_type">grant_type</string>
+    <!-- 刷新access_token接口的参数-->
+    <string name="wx_request_login_param_confirm_access_token">access_token</string>
+    <string name="wx_request_login_param_confirm_openid">openid</string>
+    <string name="wx_request_login_param_refresh_token_appid">appid</string>
+    <string name="wx_request_login_param_refresh_token_grant_type">grant_type</string>
+    <string name="wx_request_login_param_refresh_token_refresh_token">refresh_token</string>
+<!--    临时存储的数据结果-->
+    <string name="wx_pref_name">wx</string>
+    <string name="wx_pref_key_access_token">access_token</string>
+    <string name="wx_pref_key_expires_in">expires_in</string>
+    <string name="wx_pref_key_refresh_token">refresh_token</string>
+    <string name="wx_pref_key_openid">openid</string>
+    <string name="wx_pref_key_scope">scope</string>
+    <!-- 微信登录-->
+    <string name="wx_login_text">一键微信登录</string>
+    <string name="wx_login_other">其他方式登录</string>
+    <dimen name="wx_login_other_padding">10dp</dimen>
+    <string name="wx_login_welcome">欢迎使用微信登录</string>
+    <string name="wx_login_account_text">不想微信登录?</string>
+    <dimen name="wx_login_text_size_small">14sp</dimen>
+    <dimen name="wx_login_text_size_mid">16sp</dimen>
+    <dimen name="wx_login_text_size_big">18sp</dimen>
+    <string name="wx_login_temp_message">wxMessage</string>
+<!--    微信登录绑定账号-->
+    <string name="wx_login_bind_phone_text">绑定手机号</string>
+    <string name="wx_login_bind_phone_hint">请输入手机号</string>
+</resources>

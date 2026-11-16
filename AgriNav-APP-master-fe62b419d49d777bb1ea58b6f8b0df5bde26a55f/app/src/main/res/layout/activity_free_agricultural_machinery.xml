@@ -1,0 +1,794 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.4318">
+        <ImageButton
+            android:elevation="5dp"
+            android:id="@+id/iv_agricultural_machinery_back"
+            android:layout_marginStart="13dp"
+            android:layout_marginTop="9dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/back"
+            android:background="@null"
+            android:src="@mipmap/back"/>
+        <ImageButton
+            android:src="@mipmap/share"
+            android:elevation="5dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="13dp"
+            android:layout_marginTop="9dp"
+            android:id="@+id/iv_agricultural_machinery_share"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/share"
+            android:background="@null"/>
+        <FrameLayout
+            android:id="@+id/frame_image_agricultural_machinery"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:elevation="4dp">
+            <com.youth.banner.Banner
+                android:id="@+id/banner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </FrameLayout>
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3324"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.03562"
+            android:layout_height="match_parent"/>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.92875"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.1609"
+                android:orientation="horizontal">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:background="@drawable/style_icon_bigger"
+                        android:layout_width="4dp"
+                        android:layout_height="27dp"/>
+                    <TextView
+                        android:layout_marginStart="12dp"
+                        android:text="@string/detail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textStyle="bold"/>
+                </RelativeLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:background="@drawable/style_detail_page"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.1609"
+                android:orientation="horizontal">
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.3452"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/agricultural_machinery_model"
+                        android:textSize="16sp"
+                        android:textStyle="bold"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.6547"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:id="@+id/tv_detail_page_machinery_model"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"/>
+                </RelativeLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:background="@drawable/style_detail_page_grey"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.1915">
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page_grey"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.3452"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/operable_crops"
+                        android:textSize="16sp"
+                        android:textStyle="bold"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page_grey"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.6547"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:id="@+id/tv_detail_page_operable_crops"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"/>
+                </RelativeLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:background="@drawable/style_detail_page"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.2873">
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.3452"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:text="@string/work_area"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.6547"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:id="@+id/tv_detail_page_work_area"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"/>
+                </RelativeLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:background="@drawable/style_detail_page_grey"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.1992">
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page_grey"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.3452"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:text="@string/equipped_grain_truck"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:background="@drawable/style_detail_page_grey"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.6547"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:id="@+id/tv_detail_page_equipped_grain_truck"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </RelativeLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.03562"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1350"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.0687"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
+        <RelativeLayout
+            android:id="@+id/rl_detail_page_inquire"
+            android:layout_width="0dp"
+            android:layout_weight="0.3307"
+            android:layout_height="match_parent">
+            <ImageView
+                android:src="@mipmap/tip"
+                android:layout_above="@id/tv_inquire"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/please_inquire" />
+            <TextView
+                android:id="@+id/tv_inquire"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/please_inquire"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"/>
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/rl_detail_page_call"
+            android:background="@drawable/style_fm_line_first"
+            android:layout_width="0dp"
+            android:layout_weight="0.6693"
+            android:layout_height="match_parent">
+            <ImageView
+                android:layout_marginEnd="5dp"
+                android:src="@mipmap/phone"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@id/tv_phone_inquire"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/telephone_contact" />
+            <TextView
+                android:id="@+id/tv_phone_inquire"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/telephone_contact"
+                android:textSize="20sp"/>
+        </RelativeLayout>
+    </LinearLayout>
+</LinearLayout>
+    <!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--    android:id="@+id/main"-->
+    <!--    android:layout_width="match_parent"-->
+    <!--    android:layout_height="match_parent"-->
+    <!--    android:fitsSystemWindows="true"-->
+    <!--    android:orientation="vertical">-->
+    <!--        <RelativeLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="0dp"-->
+    <!--            android:layout_weight="0.3470">-->
+    <!--            <ImageButton-->
+    <!--                android:elevation="5dp"-->
+    <!--                android:id="@+id/iv_agricultural_machinery_back"-->
+    <!--                android:layout_marginStart="13dp"-->
+    <!--                android:layout_width="24dp"-->
+    <!--                android:layout_height="24dp"-->
+    <!--                android:contentDescription="@string/back"-->
+    <!--                android:background="@null"-->
+    <!--                android:src="@mipmap/back"/>-->
+    <!--            <ImageButton-->
+    <!--                android:src="@mipmap/share"-->
+    <!--                android:elevation="5dp"-->
+    <!--                android:layout_alignParentEnd="true"-->
+    <!--                android:layout_marginEnd="13dp"-->
+    <!--                android:id="@+id/iv_agricultural_machinery_share"-->
+    <!--                android:layout_width="24dp"-->
+    <!--                android:layout_height="24dp"-->
+    <!--                android:contentDescription="@string/share"-->
+    <!--                android:background="@null"/>-->
+    <!--            <com.youth.banner.Banner-->
+    <!--                android:layout_below="@+id/iv_agricultural_machinery_back"-->
+    <!--                android:id="@+id/banner"-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="match_parent"/>-->
+    <!--        </RelativeLayout>-->
+    <!--        <Space-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="0dp"-->
+    <!--            android:layout_weight="0.0216"/>-->
+    <!--        <LinearLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="wrap_content">-->
+    <!--            <RelativeLayout-->
+    <!--                android:layout_marginStart="15dp"-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="match_parent">-->
+    <!--                <TextView-->
+    <!--                    android:background="@drawable/style_icon_bigger"-->
+    <!--                    android:layout_width="4dp"-->
+    <!--                    android:layout_height="27dp"/>-->
+    <!--                <TextView-->
+    <!--                    android:layout_marginStart="12dp"-->
+    <!--                    android:text="@string/detail"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:textSize="18sp"-->
+    <!--                    android:textStyle="bold"/>-->
+    <!--            </RelativeLayout>-->
+    <!--        </LinearLayout>-->
+    <!--        <LinearLayout-->
+    <!--            android:layout_marginTop="12dp"-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="0dp"-->
+    <!--            android:layout_weight="0.4002"-->
+    <!--            android:orientation="vertical">-->
+    <!--            <LinearLayout-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="0dp"-->
+    <!--                android:layout_weight="0.2250"-->
+    <!--                android:orientation="vertical">-->
+    <!--                <Space-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.1928"/>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.2168"-->
+    <!--                    android:orientation="horizontal">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.054"-->
+    <!--                        android:layout_height="match_parent"/>-->
+    <!--                    <TextView-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.946"-->
+    <!--                        android:textSize="18sp"-->
+    <!--                        android:text="@string/agricultural_machinery_model"-->
+    <!--                        android:textColor="@color/grey_font"-->
+    <!--                        android:layout_height="wrap_content"/>-->
+    <!--                </LinearLayout>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.5904"-->
+    <!--                    android:orientation="vertical">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.3636"/>-->
+    <!--                    <LinearLayout-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.4324"-->
+    <!--                        android:orientation="horizontal">-->
+    <!--                        <Space-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_weight="0.054"-->
+    <!--                            android:layout_height="match_parent"/>-->
+    <!--                        <TextView-->
+    <!--                            android:id="@+id/tv_detail_page_machinery_model"-->
+    <!--                            android:textStyle="bold"-->
+    <!--                            android:textSize="22sp"-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_height="match_parent"-->
+    <!--                            android:layout_weight="0.946"/>-->
+    <!--                    </LinearLayout>-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.2040"/>-->
+    <!--                </LinearLayout>-->
+    <!--            </LinearLayout>-->
+    <!--            <LinearLayout-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="0dp"-->
+    <!--                android:layout_weight="0.2250"-->
+    <!--                android:orientation="vertical">-->
+    <!--                <Space-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.1928"/>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.2168"-->
+    <!--                    android:orientation="horizontal">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.054"-->
+    <!--                        android:layout_height="match_parent"/>-->
+    <!--                    <TextView-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.946"-->
+    <!--                        android:textSize="18sp"-->
+    <!--                        android:text="@string/operable_crops"-->
+    <!--                        android:textColor="@color/grey_font"-->
+    <!--                        android:layout_height="wrap_content"/>-->
+    <!--                </LinearLayout>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.4096"-->
+    <!--                    android:orientation="vertical">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.3636"/>-->
+    <!--                    <LinearLayout-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.4324"-->
+    <!--                        android:orientation="horizontal">-->
+    <!--                        <Space-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_weight="0.054"-->
+    <!--                            android:layout_height="match_parent"/>-->
+    <!--                        <TextView-->
+    <!--                            android:id="@+id/tv_detail_page_operable_crops"-->
+    <!--                            android:textStyle="bold"-->
+    <!--                            android:textSize="22sp"-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_height="match_parent"-->
+    <!--                            android:layout_weight="0.946"/>-->
+    <!--                    </LinearLayout>-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.2040"/>-->
+    <!--                </LinearLayout>-->
+    <!--            </LinearLayout>-->
+    <!--            <LinearLayout-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="0dp"-->
+    <!--                android:layout_weight="0.2250"-->
+    <!--                android:orientation="vertical">-->
+    <!--                <Space-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.1928"/>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.2168"-->
+    <!--                    android:orientation="horizontal">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.054"-->
+    <!--                        android:layout_height="match_parent"/>-->
+    <!--                    <TextView-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.946"-->
+    <!--                        android:textSize="18sp"-->
+    <!--                        android:text="@string/work_area"-->
+    <!--                        android:textColor="@color/grey_font"-->
+    <!--                        android:layout_height="wrap_content"/>-->
+    <!--                </LinearLayout>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.4096"-->
+    <!--                    android:orientation="vertical">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.3636"/>-->
+    <!--                    <LinearLayout-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.4324"-->
+    <!--                        android:orientation="horizontal">-->
+    <!--                        <Space-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_weight="0.054"-->
+    <!--                            android:layout_height="match_parent"/>-->
+    <!--                        <TextView-->
+    <!--                            android:id="@+id/tv_detail_page_work_area"-->
+    <!--                            android:textStyle="bold"-->
+    <!--                            android:textSize="22sp"-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_height="match_parent"-->
+    <!--                            android:layout_weight="0.946"/>-->
+    <!--                    </LinearLayout>-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.2040"/>-->
+    <!--                </LinearLayout>-->
+    <!--            </LinearLayout>-->
+    <!--            <LinearLayout-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="0dp"-->
+    <!--                android:layout_weight="0.2250"-->
+    <!--                android:orientation="vertical">-->
+    <!--                <Space-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.1928"/>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.2168"-->
+    <!--                    android:orientation="horizontal">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.054"-->
+    <!--                        android:layout_height="match_parent"/>-->
+    <!--                    <TextView-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.946"-->
+    <!--                        android:textSize="18sp"-->
+    <!--                        android:text="@string/equipped_grain_truck"-->
+    <!--                        android:textColor="@color/grey_font"-->
+    <!--                        android:layout_height="wrap_content"/>-->
+    <!--                </LinearLayout>-->
+    <!--                <LinearLayout-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.4096"-->
+    <!--                    android:orientation="vertical">-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.3636"/>-->
+    <!--                    <LinearLayout-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.4324"-->
+    <!--                        android:orientation="horizontal">-->
+    <!--                        <Space-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_weight="0.054"-->
+    <!--                            android:layout_height="match_parent"/>-->
+    <!--                        <TextView-->
+    <!--                            android:id="@+id/tv_detail_page_equipped_grain_truck"-->
+    <!--                            android:textStyle="bold"-->
+    <!--                            android:textSize="22sp"-->
+    <!--                            android:layout_width="0dp"-->
+    <!--                            android:layout_height="match_parent"-->
+    <!--                            android:layout_weight="0.946"/>-->
+    <!--                    </LinearLayout>-->
+    <!--                    <Space-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="0dp"-->
+    <!--                        android:layout_weight="0.2040"/>-->
+    <!--                </LinearLayout>-->
+    <!--            </LinearLayout>-->
+
+    <!--&lt;!&ndash;            <LinearLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                android:layout_width="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                android:layout_weight="0.92875"&ndash;&gt;-->
+    <!--&lt;!&ndash;                android:layout_height="match_parent"&ndash;&gt;-->
+    <!--&lt;!&ndash;                android:orientation="vertical">&ndash;&gt;-->
+    <!--&lt;!&ndash;                <LinearLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_height="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_weight="0.1609"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:orientation="horizontal">&ndash;&gt;-->
+    <!--&lt;!&ndash;                    <RelativeLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:background="@drawable/style_detail_page_grey"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_width="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_weight="0.6547"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_height="match_parent">&ndash;&gt;-->
+    <!--&lt;!&ndash;                        <TextView&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:id="@+id/tv_detail_page_operable_crops"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerVertical="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerHorizontal="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_width="wrap_content"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_height="wrap_content"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:textSize="16sp"/>&ndash;&gt;-->
+    <!--&lt;!&ndash;                    </RelativeLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;                </LinearLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;                <LinearLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:background="@drawable/style_detail_page"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_height="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_weight="0.2873">&ndash;&gt;-->
+    <!--&lt;!&ndash;                    <RelativeLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:background="@drawable/style_detail_page"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_width="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_weight="0.3452"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_height="match_parent">&ndash;&gt;-->
+    <!--&lt;!&ndash;                        <TextView&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerHorizontal="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerVertical="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:text="@string/work_area"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:textSize="16sp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:textStyle="bold"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_width="wrap_content"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_height="wrap_content"/>&ndash;&gt;-->
+    <!--&lt;!&ndash;                    </RelativeLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;                    <RelativeLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:background="@drawable/style_detail_page"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_width="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_weight="0.6547"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_height="match_parent">&ndash;&gt;-->
+    <!--&lt;!&ndash;                        <TextView&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:id="@+id/tv_detail_page_work_area"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_width="wrap_content"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_height="wrap_content"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:textSize="16sp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerVertical="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerHorizontal="true"/>&ndash;&gt;-->
+    <!--&lt;!&ndash;                    </RelativeLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;                </LinearLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;                <LinearLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:background="@drawable/style_detail_page_grey"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_height="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                    android:layout_weight="0.1992">&ndash;&gt;-->
+    <!--&lt;!&ndash;                    <RelativeLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:background="@drawable/style_detail_page_grey"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_width="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_weight="0.3452"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_height="match_parent">&ndash;&gt;-->
+    <!--&lt;!&ndash;                        <TextView&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:text="@string/equipped_grain_truck"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:textSize="16sp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:textStyle="bold"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerVertical="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerHorizontal="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_width="wrap_content"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_height="wrap_content"/>&ndash;&gt;-->
+    <!--&lt;!&ndash;                    </RelativeLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;                    <RelativeLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:background="@drawable/style_detail_page_grey"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_width="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_weight="0.6547"&ndash;&gt;-->
+    <!--&lt;!&ndash;                        android:layout_height="match_parent">&ndash;&gt;-->
+    <!--&lt;!&ndash;                        <TextView&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:id="@+id/tv_detail_page_equipped_grain_truck"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerHorizontal="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_centerVertical="true"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_width="wrap_content"&ndash;&gt;-->
+    <!--&lt;!&ndash;                            android:layout_height="wrap_content"/>&ndash;&gt;-->
+    <!--&lt;!&ndash;                    </RelativeLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;                </LinearLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;            </LinearLayout>&ndash;&gt;-->
+    <!--&lt;!&ndash;            <LinearLayout&ndash;&gt;-->
+    <!--&lt;!&ndash;                android:layout_width="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;                android:layout_weight="0.03562"&ndash;&gt;-->
+    <!--&lt;!&ndash;                android:layout_height="match_parent"/>&ndash;&gt;-->
+    <!--        </LinearLayout>-->
+    <!--        <Space-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="0dp"-->
+    <!--            android:layout_weight="0.0867"/>-->
+    <!--        <LinearLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="0dp"-->
+    <!--            android:layout_weight="0.0607"-->
+    <!--            android:orientation="horizontal"-->
+    <!--            android:layout_marginBottom="10dp">-->
+    <!--            <RelativeLayout-->
+    <!--                android:id="@+id/rl_detail_page_inquire"-->
+    <!--                android:layout_width="0dp"-->
+    <!--                android:layout_weight="0.3307"-->
+    <!--                android:layout_height="match_parent">-->
+    <!--                <ImageView-->
+    <!--                    android:src="@mipmap/tip"-->
+    <!--                    android:layout_above="@id/tv_inquire"-->
+    <!--                    android:layout_centerHorizontal="true"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:contentDescription="@string/please_inquire" />-->
+    <!--                <TextView-->
+    <!--                    android:id="@+id/tv_inquire"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:text="@string/please_inquire"-->
+    <!--                    android:textSize="16sp"-->
+    <!--                    android:textStyle="bold"-->
+    <!--                    android:layout_alignParentBottom="true"-->
+    <!--                    android:layout_centerHorizontal="true"/>-->
+    <!--            </RelativeLayout>-->
+    <!--            <RelativeLayout-->
+    <!--                android:id="@+id/rl_detail_page_call"-->
+    <!--                android:background="@drawable/style_fm_line_first"-->
+    <!--                android:layout_width="0dp"-->
+    <!--                android:layout_weight="0.6693"-->
+    <!--                android:layout_height="match_parent">-->
+    <!--                <ImageView-->
+    <!--                    android:layout_marginEnd="5dp"-->
+    <!--                    android:src="@mipmap/phone"-->
+    <!--                    android:layout_centerVertical="true"-->
+    <!--                    android:layout_toStartOf="@id/tv_phone_inquire"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:contentDescription="@string/telephone_contact" />-->
+    <!--                <TextView-->
+    <!--                    android:id="@+id/tv_phone_inquire"-->
+    <!--                    android:layout_centerVertical="true"-->
+    <!--                    android:layout_centerHorizontal="true"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:text="@string/telephone_contact"-->
+    <!--                    android:textSize="20sp"/>-->
+    <!--            </RelativeLayout>-->
+    <!--        </LinearLayout>-->
+<!--    </LinearLayout>-->
+    <!--                    <RelativeLayout-->
+    <!--                        android:layout_marginStart="15dp"-->
+    <!--                        android:layout_width="match_parent"-->
+    <!--                        android:layout_height="match_parent">-->
+    <!--                        <TextView-->
+    <!--                            android:background="@drawable/style_icon_bigger"-->
+    <!--                            android:layout_width="4dp"-->
+    <!--                            android:layout_height="27dp"/>-->
+    <!--                        <TextView-->
+    <!--                            android:layout_marginStart="12dp"-->
+    <!--                            android:text="@string/detail"-->
+    <!--                            android:layout_width="wrap_content"-->
+    <!--                            android:layout_height="wrap_content"-->
+    <!--                            android:textSize="18sp"-->
+    <!--                            android:textStyle="bold"/>-->
+    <!--                    </RelativeLayout>-->
+    <!--                </LinearLayout>-->
+    <!--                <LinearLayout-->
+    <!--                    android:background="@drawable/style_detail_page"-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.1609"-->
+    <!--                    android:orientation="horizontal">-->
+    <!--                    <RelativeLayout-->
+    <!--                        android:background="@drawable/style_detail_page"-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.3452"-->
+    <!--                        android:layout_height="match_parent">-->
+    <!--                        <TextView-->
+    <!--                            android:layout_centerVertical="true"-->
+    <!--                            android:layout_centerHorizontal="true"-->
+    <!--                            android:layout_width="wrap_content"-->
+    <!--                            android:layout_height="wrap_content"-->
+    <!--                            android:text="@string/agricultural_machinery_model"-->
+    <!--                            android:textSize="16sp"-->
+    <!--                            android:textStyle="bold"/>-->
+    <!--                    </RelativeLayout>-->
+    <!--                    <RelativeLayout-->
+    <!--                        android:background="@drawable/style_detail_page"-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.6547"-->
+    <!--                        android:layout_height="match_parent">-->
+    <!--                        <TextView-->
+    <!--                            android:layout_centerHorizontal="true"-->
+    <!--                            android:layout_centerVertical="true"-->
+    <!--                            android:id="@+id/tv_detail_page_machinery_model"-->
+    <!--                            android:layout_width="wrap_content"-->
+    <!--                            android:layout_height="wrap_content"-->
+    <!--                            android:textSize="16sp"/>-->
+    <!--                    </RelativeLayout>-->
+    <!--                </LinearLayout>-->
+    <!--                <LinearLayout-->
+    <!--                    android:background="@drawable/style_detail_page_grey"-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="0dp"-->
+    <!--                    android:layout_weight="0.1915">-->
+    <!--                    <RelativeLayout-->
+    <!--                        android:background="@drawable/style_detail_page_grey"-->
+    <!--                        android:layout_width="0dp"-->
+    <!--                        android:layout_weight="0.3452"-->
+    <!--                        android:layout_height="match_parent">-->
+    <!--                        <TextView-->
+    <!--                            android:layout_centerVertical="true"-->
+    <!--                            android:layout_centerHorizontal="true"-->
+    <!--                            android:layout_width="wrap_content"-->
+    <!--                            android:layout_height="wrap_content"-->
+    <!--                            android:text="@string/operable_crops"-->
+    <!--                            android:textSize="16sp"-->
+    <!--                            android:textStyle="bold"/>-->
+    <!--                    </RelativeLayout>-->

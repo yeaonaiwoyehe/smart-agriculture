@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_find_job"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 原有的主布局 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/grey">
+
+        <!-- 顶部工具栏 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/find_job_header_height"
+            android:background="@drawable/style_fm_line_first"
+            android:paddingHorizontal="@dimen/find_job_header_padding">
+
+            <ImageView
+                android:id="@+id/iv_job_add"
+                android:layout_width="@dimen/find_job_header_image_size"
+                android:layout_height="@dimen/find_job_header_image_size"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:src="@mipmap/add" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/find_job"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/font_find_job_text_size_mid" />
+
+            <ImageView
+                android:id="@+id/iv_job_search"
+                android:layout_width="@dimen/find_job_header_image_size"
+                android:layout_height="@dimen/find_job_header_image_size"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@mipmap/sort_white" />
+        </RelativeLayout>
+
+        <!-- GridView -->
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+            android:id="@+id/find_job_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.scwang.smart.refresh.header.ClassicsHeader
+                android:id="@+id/grid_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <GridView
+                android:id="@+id/gv_find_job"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:numColumns="2"
+                android:horizontalSpacing="@dimen/grid_between"
+                android:layout_margin="@dimen/grid_margin"
+                android:verticalSpacing="@dimen/grid_spacing_vertical" />
+
+            <com.scwang.smart.refresh.footer.ClassicsFooter
+                android:id="@+id/find_job_grid_footer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+    </LinearLayout>
+
+    <!-- 添加右侧筛选抽屉 -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_find_job_select"
+        android:layout_width="@dimen/find_job_select_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@color/white"
+        app:headerLayout="@layout/header_find_job_filter" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

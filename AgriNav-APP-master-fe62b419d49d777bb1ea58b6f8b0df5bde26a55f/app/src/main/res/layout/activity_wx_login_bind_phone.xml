@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/bg">
+    </LinearLayout>
+    <TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/wx_login_bind_phone_text"
+        android:textSize="@dimen/login_register_text_size"
+        android:layout_alignStart="@id/wx_login_bind_toast"
+        android:layout_marginVertical="@dimen/margin_component_big"
+        android:fontFamily="@font/ping_fang"
+        android:textStyle="bold"
+        android:textColor="@color/black_text"
+        android:layout_above="@id/wx_login_bind_toast"
+        />
+    <LinearLayout
+        android:id="@+id/wx_login_bind_toast"
+        android:layout_width="@dimen/login_register_btn_width"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="@dimen/margin_component_mid"
+        android:orientation="vertical">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/wx_login_bind_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/login_edit_hint"
+            android:textColorHint="@color/grey_hint"
+            android:textColor="@color/black_text"
+            android:inputType="phone"
+            android:fontFamily="@font/ping_fang"
+            android:textSize="@dimen/login_register_edt_text_size" />
+        <Button
+            android:id="@+id/wx_login_bind_confirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/login_btn_confirm_text"
+            android:textColor="@color/white"
+            android:textSize="@dimen/login_register_btn_text_size"
+            android:fontFamily="@font/ping_fang"
+            android:layout_marginVertical="@dimen/login_register_btn_margin_vertical"/>
+        <!--    服务条款-->
+    </LinearLayout>
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/wx_login_bind_toast">
+        <CheckBox
+            android:id="@+id/wx_login_bind_protocol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/protocol_ok"
+            android:fontFamily="@font/ping_fang"
+            android:button="@drawable/icon_protocol_selector"
+            android:paddingStart="@dimen/protocol_margin_or_padding"
+            android:textSize="@dimen/protocol_text_size"
+            tools:ignore="RtlSymmetry" />
+        <TextView
+            android:id="@+id/wx_login_bind_read_protocol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/protocol_see"
+            android:fontFamily="@font/ping_fang"
+            android:textSize="@dimen/protocol_text_size"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_wx_login_bind_read_personal_protocol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/protocol_personal_see"
+            android:fontFamily="@font/ping_fang"
+            android:textSize="@dimen/protocol_text_size"
+            android:textStyle="bold" />
+    </LinearLayout>
+</RelativeLayout>

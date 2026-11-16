@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="white_dark">#EFEFEF</color>
+    <color name="green_tiny">#CFE1B2</color>
+    <color name="green">#1EBF6A</color>
+    <color name="green_small">#80B65F</color>
+    <color name="grey_background">#F3F7F8</color>
+    <color name="grey">#f5f5f5</color>
+    <color name="grey_s">#CACACA </color>
+    <color name="grey_b">#5F5D5D</color>
+    <color name="half_transparent_white">#CCFFFFFF</color>
+    <color name="half_transparent_black">#80000000</color>
+    <color name="orange">#F57C0C</color>
+    <color name="grey_hint">#969799 </color>
+    <color name="black_text">#333333</color>
+    <color name="green_final">#09CC7D</color>
+    <color name="green_square">#ff00c779</color>
+    <color name ="measure_black">#333333</color>
+    <color name="gridView_white">#fff3f7f8</color>
+    <color name="icon">#ff06ca7c</color>
+    <color name="hr">#EBEDF0</color>
+    <color name="green_hand_button">#1EBF6A</color>
+
+    <color name="trajectory_yes">#95DDA2</color>
+    <color name="trajectory_no">#5DA6CB</color>
+    <color name="plot">#A9DAF3</color>
+    <color name="plot_fill">#E0F0DD</color>
+    <color name="temporary_text_color">#09C77A</color>
+    <color name="green200">#e6f9f1</color>
+    <color name="purple700">#BEB0E5</color>
+
+    <color name="grey200">#DCDCDC</color>
+    <color name="grey_font">#686868</color>
+    <color name="front_text">#1DAB69</color>
+    <color name="front_text_default">#656C70</color>
+    <color name="front_text_edit">#16C172</color>
+    <color name="front_condition">#E3EFEA</color>
+    <color name="front_search">#00BC76</color>
+
+    <!-- 标签相关的颜色状态选择器 -->
+    <color name="chip_background_selected">#E6F8EF</color>
+    <color name="chip_background_normal">#F5F5F5</color>
+    <color name="chip_text_selected">#1EBF6A</color>
+    <color name="chip_text_normal">#666666</color>
+    <color name="chip_stroke_selected">#1EBF6A</color>
+    <color name="chip_stroke_normal">#E5E5E5</color>
+    <color name="chip_ripple">#1A1EBF6A</color>
+
+    <color name="dialog_text_color">#646566</color>
+</resources>

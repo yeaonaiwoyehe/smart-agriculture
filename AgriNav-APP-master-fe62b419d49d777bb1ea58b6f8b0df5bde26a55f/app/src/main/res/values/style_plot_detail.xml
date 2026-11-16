@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="plot_detail_img">
+        <item name="cornerSizeTopLeft">@dimen/radio_corner_big</item>
+        <item name="cornerSizeTopRight">@dimen/radio_corner_big</item>
+    </style>
+</resources>

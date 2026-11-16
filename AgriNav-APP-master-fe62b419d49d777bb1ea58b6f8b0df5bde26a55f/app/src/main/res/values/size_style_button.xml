@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="btn_style_radius_conner">25dp</dimen>
+    <dimen name="btn_style_padding_v">6dp</dimen>
+    <dimen name="btn_style_padding_h">10dp</dimen>
+</resources>

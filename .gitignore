@@ -1,0 +1,41 @@
+# ===== 顶层临时与归档文件 =====
+/tmp/
+# 根目录的三个源码压缩包（与子目录内容重复，不入库）
+/*.zip
+
+# ===== 构建产物（各子工程兜底，子目录 .gitignore 已有更细规则）=====
+**/target/
+**/build/
+**/out/
+**/dist/
+**/.gradle/
+**/.externalNativeBuild/
+**/.cxx/
+*.apk
+*.aab
+*.class
+*.jar
+!**/gradle-wrapper.jar
+!**/maven-wrapper.jar
+
+# ===== 前端依赖 =====
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ===== 本地环境与密钥（安全红线）=====
+**/.env
+**/.env.local
+**/*.local
+**/endpoint.properties
+**/local.properties
+**/application-local.yml
+
+# ===== IDE / 系统 / 日志 =====
+**/.idea/
+**/*.iml
+**/*.swp
+**/.DS_Store
+**/Thumbs.db
+**/*.log

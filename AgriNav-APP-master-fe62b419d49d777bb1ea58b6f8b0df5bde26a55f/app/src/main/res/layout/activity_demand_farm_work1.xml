@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+    <com.donkingliang.consecutivescroller.ConsecutiveScrollerLayout
+        android:layout_above="@id/linear_above"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_isSticky="true">
+            <ImageButton
+                android:id="@+id/iv_farm_work_back"
+                android:layout_marginStart="13dp"
+                android:layout_marginTop="9dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/back"
+                android:background="@null"
+                android:src="@mipmap/back"/>
+            <ImageButton
+                android:src="@mipmap/share"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="13dp"
+                android:layout_marginTop="9dp"
+                android:id="@+id/iv_farm_work_share"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/share"
+                android:background="@null"/>
+        </RelativeLayout>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <com.youth.banner.Banner
+                    android:id="@+id/banner"
+                    android:layout_width="match_parent"
+                    android:layout_height="320dp"/>
+                <LinearLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@color/gridView_white">
+                    <LinearLayout
+                        android:layout_width="@dimen/find_job_detail_bar_width"
+                        android:layout_height="@dimen/find_job_detail_bar_height"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <TextView
+                            android:background="@drawable/style_icon_bigger"
+                            android:layout_width="@dimen/find_job_detail_text_width"
+                            android:layout_height="18dp"/>
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/find_job_detail_bar_height"
+                        android:gravity="center_vertical"
+                        android:text="@string/find_job_detail"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:textSize="@dimen/font_find_job_text_size_mid" />
+
+                </LinearLayout>
+                <!-- 详情信息区域 - 使用更简洁的布局 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@android:color/white">
+
+                    <!-- 任务名 -->
+                    <LinearLayout style="@style/DetailItemStyle">
+                        <TextView
+                            style="@style/DetailLabelStyle"
+                            android:text="@string/plot"/>
+                        <TextView
+                            android:id="@+id/tv_detail_page_address"
+                            style="@style/DetailContentStyle"/>
+                    </LinearLayout>
+
+                    <View style="@style/DividerStyle"/>
+
+                    <!-- 农机型号 -->
+                    <LinearLayout style="@style/DetailItemStyle">
+                        <TextView
+                            style="@style/DetailLabelStyle"
+                            android:text="@string/plot_mu"/>
+                        <TextView
+                            android:id="@+id/tv_detail_page_area"
+                            style="@style/DetailContentStyle"/>
+                    </LinearLayout>
+
+                    <View style="@style/DividerStyle"/>
+
+                    <!-- 可作业作物 -->
+                    <LinearLayout style="@style/DetailItemStyle">
+                        <TextView
+                            style="@style/DetailLabelStyle"
+                            android:text="@string/work_area"/>
+                        <TextView
+                            android:id="@+id/tv_detail_page_work_area_farm"
+                            style="@style/DetailContentStyle"/>
+                    </LinearLayout>
+
+                    <View style="@style/DividerStyle"/>
+
+                    <!-- 作业区域 -->
+                    <LinearLayout style="@style/DetailItemStyle">
+                        <TextView
+                            style="@style/DetailLabelStyle"
+                            android:text="@string/crops"/>
+                        <TextView
+                            android:id="@+id/tv_detail_page_crops"
+                            style="@style/DetailContentStyle"/>
+                    </LinearLayout>
+
+                    <View style="@style/DividerStyle"/>
+
+                    <!-- 配备运粮车 -->
+                    <LinearLayout style="@style/DetailItemStyle">
+                        <TextView
+                            style="@style/DetailLabelStyle"
+                            android:text="@string/work_type"/>
+                        <TextView
+                            android:id="@+id/tv_detail_page_work_type"
+                            style="@style/DetailContentStyle"/>
+                    </LinearLayout>
+
+                    <View style="@style/DividerStyle"/>
+
+                    <!-- 任务有效期 -->
+                    <LinearLayout style="@style/DetailItemStyle">
+                        <TextView
+                            style="@style/DetailLabelStyle"
+                            android:text="@string/deadline"/>
+                        <TextView
+                            android:id="@+id/tv_detail_page_deadline"
+                            style="@style/DetailContentStyle"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </com.donkingliang.consecutivescroller.ConsecutiveScrollerLayout>
+    <LinearLayout
+        android:id="@+id/linear_above"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
+        <RelativeLayout
+            android:id="@+id/rl_detail_page_inquire_farm"
+            android:layout_width="0dp"
+            android:layout_weight="0.3307"
+            android:layout_height="match_parent">
+            <ImageView
+                android:src="@mipmap/tip"
+                android:layout_above="@id/tv_inquire_farm"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/please_inquire" />
+            <TextView
+                android:id="@+id/tv_inquire_farm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/please_inquire"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"/>
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/rl_detail_page_call_farm"
+            android:background="@drawable/style_fm_line_first"
+            android:layout_width="0dp"
+            android:layout_weight="0.6693"
+            android:layout_height="match_parent">
+            <ImageView
+                android:layout_marginEnd="5dp"
+                android:src="@mipmap/phone"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@id/tv_phone_inquire_farm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/telephone_contact" />
+            <TextView
+                android:id="@+id/tv_phone_inquire_farm"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/telephone_contact"
+                android:textSize="20sp"/>
+        </RelativeLayout>
+    </LinearLayout>
+</RelativeLayout>

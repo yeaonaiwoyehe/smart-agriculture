@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/bg" />
+
+    <TextView
+        android:id="@+id/tv_verification_code_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/security_verification_code_input"
+        android:textStyle="bold"
+        android:textSize="@dimen/security_code_text_mid"
+        android:layout_alignStart="@id/ll_verification_and_btn"
+        android:layout_above="@+id/tv_code_wait"
+        android:layout_marginBottom="@dimen/security_margin_bottom_small"/>
+
+    <TextView
+        android:id="@+id/tv_code_wait"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/verification_code_wait"
+        android:layout_above="@id/ll_verification_and_btn"
+        android:layout_alignStart="@+id/ll_verification_and_btn"
+        android:textSize="@dimen/security_code_text_small" />
+
+    <TextView
+        android:id="@+id/tv_phone_new"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        android:textSize="@dimen/security_code_text_small"
+        android:layout_alignBaseline="@id/tv_code_wait"
+        android:layout_toEndOf="@id/tv_code_wait"/>
+
+    <LinearLayout
+        android:id="@+id/ll_verification_and_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true">
+        <cn.agrinav.user.VerificationCodeView
+            android:id="@+id/edt_code_new"
+            android:layout_width="@dimen/security_code_height"
+            android:layout_height="wrap_content"
+            android:cursorVisible="false"
+            android:enabled="true"
+            android:focusable="true"
+            android:inputType="number"
+            android:maxLength="@integer/code_length"
+            app:beforeLineColor="@color/grey_s"
+            app:bgBorderRadius="@dimen/security_code_text_max"
+            app:bgHeightWidth="@dimen/security_code_width"
+            app:codeLength="@integer/code_length"
+            app:currentLineColor="@color/green"
+            app:lineHeight="@dimen/security_code_line_height"
+            app:space="@dimen/security_code_space"
+            app:textColor="@color/black"
+            app:textSize="@dimen/security_code_text_max"
+            android:layout_marginBottom="@dimen/security_margin_bottom_mid"/>
+
+        <Button
+            android:id="@+id/btn_code_new_get"
+            android:layout_width="210dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/verification_code_get"
+            android:textSize="@dimen/security_code_text_small"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--    这部分的内容是验证码页面的一些需要和后台服务器交互的路由-->
+    <string name="verification_code_router_captcha">/captcha</string>
+    <string name="verification_code_router_login">/login</string>
+    <string name="verification_code_router_getInfo">/getInfo</string>
+    <string name="verification_code_router_login_finger">/loginWithoutSecret</string>
+    <string name="verification_code_router_send_aes">/system/key/exchange</string>
+</resources>

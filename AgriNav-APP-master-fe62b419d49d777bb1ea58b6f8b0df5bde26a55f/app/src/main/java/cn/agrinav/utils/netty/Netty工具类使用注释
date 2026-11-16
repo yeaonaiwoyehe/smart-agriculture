@@ -1,0 +1,11 @@
+使用说明：
+1. 实例化NettyClientManager
+2. 调用connect(String msg, long timeout, TimeUnit unit)：连接，发送数据（需手动关闭）
+   调用connectAndClose(String msg, long timeout, TimeUnit unit)：连接，发送数据，关闭连接
+若要保证后台服务不被杀死：
+1. 在Manifest.xml中声明权限以及ForegroundService的声明中指定后台功能
+2. 使用ForegroundService，转为前台服务，防止进程被杀死
+3. 实现NotificationChannel和Notification的初始化
+4. startForeground(id, notification)
+5. 调用NettyClientManager中的connect()/connectAndClose()方法
+6. stopForeground(true)

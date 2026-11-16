@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="345dp"
+    android:layout_height="93dp"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    android:background="@drawable/bg_feedback_item"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="@dimen/item_width"
+        android:layout_height="@dimen/item_height">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/feedback_padding_max">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_tags"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/chip_height"
+                android:layout_marginBottom="@dimen/chip_margin_bottom"
+                app:chipSpacingHorizontal="@dimen/chip_spacing"
+                app:singleLine="true" />
+
+            <TextView
+                android:id="@+id/tv_feedback_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/dialog_text_color"
+                android:textSize="@dimen/feedback_text_size_smallest" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:textSize="@dimen/feedback_text_size_smallest"
+            android:paddingHorizontal="@dimen/chip_spacing"
+            android:paddingVertical="@dimen/feedback_padding_vertical" />
+
+    </FrameLayout>
+
+</LinearLayout>

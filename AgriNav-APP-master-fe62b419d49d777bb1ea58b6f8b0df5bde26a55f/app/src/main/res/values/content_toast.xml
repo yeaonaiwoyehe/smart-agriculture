@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_err_verification_finger">指纹失败次数过多,换个方式登录</string>
+</resources>

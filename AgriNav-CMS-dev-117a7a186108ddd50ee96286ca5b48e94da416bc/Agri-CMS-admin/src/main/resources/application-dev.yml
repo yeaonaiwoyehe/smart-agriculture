@@ -1,0 +1,149 @@
+# 数据源配置（敏感值全部通过环境变量注入，冒号后为本地默认值）
+spring:
+  datasource:
+    druid:
+      stat-view-servlet:
+        enabled: true
+        loginUsername: ${DRUID_LOGIN_USER:ruoyi}
+        loginPassword: ${DRUID_LOGIN_PASSWORD:123456}
+    dynamic:
+      druid:
+        initial-size: 5
+        min-idle: 5
+        maxActive: 20
+        maxWait: 60000
+        connectTimeout: 30000
+        socketTimeout: 60000
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: SELECT 1 FROM DUAL
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        filters: stat,slf4j
+        connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+      datasource:
+        # 主库数据源（MySQL，若依系统表）
+        master:
+          type: com.alibaba.druid.pool.DruidDataSource
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:ry-vue}?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+          username: ${MYSQL_USER:root}
+          password: ${MYSQL_PASSWORD:root}
+        # 从库数据源（PostgreSQL/PostGIS，农业业务表）
+        pg:
+          type: com.alibaba.druid.pool.DruidDataSource
+          lazy: true
+          driver-class-name: org.postgis.DriverWrapper
+          url: jdbc:postgresql_postGIS://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:AgriNav}
+          username: ${PG_USER:postgres}
+          password: ${PG_PASSWORD:agrinav}
+          druid:
+            initial-size: 5                      # 初始连接数
+            max-active: 20                       # 最大活跃连接数
+            min-idle: 5                          # 最小空闲连接数
+            max-wait: 60000                      # 最大等待时间
+            validation-query: SELECT 1           # 验证查询
+            test-while-idle: true                # 空闲连接检测
+            time-between-eviction-runs-millis: 60000  # 检测间隔
+            min-evictable-idle-time-millis: 300000   # 连接最小空闲时间
+  data:
+    # redis 配置
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: 0
+      # 本地 Redis 默认无密码，生产环境通过 REDIS_PASSWORD 注入
+      password: ${REDIS_PASSWORD:}
+      # 连接超时时间
+      timeout: 10s
+      lettuce:
+        pool:
+          # 连接池中的最小空闲连接
+          min-idle: 0
+          # 连接池中的最大空闲连接
+          max-idle: 8
+          # 连接池的最大数据库连接数
+          max-active: 8
+          # #连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-wait: -1ms
+      geo-distance: 1000
+
+  influxdb:
+    url: ${INFLUX_URL:http://localhost:8086}
+    token: ${INFLUX_TOKEN:}
+    bucket: ${INFLUX_BUCKET:trajectory}
+    measurement: effective_point8
+    org: ${INFLUX_ORG:agrinav}
+    startTime: 2024-09-01T00:00:00Z
+    tag:
+      phoneNumber: phoneNumber
+      plotId: plotId
+      token: token
+    field:
+      latitude: latitude
+      longitude: longitude
+      deviceTime: deviceTime
+  elasticsearch:
+    host: ${ES_HOST:localhost}
+    port: ${ES_PORT:9200}
+    username: ${ES_USER:}
+    password: ${ES_PASSWORD:}
+    scheme: http
+    index: ${ES_INDEX:original_point}
+    request-size: 5000       # 添加请求大小配置
+
+    # 连接超时配置
+    connection-timeout: 30000     # 增加到30秒，考虑网络延迟
+    socket-timeout: 600000        # 增加到10分钟，适应大数据量查询
+
+    # 连接池配置
+    pool:
+      max-conn-total: 100        # 增加总连接数
+      max-conn-per-route: 40     # 增加每个路由的最大连接数
+      validate-after-inactivity: 2000  # 降低验证间隔
+
+    # 添加重试配置
+    retry:
+      max-retries: 3
+      initial-backoff: 1000
+
+    # 添加空闲连接配置
+    idle:
+      time: 10000                # 空闲连接超时时间
+      connections-per-route: 2   # 每个路由保持的最小空闲连接
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        acks: all
+        retries: 5
+        max.in.flight.requests.per.connection: 5
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  accessKey: ${MINIO_ACCESS_KEY:minioadmin}
+  secretKey: ${MINIO_SECRET_KEY:minioadmin}
+  bucketName: ${MINIO_BUCKET:bkt-map}
+tencentcloud:
+  account:
+    secret-id: ${TENCENT_SECRET_ID:}
+    secret-key: ${TENCENT_SECRET_KEY:}
+  sms:
+    sdk-app-id: ${SMS_APP_ID:}
+    sign-name: ${SMS_SIGN:田界智航APP}
+    template-id: ${SMS_TEMPLATE_ID:}
+justAuth:
+  mobile:
+    wechat:
+      client-id: ${WX_MOBILE_CLIENT_ID:}
+      client-secret: ${WX_MOBILE_CLIENT_SECRET:}
+  web:
+    wechat:
+      client-id: ${WX_WEB_CLIENT_ID:}
+      client-secret: ${WX_WEB_CLIENT_SECRET:}
+      redirect-uri: ${WX_WEB_REDIRECT_URI:http://localhost:80/login}

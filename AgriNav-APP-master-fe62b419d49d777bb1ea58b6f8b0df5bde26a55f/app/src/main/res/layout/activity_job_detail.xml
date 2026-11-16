@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!--banner-->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/frame_image_agricultural_machinery"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:elevation="4dp">
+
+                    <com.youth.banner.Banner
+                        android:id="@+id/banner"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 详情标题改为绿色竖条样式 -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@color/gridView_white">
+
+                <LinearLayout
+                    android:layout_width="@dimen/find_job_detail_bar_width"
+                    android:layout_height="@dimen/find_job_detail_bar_height"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <TextView
+                        android:background="@drawable/style_icon_bigger"
+                        android:layout_width="@dimen/find_job_detail_text_width"
+                        android:layout_height="18dp"/>
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/find_job_detail_bar_height"
+                    android:gravity="center_vertical"
+                    android:text="@string/find_job_detail"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+            </LinearLayout>
+
+            <!-- 详情信息区域 - 使用更简洁的布局 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@android:color/white">
+
+                <!-- 任务名 -->
+                <LinearLayout style="@style/DetailItemStyle">
+                    <TextView
+                        style="@style/DetailLabelStyle"
+                        android:text="@string/find_job_task_name"/>
+                    <TextView
+                        android:id="@+id/tv_task_name"
+                        style="@style/DetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/DividerStyle"/>
+
+                <!-- 农机型号 -->
+                <LinearLayout style="@style/DetailItemStyle">
+                    <TextView
+                        style="@style/DetailLabelStyle"
+                        android:text="@string/find_job_machine_type"/>
+                    <TextView
+                        android:id="@+id/tv_machine_type"
+                        style="@style/DetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/DividerStyle"/>
+
+                <!-- 可作业作物 -->
+                <LinearLayout style="@style/DetailItemStyle">
+                    <TextView
+                        style="@style/DetailLabelStyle"
+                        android:text="@string/find_job_workable_crop"/>
+                    <TextView
+                        android:id="@+id/tv_workable_crops"
+                        style="@style/DetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/DividerStyle"/>
+
+                <!-- 作业区域 -->
+                <LinearLayout style="@style/DetailItemStyle">
+                    <TextView
+                        style="@style/DetailLabelStyle"
+                        android:text="@string/find_job_work_area"/>
+                    <TextView
+                        android:id="@+id/tv_work_area"
+                        style="@style/DetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/DividerStyle"/>
+
+                <!-- 配备运粮车 -->
+                <LinearLayout style="@style/DetailItemStyle">
+                    <TextView
+                        style="@style/DetailLabelStyle"
+                        android:text="@string/find_job_having_transport"/>
+                    <TextView
+                        android:id="@+id/tv_has_grain_transport"
+                        style="@style/DetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/DividerStyle"/>
+
+                <!-- 任务有效期 -->
+                <LinearLayout style="@style/DetailItemStyle">
+                    <TextView
+                        style="@style/DetailLabelStyle"
+                        android:text="@string/find_job_valid_period"/>
+                    <TextView
+                        android:id="@+id/tv_validity_period"
+                        style="@style/DetailContentStyle"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

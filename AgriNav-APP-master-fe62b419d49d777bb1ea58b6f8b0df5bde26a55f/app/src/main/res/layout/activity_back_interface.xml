@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@color/green_final"
+        app:titleCentered="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/communication_back_address_change"
+            android:textSize="@dimen/communication_text_size_mid"
+            android:textColor="@color/white"
+            android:textStyle="bold"/>
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/personal_margin_around_max">
+
+        <EditText
+            android:id="@+id/edt_back_ip_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/communication_back_address_input"
+            android:textSize="@dimen/communication_text_size_mid_less" />
+
+        <Button
+            android:id="@+id/btn_back_interface_ok"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/communication_btn_ok"
+            android:textSize="@dimen/communication_text_size_small"
+            android:textColor="@color/white"
+            android:layout_margin="@dimen/communication_margin_around"/>
+
+        <TextView
+            android:id="@+id/tv_back_gps_explain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/communication_margin_around"
+            android:hint="@string/communication_change_hint"
+            android:textSize="@dimen/communication_clue_text_size"
+            android:textColor="@color/grey_s"/>
+
+    </LinearLayout>
+
+</LinearLayout>

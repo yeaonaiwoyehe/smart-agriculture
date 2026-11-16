@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<!--    TODO:如果要加模块要在这里面添加,首页在这里添加-->
+    <item android:id="@+id/menu_font"
+        android:icon="@mipmap/font"
+        android:title="@string/font" />
+    <item android:id="@+id/menu_measure"
+        android:icon="@mipmap/measure"
+        android:title="@string/measure"/>
+    <item android:id="@+id/menu_trajectory"
+        android:icon="@mipmap/trajectory"
+        android:title="@string/trajectory"/>
+    <item android:id="@+id/menu_personal"
+        android:icon="@mipmap/personal"
+        android:title="@string/personal"/>
+</menu>

@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:backgroundTint="@color/trajectory_sort_background_color"
+    android:fitsSystemWindows="true"
+    android:scrollbarStyle="outsideOverlay">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/trajectory_sort_background_color">
+<!--        顶部提示栏-->
+        <RelativeLayout
+            android:id="@+id/rl_trajectory_navigation_item_top"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/navigation_item_height"
+            android:background="@color/white"
+            android:padding="@dimen/trajectory_font_item_padding"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/margin_component_small"
+                android:background="@drawable/style_icon_bigger" />
+            <TextView
+                android:id="@+id/tv_trajectory_navigation_item_top_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/margin_component_small"
+                android:text="@string/navigation_item_tips"
+                android:textSize="@dimen/trajectory_fragment_text_small" />
+        </RelativeLayout>
+<!--作物选择部分-->
+        <LinearLayout
+            android:id="@+id/ll_trajectory_navigation_item_crop"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/navigation_item_height"
+            android:layout_below="@id/rl_trajectory_navigation_item_top"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/trajectory_font_item_padding"
+            android:background="@color/white">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="@integer/trajectory_weight_small"
+                android:text="@string/navigation_item_text_corn"
+                android:textSize="@dimen/trajectory_fragment_text_small"
+                android:textStyle="bold" />
+            <RelativeLayout
+                android:id="@+id/rl_trajectory_navigation_choose_corn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="@integer/trajectory_weight_mid_m">
+                <ImageView
+                    android:id="@+id/img_trajectory_sort_corn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="@dimen/margin_component_small"
+                    android:src="@mipmap/trajectory_icon_menu" />
+                <TextView
+                    android:id="@+id/tv_trajectory_navigation_item_corn"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:layout_centerInParent="true"
+                    android:hint="@string/navigation_item_hint_corn"
+                    android:textSize="@dimen/trajectory_fragment_text_small" />
+            </RelativeLayout>
+        </LinearLayout>
+<!--作业类型-->
+        <LinearLayout
+            android:id="@+id/ll_trajectory_navigation_item_crop_type"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/navigation_item_height"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:layout_below="@id/ll_trajectory_navigation_item_crop"
+            android:paddingHorizontal="@dimen/trajectory_font_item_padding">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="@integer/trajectory_weight_small"
+                android:text="@string/navigation_item_text_corn_type"
+                android:textSize="@dimen/trajectory_fragment_text_small"
+                android:textStyle="bold" />
+
+            <RelativeLayout
+                android:id="@+id/rl_trajectory_navigation_choose_corn_type"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="@integer/trajectory_weight_mid_m">
+
+                <ImageView
+                    android:id="@+id/img_trajectory_sort_corn_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="@dimen/margin_component_small"
+                    android:src="@mipmap/trajectory_icon_menu" />
+
+                <TextView
+                    android:id="@+id/tv_trajectory_navigation_item_corn_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:layout_centerInParent="true"
+                    android:hint="@string/navigation_item_hint_corn_type"
+                    android:textSize="@dimen/trajectory_fragment_text_small" />
+            </RelativeLayout>
+        </LinearLayout>
+<!-- 时间选择部分-->
+        <LinearLayout
+            android:id="@+id/ll_trajectory_navigation_item_time_text"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/navigation_item_height"
+            android:layout_below="@id/ll_trajectory_navigation_item_crop_type"
+            android:background="@color/white"
+            android:padding="@dimen/trajectory_font_item_padding">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/navigation_item_text_time"
+                android:layout_gravity="center"
+                android:textSize="@dimen/trajectory_fragment_text_small"
+                android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/ll_trajectory_navigation_item_time"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/navigation_item_height"
+            android:layout_below="@id/ll_trajectory_navigation_item_time_text"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/trajectory_font_item_padding"
+            android:paddingBottom="@dimen/trajectory_font_item_padding">
+            <LinearLayout
+                android:id="@+id/ll_trajectory_navigation_item_time_date_picker"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="@integer/trajectory_weight_mid_b"
+                android:background="@drawable/trajectory_navigation_picker"
+                android:gravity="center">
+                <TextView
+                    android:id="@+id/tv_trajectory_navigation_item_date"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:hint="@string/navigation_item_hint_date"
+                    android:textSize="@dimen/trajectory_fragment_text_tiny" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/ll_trajectory_navigation_item_time_begin_picker"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/margin_component_tiny"
+                android:layout_weight="@integer/trajectory_weight_mid_s"
+                android:background="@drawable/trajectory_navigation_picker"
+                android:gravity="center">
+                <TextView
+                    android:id="@+id/tv_trajectory_navigation_item_time_begin"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:hint="@string/navigation_item_hint_time_begin"
+                    android:textSize="@dimen/trajectory_fragment_text_tiny" />
+            </LinearLayout>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="@integer/trajectory_weight_small"
+                android:gravity="center"
+                android:text="——" />
+            <LinearLayout
+                android:id="@+id/ll_trajectory_navigation_item_time_end_picker"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="@integer/trajectory_weight_mid_s"
+                android:background="@drawable/trajectory_navigation_picker"
+                android:gravity="center">
+                <TextView
+                    android:id="@+id/tv_trajectory_navigation_item_time_end"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:hint="@string/navigation_item_hint_time_end"
+                    android:textSize="@dimen/trajectory_fragment_text_tiny" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/ll_trajectory_navigation_item_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ll_trajectory_navigation_item_time"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding"
+            android:background="@color/white"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/trajectory_font_item_padding">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/navigation_item_height"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="@integer/trajectory_weight_small"
+                    android:layout_gravity="center"
+                    android:text="地址"
+                    android:textSize="@dimen/trajectory_fragment_text_small"
+                    android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="@integer/trajectory_weight_mid_b"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/trajectory_style_no_border_radius"
+                    android:gravity="center">
+                    <ImageButton
+                        android:id="@+id/image_location"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@mipmap/location"
+                        android:background="@color/white"
+                        android:layout_gravity="right" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/navigation_item_height"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="@integer/trajectory_weight_small"
+                    android:layout_gravity="center"
+                    android:text="@string/trajectory_address_province"
+                    android:textSize="@dimen/trajectory_fragment_text_small"
+                    android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="@integer/trajectory_weight_mid_b"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/trajectory_style_no_border_radius"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tv_trajectory_address_province"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_big"
+                        android:gravity="center"
+                        android:padding="@dimen/trajectory_font_item_padding"
+                        android:textSize="@dimen/trajectory_fragment_text_tiny"
+                        android:hint="@string/trajectory_address_hint_province"
+                        tools:ignore="NestedWeights" />
+                    <ImageButton
+                        android:id="@+id/image_trajectory_address_province"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_small"
+                        android:src="@mipmap/trajectory_icon_menu"
+                        android:background="@color/white"
+                        android:layout_gravity="center" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/navigation_item_height"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="@integer/trajectory_weight_small"
+                    android:layout_gravity="center"
+                    android:text="@string/trajectory_address_city"
+                    android:textSize="@dimen/trajectory_fragment_text_small"
+                    android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="@integer/trajectory_weight_mid_b"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/trajectory_style_no_border_radius"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tv_trajectory_address_city"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_big"
+                        android:gravity="center"
+                        android:padding="@dimen/trajectory_font_item_padding"
+                        android:textSize="@dimen/trajectory_fragment_text_tiny"
+                        android:hint="@string/trajectory_address_hint_city"
+                        tools:ignore="NestedWeights" />
+                    <ImageButton
+                        android:id="@+id/image_trajectory_address_city"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_small"
+                        android:src="@mipmap/trajectory_icon_menu"
+                        android:background="@color/white"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/navigation_item_height"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="@integer/trajectory_weight_small"
+                    android:layout_gravity="center"
+                    android:text="@string/trajectory_address_country"
+                    android:textSize="@dimen/trajectory_fragment_text_small"
+                    android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="@integer/trajectory_weight_mid_b"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/trajectory_style_no_border_radius"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tv_trajectory_address_country"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_big"
+                        android:gravity="center"
+                        android:padding="@dimen/trajectory_font_item_padding"
+                        android:textSize="@dimen/trajectory_fragment_text_tiny"
+                        android:hint="@string/trajectory_address_hint_country"
+                        tools:ignore="NestedWeights" />
+                    <ImageButton
+                        android:id="@+id/image_trajectory_address_country"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_small"
+                        android:src="@mipmap/trajectory_icon_menu"
+                        android:background="@color/white"
+                        android:layout_gravity="center" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/navigation_item_height"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="@integer/trajectory_weight_small"
+                    android:layout_gravity="center"
+                    android:text="@string/trajectory_address_township"
+                    android:textSize="@dimen/trajectory_fragment_text_small"
+                    android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="@integer/trajectory_weight_mid_b"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/trajectory_style_no_border_radius"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tv_trajectory_address_township"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_big"
+                        android:gravity="center"
+                        android:padding="@dimen/trajectory_font_item_padding"
+                        android:textSize="@dimen/trajectory_fragment_text_tiny"
+                        android:hint="@string/trajectory_address_hint_township"
+                        tools:ignore="NestedWeights" />
+                    <ImageButton
+                        android:id="@+id/image_trajectory_address_township"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_small"
+                        android:src="@mipmap/trajectory_icon_menu"
+                        android:background="@color/white"
+                        android:layout_gravity="center" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/navigation_item_height"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="@integer/trajectory_weight_small"
+                    android:layout_gravity="center"
+                    android:text="@string/trajectory_address_village"
+                    android:textSize="@dimen/trajectory_fragment_text_small"
+                    android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="@integer/trajectory_weight_mid_b"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/trajectory_style_no_border_radius"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tv_trajectory_address_village"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_big"
+                        android:gravity="center"
+                        android:padding="@dimen/trajectory_font_item_padding"
+                        android:textSize="@dimen/trajectory_fragment_text_tiny"
+                        android:hint="@string/trajectory_address_hint_village"
+                        tools:ignore="NestedWeights" />
+                    <ImageButton
+                        android:id="@+id/image_trajectory_address_village"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="@integer/trajectory_weight_small"
+                        android:src="@mipmap/trajectory_icon_menu"
+                        android:background="@color/white"
+                        android:layout_gravity="center" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+<!--        <LinearLayout-->
+<!--            android:id="@+id/ll_trajectory_navigation_item_address"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="@dimen/navigation_item_height"-->
+<!--            android:layout_below="@id/ll_trajectory_navigation_item_time"-->
+<!--            android:layout_marginBottom="@dimen/trajectory_font_item_padding"-->
+<!--            android:background="@color/white"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:paddingHorizontal="@dimen/trajectory_font_item_padding">-->
+<!--            <TextView-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_weight="@integer/trajectory_weight_small"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:text="@string/navigation_item_text_address"-->
+<!--                android:textSize="@dimen/trajectory_fragment_text_small"-->
+<!--                android:textStyle="bold" />-->
+<!--            <LinearLayout-->
+<!--                android:id="@+id/ll_trajectory_navigation_item_chose_address"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_weight="@integer/trajectory_weight_mid_b"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:background="@drawable/trajectory_style_no_border_radius"-->
+<!--                android:gravity="center">-->
+<!--                <EditText-->
+<!--                    android:id="@+id/tv_trajectory_navigation_item_address"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_weight="@integer/trajectory_weight_mid_b"-->
+<!--                    android:gravity="center_vertical"-->
+<!--                    android:hint="@string/navigation_item_hint_address"-->
+<!--                    android:padding="@dimen/trajectory_font_item_padding"-->
+<!--                    android:textSize="@dimen/trajectory_fragment_text_tiny"-->
+<!--                    tools:ignore="NestedWeights" />-->
+<!--                <ImageButton-->
+<!--                    android:id="@+id/icon_location"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:src="@mipmap/location"-->
+<!--                    android:background="@color/white"-->
+<!--                    android:layout_marginStart="@dimen/trajectory_font_item_padding"-->
+<!--                    android:layout_gravity="center" />-->
+<!--            </LinearLayout>-->
+<!--        </LinearLayout>-->
+<!--手机输入框-->
+        <LinearLayout
+            android:id="@+id/ll_trajectory_navigation_item_phone"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/navigation_item_height"
+            android:layout_below="@id/ll_trajectory_navigation_item_address"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding"
+            android:orientation="horizontal"
+            android:background="@color/white"
+            android:paddingHorizontal="@dimen/trajectory_font_item_padding">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="@integer/trajectory_weight_small"
+                android:text="@string/navigation_item_text_phone"
+                android:textSize="@dimen/trajectory_fragment_text_small"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edt_trajectory_navigation_item_phone"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="@integer/trajectory_weight_mid_b"
+                android:gravity="center_vertical"
+                android:hint="@string/navigation_item_hint_phone"
+                android:inputType="phone"
+                android:padding="@dimen/trajectory_font_item_padding"
+                android:textSize="@dimen/trajectory_fragment_text_small" />
+        </LinearLayout>
+<!--按钮框-->
+        <LinearLayout
+            android:id="@+id/ll_trajectory_navigation_item_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ll_trajectory_navigation_item_phone"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding"
+            android:orientation="horizontal"
+            android:padding="@dimen/trajectory_font_item_padding">
+
+            <Button
+                android:id="@+id/btn_trajectory_navigation_item_cancel"
+                style="?attr/materialIconButtonOutlinedStyle"
+                android:backgroundTint="@color/white"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="@integer/trajectory_weight_small"
+                android:textColor="@color/black_text"
+                android:text="@string/navigation_item_btn_text_cancel"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_trajectory_navigation_item_return"
+                style="?attr/materialIconButtonOutlinedStyle"
+                android:backgroundTint="@color/white"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="@integer/trajectory_weight_small"
+                android:text="@string/navigation_item_btn_text_return"
+                android:textColor="@color/black_text"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_trajectory_navigation_item_ok"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="@integer/trajectory_weight_small"
+                android:text="@string/navigation_item_btn_text_ok"
+                android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ll_trajectory_navigation_item_btn"
+            android:layout_marginBottom="@dimen/trajectory_font_item_padding"
+            android:orientation="horizontal"
+            android:padding="@dimen/trajectory_font_item_padding">
+        </LinearLayout>
+    </RelativeLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

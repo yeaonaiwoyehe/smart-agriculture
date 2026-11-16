@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/gridView_width"
+    android:layout_height="@dimen/gridView_height"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@drawable/style_item">
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imageViewMeasure"
+        android:scaleType="center"
+        android:layout_gravity="center"
+        android:layout_width="@dimen/gridView_width"
+        android:layout_height="@dimen/gridView_heightS"
+        app:shapeAppearance="@style/common"/>
+    <RelativeLayout
+        android:layout_marginStart="@dimen/gridView_item_area_relative_marginLeft"
+        android:layout_marginTop="@dimen/gridView_item_area_relative_marginTop"
+        android:layout_below="@id/imageViewMeasure"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/gridView_item_text_height">
+        <RelativeLayout
+            android:background="@drawable/style_item_text"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/gridView_item_text_height">
+            <TextView
+                android:layout_centerVertical="true"
+                android:layout_width="@dimen/gridView_item_text_width"
+                android:layout_height="@dimen/gridView_item_text_height"
+                android:layout_marginStart="@dimen/gridView_item_text_area_marginLeft"
+                android:text="@string/gridView_item_text_area"
+                android:textColor="@color/white" />
+        </RelativeLayout>
+        <TextView
+            android:id="@+id/textViewArea"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/gridView_item_area_relative_obtain_text_height"
+            android:layout_marginStart="@dimen/gridView_item_area_relative_obtain_text_marginLeft"
+            android:textSize="@dimen/gridView_item_area_relative_obtain_text_size"/>
+    </RelativeLayout>
+    <TextView
+        android:id="@+id/textViewAddress"
+        android:layout_marginStart="@dimen/gridView_item_text_address_marginLeft"
+        android:layout_marginTop="@dimen/gridView_item_text_address_marginTop"
+        android:textStyle="bold"
+        android:textSize="@dimen/gridView_textSize"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/gridView_item_text_address_height" />
+    <TextView
+        android:id="@+id/textViewDate"
+        android:textSize="@dimen/gridView_textSize"
+        android:layout_marginStart="@dimen/gridView_item_text_address_marginLeft"
+        android:layout_marginTop="@dimen/gridView_item_text_date_marginTop"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/gridView_item_text_address_height"/>
+</RelativeLayout>

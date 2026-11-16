@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="m_search_relative_width">56dp</dimen>
+    <dimen name="m_search_relative_height">28dp</dimen>
+    <dimen name="m_button_relative_marginLeft">25dp</dimen>
+    <dimen name="m_button_relative_marginBottom">20dp</dimen>
+    <dimen name="m_button_relative_width">90dp</dimen>
+    <dimen name="m_button_relative_text_size">18sp</dimen>
+    <dimen name="m_switch_relative_marginTop">10dp</dimen>
+    <dimen name="button_enclosure">16sp</dimen>
+    <dimen name="point">12sp</dimen>
+    <dimen name="m_point_margin_top">8dp</dimen>
+</resources>

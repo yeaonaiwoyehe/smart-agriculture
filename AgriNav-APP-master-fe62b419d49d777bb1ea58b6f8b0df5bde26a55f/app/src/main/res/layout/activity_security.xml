@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@color/green_final"
+        app:titleCentered="true">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_margin="@dimen/security_margin_around_mid"
+        android:text="@string/personal_security"
+        android:textSize="@dimen/security_text_size_mid"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/security_margin_around_max">
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/ms_finger_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/security_finger_login"
+            android:textSize="@dimen/security_text_size_mid" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/security_margin_around_small"
+            android:background="@color/grey" />
+
+        <TextView
+            android:id="@+id/tv_gesture_login"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/security_item_height"
+            android:gravity="center_vertical"
+            android:text="@string/security_gesture_login"
+            android:textSize="@dimen/security_text_size_mid" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/security_margin_around_small"
+            android:background="@color/grey" />
+
+        <TextView
+            android:id="@+id/tv_change_phone"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/security_item_height"
+            android:gravity="center_vertical"
+            android:text="@string/security_phone_change"
+            android:textSize="@dimen/security_text_size_mid" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/security_margin_around_small"
+            android:background="@color/grey" />
+
+        <TextView
+            android:id="@+id/tv_account_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/security_item_height"
+            android:gravity="center_vertical"
+            android:text="@string/security_account_cancel"
+            android:textSize="@dimen/security_text_size_mid" />
+
+    </LinearLayout>
+
+</LinearLayout>

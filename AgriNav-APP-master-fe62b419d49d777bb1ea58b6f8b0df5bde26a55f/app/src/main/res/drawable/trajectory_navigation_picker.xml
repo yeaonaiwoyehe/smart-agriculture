@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+
+            <solid android:color="#FFE3E3E3"/>
+        </shape>
+    </item>
+    <item android:top="@dimen/trajectory_navigation_picker_border" android:bottom="@dimen/trajectory_navigation_picker_border" android:left="@dimen/trajectory_navigation_picker_border" android:right="@dimen/trajectory_navigation_picker_border"  >
+        <shape>
+            <solid android:color="@color/white"/>
+        </shape>
+    </item>
+</layer-list>

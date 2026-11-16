@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <FrameLayout
+            android:id="@+id/frame_top"
+            android:layout_width="match_parent"
+            android:layout_height="217dp"
+            android:background="@mipmap/bg5"
+            android:elevation="5dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <RelativeLayout
+                    android:id="@+id/rl_below"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp">
+
+                    <ImageButton
+                        android:id="@+id/front_button_location"
+                        style="?attr/materialIconButtonStyle"
+                        android:layout_width="24dp"
+                        android:layout_height="19dp"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="15dp"
+                        android:contentDescription="@string/locate_image_button"
+                        android:src="@mipmap/locate01" />
+
+                    <TextView
+                        android:id="@+id/tv_front_address"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_toEndOf="@id/front_button_location"
+                        android:textColor="@color/white"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:layout_width="12dp"
+                        android:layout_height="6dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_toEndOf="@id/tv_front_address"
+                        android:background="@mipmap/front_under" />
+                    <LinearLayout
+                        android:id="@+id/linear_weather"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="120dp"
+                        android:layout_marginTop="15dp"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/tv_weather"
+                            android:textSize="12sp"
+                            android:textColor="@color/white"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                        <ImageView
+                            android:id="@+id/image_weather"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:contentDescription="@string/weather" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:layout_below="@id/rl_below"
+                    android:layout_marginTop="10dp">
+
+                    <RelativeLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="15dp"
+                        android:layout_weight="0.6373"
+                        android:background="@drawable/style_fm_relative_second_second_search"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/et_search"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="11dp"
+                            android:background="@drawable/style_fm_relative_second_second_search"
+                            android:hint="@string/please_enter"
+                            android:textColor="@color/measure_black"
+                            android:textSize="14sp"
+                            app:drawableStartCompat="@mipmap/search" />
+
+                        <RelativeLayout
+                            android:id="@+id/rl_search"
+                            android:layout_width="52dp"
+                            android:layout_height="30dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="4dp"
+                            android:background="@drawable/style_search">
+
+                            <TextView
+                                android:layout_centerHorizontal="true"
+                                android:layout_centerVertical="true"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="搜索"
+                                android:textColor="@color/white"
+                                android:textSize="14sp" />
+                        </RelativeLayout>
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.3627">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0.09" />
+
+                            <ImageButton
+                                android:id="@+id/image_button_custom_service"
+                                style="?attr/materialIconButtonStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="22dp"
+                                android:layout_weight="0.16"
+                                android:contentDescription="@string/custom_service"
+                                android:src="@mipmap/phone" />
+
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0.09" />
+
+                            <ImageButton
+                                android:id="@+id/image_button_message"
+                                style="?attr/materialIconButtonStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="22dp"
+                                android:layout_weight="0.16"
+                                android:contentDescription="@string/message"
+                                android:src="@mipmap/news" />
+
+                            <!-- 添加小红点 -->
+                            <View
+                                android:id="@+id/message_red_dot"
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:layout_alignTop="@id/image_button_message"
+                                android:layout_alignEnd="@id/image_button_message"
+                                android:background="@drawable/shape_red_dot"
+                                android:visibility="gone" />
+
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0.09" />
+
+                            <ImageButton
+                                android:id="@+id/image_button_more"
+                                style="?attr/materialIconButtonStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="22dp"
+                                android:layout_weight="0.16"
+                                android:contentDescription="@string/message"
+                                android:src="@mipmap/more" />
+
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0.09" />
+                        </LinearLayout>
+                    </RelativeLayout>
+                </LinearLayout>
+            </RelativeLayout>
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/frame_function_button"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="100dp"
+            android:elevation="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.05" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.95"
+                    android:background="@drawable/style_front_function">
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.25" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="6">
+
+                        <LinearLayout
+                            android:id="@+id/linear_find_job"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="17dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                                <ImageButton
+                                    android:id="@+id/image_button_find_job"
+                                    style="?attr/materialIconButtonStyle"
+                                    android:layout_width="70dp"
+                                    android:layout_height="70dp"
+                                    android:contentDescription="@string/agricultural_machinery_job_search"
+                                    android:src="@mipmap/machinery1" />
+
+                                <TextView
+                                    android:id="@+id/tv_find_job"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/image_button_find_job"
+                                    android:layout_centerHorizontal="true"
+                                    android:layout_marginTop="3dp"
+                                    android:text="@string/agricultural_machinery_job_search"
+                                    android:textColor="@color/black"
+                                    android:textSize="12sp" />
+                            </RelativeLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/linear_find_machinery"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="17dp"
+                            android:layout_toEndOf="@id/linear_find_job"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                                <ImageButton
+                                    android:id="@+id/image_button_find_machinery"
+                                    style="?attr/materialIconButtonStyle"
+                                    android:layout_width="70dp"
+                                    android:layout_height="70dp"
+                                    android:contentDescription="@string/find_agricultural_machinery"
+                                    android:src="@mipmap/machine1" />
+
+                                <TextView
+                                    android:id="@+id/tv_find_machinery"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/image_button_find_machinery"
+                                    android:layout_centerHorizontal="true"
+                                    android:layout_marginTop="3dp"
+                                    android:text="@string/find_agricultural_machinery"
+                                    android:textSize="12sp" />
+                            </RelativeLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/linear_collected_land"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="17dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                                <ImageButton
+                                    android:id="@+id/image_button_collected_land"
+                                    style="?attr/materialIconButtonStyle"
+                                    android:layout_width="70dp"
+                                    android:layout_height="70dp"
+                                    android:contentDescription="@string/land_acquired"
+                                    android:src="@mipmap/landplot1" />
+
+                                <TextView
+                                    android:id="@+id/tv_collected_land"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/image_button_collected_land"
+                                    android:layout_centerHorizontal="true"
+                                    android:layout_marginTop="3dp"
+                                    android:text="@string/land_acquired"
+                                    android:textSize="12sp" />
+                            </RelativeLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/linear_my_land"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="17dp"
+                            android:layout_toEndOf="@id/linear_collected_land"
+                            android:layout_weight="0.8"
+                            android:orientation="vertical">
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                                <ImageButton
+                                    android:id="@+id/image_button_my_land"
+                                    style="?attr/materialIconButtonStyle"
+                                    android:layout_width="70dp"
+                                    android:layout_height="70dp"
+                                    android:contentDescription="@string/my_land"
+                                    android:src="@mipmap/myland1" />
+
+                                <TextView
+                                    android:id="@+id/tv_my_land"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/image_button_my_land"
+                                    android:layout_centerHorizontal="true"
+                                    android:layout_marginTop="3dp"
+                                    android:text="@string/my_land"
+                                    android:textSize="12sp" />
+                            </RelativeLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.25" />
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.05" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+            android:id="@+id/rl_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/frame_function_button"
+            android:background="@color/gridView_white">
+
+            <com.scwang.smart.refresh.header.ClassicsHeader
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <com.donkingliang.consecutivescroller.ConsecutiveScrollerLayout
+                android:id="@+id/scrollerLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                app:isPermanent="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="147dp"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginEnd="15dp"
+                    android:layout_marginBottom="13dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="13dp"
+                        android:layout_marginEnd="13dp"
+                        android:layout_marginBottom="13dp"
+                        android:layout_weight="1"
+                        android:background="@color/white"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.1386" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.9614"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                android:text="@string/number_of_enclosed_plots"
+                                android:textColor="@color/front_text"
+                                android:textSize="14sp" />
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp">
+
+                                <TextView
+                                    android:id="@+id/tv_plot_sum"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/front_text_edit"
+                                    android:textSize="22sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:layout_toEndOf="@id/tv_plot_sum"
+                                    android:text="@string/a"
+                                    android:layout_marginTop="6dp"
+                                    android:textColor="@color/front_text_default"
+                                    android:textSize="14sp" />
+                            </RelativeLayout>
+
+                            <TextView
+                                android:id="@+id/tv_enter1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="13dp"
+                                android:text="@string/detail"
+                                android:textColor="@color/front_text"
+                                android:textSize="14sp"
+                                app:drawableEndCompat="@mipmap/enter1" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="13dp"
+                        android:layout_marginBottom="13dp"
+                        android:layout_weight="1"
+                        android:background="@color/white"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.1386" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.9614"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                android:text="@string/enclosed_area"
+                                android:textColor="@color/front_text" />
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp">
+
+                                <TextView
+                                    android:id="@+id/tv_plot_area"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="22sp"
+                                    android:textColor="@color/front_text_edit" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:layout_toEndOf="@id/tv_plot_area"
+                                    android:layout_marginTop="6dp"
+                                    android:text="@string/areaUnit"
+                                    android:textSize="14sp" />
+                            </RelativeLayout>
+
+                            <TextView
+                                android:id="@+id/tv_enter2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="13dp"
+                                android:text="@string/detail"
+                                android:textColor="@color/front_text"
+                                android:textSize="14sp"
+                                app:drawableEndCompat="@mipmap/enter1" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    app:layout_isSticky="true" />
+
+                <com.donkingliang.consecutivescroller.ConsecutiveViewPager2
+                    app:layout_isConsecutive="false"
+                    android:id="@+id/pager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                </com.donkingliang.consecutivescroller.ConsecutiveViewPager2>
+            </com.donkingliang.consecutivescroller.ConsecutiveScrollerLayout>
+
+            <com.scwang.smart.refresh.footer.ClassicsFooter
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:srlTextFailed="@string/no_more_data" />
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

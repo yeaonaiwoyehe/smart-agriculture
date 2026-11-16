@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--FindJob-->
+    <string name="find_job_machine_type_choose">请选择农机型号</string>
+    <string name="find_job_work_crop_choose">请选择可作业作物</string>
+    <string name="find_job_work_area_choose">请选择作业区域</string>
+    <string name="find_job_have_crop_transport">请选择是否配备运粮车</string>
+    <string name="find_job_valid_period_choose">请选择任务有效期</string>
+    <string name="find_job_task_name_default">未命名任务</string>
+    <string name="find_job_true">是</string>
+    <string name="find_job_false">否</string>
+    <string name="find_job_image_path">/AgriNav</string>
+    <string name="required_field_label">*</string>
+    <string name="find_job_submit">提交信息</string>
+    <string name="find_job_task_name">任务名</string>
+    <string name="find_job_task_name_input">请输入任务名</string>
+    <string name="find_job_machine_type">农机型号</string>
+    <string name="find_job_workable_crop">可作业作物</string>
+    <string name="find_job_workable_crop_input">请选择作物</string>
+    <string name="find_job_having_transport">配备运粮车</string>
+    <string name="find_job_work_area">作业区域</string>
+    <string name="find_job_work_area_input">请选择作业区域</string>
+    <string name="find_job_choose_more">(多选)</string>
+    <string name="find_job_choose">点击选择</string>
+    <string name="find_job_arrows">></string>
+    <string name="find_job_phone">联系方式</string>
+    <string name="find_job_phone_input">请输入手机号</string>
+    <string name="find_job_valid_period">任务有效期</string>
+    <string name="find_job_valid_period_input">请选择有效期</string>
+    <string name="find_job_machine_image">农机照片</string>
+    <string name="find_job_machine_image_input">(最多上传3张)</string>
+    <string name="find_job_add_publish">发布</string>
+    <string name="find_job_update_save">保存</string>
+    <string name="find_job_detail">详情</string>
+    <string name="find_job_type">农机型号</string>
+    <string name="find_job_crop">作物</string>
+    <string name="find_job_trans">运粮车</string>
+    <string name="find_job_area">作业区域</string>
+    <dimen name="font_find_job_padding">10dp</dimen>
+    <dimen name="font_find_job_padding_max">20dp</dimen>
+    <dimen name="font_find_job_padding_top">8dp</dimen>
+    <dimen name="font_find_job_margin">10dp</dimen>
+    <dimen name="font_find_job_margin_max">20dp</dimen>
+    <dimen name="font_find_job_margin_start">5dp</dimen>
+    <dimen name="font_find_job_margin_start_mid">8dp</dimen>
+    <dimen name="font_find_job_margin_start_max">13dp</dimen>
+    <dimen name="font_find_job_margin_top">3dp</dimen>
+    <dimen name="font_find_job_margin_top_max">6dp</dimen>
+    <dimen name="font_find_job_text_size_max">20sp</dimen>
+    <dimen name="font_find_job_text_size_mid">18sp</dimen>
+    <dimen name="font_find_job_text_size_mid_small">16sp</dimen>
+    <dimen name="font_find_job_text_size_small">14sp</dimen>
+    <dimen name="font_find_job_machine_image">120dp</dimen>
+    <dimen name="grid_spacing_vertical">10dp</dimen>
+    <dimen name="grid_margin">8dp</dimen>
+    <dimen name="grid_between">3dp</dimen>
+    <dimen name="find_job_header_height">50dp</dimen>
+    <dimen name="find_job_header_weight">70dp</dimen>
+    <dimen name="find_job_header_height_small">22dp</dimen>
+    <dimen name="find_job_header_padding">16dp</dimen>
+    <dimen name="find_job_header_image_size">24dp</dimen>
+    <dimen name="find_job_detail_image_show">300dp</dimen>
+    <dimen name="find_job_detail_bar_width">30dp</dimen>
+    <dimen name="find_job_detail_bar_width_small">5dp</dimen>
+    <dimen name="find_job_detail_bar_height">48dp</dimen>
+    <dimen name="find_job_detail_bar_height_small">15dp</dimen>
+    <dimen name="find_job_detail_text_width">5dp</dimen>
+    <dimen name="find_job_detail_text_height">18dp</dimen>
+    <dimen name="find_job_snack_bar_size">100dp</dimen>
+    <dimen name="find_job_select_width">300dp</dimen>
+    <dimen name="find_job_select_item_height">40dp</dimen>
+
+    <!--FindJobActivity-->
+    <string name="find_job_toast">FindJobActivity</string>
+    <string name="find_job">我的农机找活</string>
+    <string name="find_job_item_remove">下架</string>
+    <string name="find_job_item_remove_message">您确定要下架吗？</string>
+    <string name="find_job_item_remove_confirm">确定</string>
+    <string name="find_job_item_remove_cancel">取消</string>
+    <string name="find_job_item_remove_failure">下架失败</string>
+    <string name="find_job_item_remove_success">下架成功</string>
+    <string name="find_job_select_task_name">任务名称</string>
+    <string name="find_job_select_name">名称</string>
+    <string name="find_job_select_input_name">请输入任务名称</string>
+    <string name="find_job_select_cancel">取消</string>
+    <string name="find_job_select_confirm">确定</string>
+    <string name="find_job_select_reset">重置</string>
+    <string name="find_job_select_conditions_save">保存筛选条件失败</string>
+
+    <!--AddTaskActivity-->
+    <string name="find_job_add_toast">AddTaskActivity</string>
+    <string name="find_job_add_success">发布成功</string>
+
+    <!--UpdateTaskActivity-->
+    <string name="find_job_update_toast">UpdateTaskActivity</string>
+    <string name="find_job_update_job_detail">jobDetail</string>
+    <string name="find_job_update_success">修改成功</string>
+    <string name="find_job_update">修改信息</string>
+
+
+    <!--JobDetailActivity-->
+    <string name="find_job_detail_toast">JobDetailActivity</string>
+
+    <!--utils-->
+    <string name="find_job_date_time_util">JobDateTimeUtils</string>
+    <string name="find_job_valid_period_future">请选择有效时间</string>
+
+    <!--permission-->
+    <string name="find_job_location_permission_package">package:</string>
+    <string name="find_job_location_permission_get">用户已授权定位权限</string>
+    <string name="find_job_location_permission_title">请授予始终允许定位的权限才能后台定位</string>
+    <string name="find_job_location_permission_content">该页面需要定位权限获取当前位置</string>
+    <string name="find_job_location_permission_positive">重新授权</string>
+    <string name="find_job_location_permission_negative">取消授权</string>
+    <string name="find_job_image_permission_camera">需要权限来进行拍照</string>
+    <string name="find_job_image_permission_gallery">需要权限来进行相册选择</string>
+    <string name="find_job_image_reject">未授权</string>
+
+    <!--request-->
+    <string name="find_job_request_type">application/json</string>
+    <string name="find_job_page_num">pageNum</string>
+    <string name="find_job_page_size">pageSize</string>
+    <string name="find_job_equal">=</string>
+    <string name="find_job_and">&amp;</string>
+    <string name="find_job_id">id</string>
+    <string name="find_job_type_id">typeId</string>
+    <string name="find_job_type_name">typeName</string>
+    <string name="find_job_name">name</string>
+    <string name="find_job_crop_array">crop</string>
+    <string name="find_job_crop_id">cropId</string>
+    <string name="find_job_having_grain_carrier">havingGrainCarrier</string>
+    <string name="find_job_address_prefix">addressPrefix</string>
+    <string name="find_job_location">location</string>
+    <string name="find_job_phone_number">phoneNumber</string>
+    <string name="find_job_create_time">createTime</string>
+    <string name="find_job_end_time">endTime</string>
+    <string name="find_job_agricultural_machinery">agriculturalMachinery</string>
+    <string name="find_job_image">image</string>
+    <string name="find_job_image_type">image/*</string>
+    <string name="find_job_status">status</string>
+    <string name="find_job_my_agricultural_machinery">myAgriculturalMachinery</string>
+    <string name="find_job_order_by_create_time_desc">orderByCreateTimeDesc</string>
+    <string name="find_job_msg">msg</string>
+    <string name="find_job_data">data</string>
+    <string name="find_job_code">code</string>
+    <integer name="find_job_code_success">200</integer>
+    <string name="find_job_request_crop">/crop/getCrop</string>
+    <string name="find_job_request_machine_type">/agriculturalMachineryType/list</string>
+    <string name="find_job_request_add">/agriculturalMachinery/add</string>
+    <string name="find_job_request_update">/agriculturalMachinery</string>
+    <string name="find_job_request_list">/agriculturalMachinery/list</string>
+    <string name="find_job_request_remove">/agriculturalMachinery/</string>
+
+    <!--数字常量值-->
+
+    <!--time-->
+    <string name="find_job_time_parse">yyyy/MM/dd</string>
+
+    <!--error-->
+    <string name="find_job_json_failure">JSON构建失败</string>
+    <string name="find_job_response_failure">解析响应失败</string>
+    <string name="find_job_internet_failure">网络连接失败</string>
+    <string name="find_job_filter_manager_init_failure">JobFilterManager初始化失败</string>
+    <string name="find_job_wait_data">请等待数据加载完成</string>
+    <string name="find_job_wait_data_failure">数据加载失败</string>
+    <string name="find_job_analysis_data_failure">数据加载失败</string>
+    <string name="find_job_machine_type_wait_failure">等待农机类型数据时出错</string>
+    <string name="find_job_machine_type_failure">获取农机类型失败</string>
+    <string name="find_job_machine_type_parse_failure">解析农机类型失败</string>
+    <string name="find_job_crop_wait_failure">等待作物数据时出错</string>
+    <string name="find_job_crop_failure">获取作物数据失败</string>
+    <string name="find_job_crop_parse_failure">解析作物数据失败</string>
+    <string name="find_job_province_wait_failure">等待省份数据时出错</string>
+    <string name="find_job_province_list_failure">省份数据获取有误</string>
+    <string name="find_job_image_permission">需要相应权限才能使用该功能</string>
+    <string name="find_job_client_create_failure">创建定位客户端失败</string>
+    <string name="find_job_client_init_failure">初始化位置信息失败</string>
+    <string name="find_job_location_failure">获取位置信息失败</string>
+    <string name="find_job_task_name_limit">任务名不能超过30个字符</string>
+    <string name="find_job_work_crop_limit">最多选择5个作物</string>
+    <string name="find_job_work_area_limit">最多选择5个地区</string>
+    <string name="find_job_phone_must">手机号为必填项</string>
+    <string name="find_job_phone_valid">请输入有效的手机号</string>
+    <string name="find_job_machine_image_upload">请至少上传1张农机照片</string>
+    <string name="find_job_machine_image_limit">最多上传3张农机照片</string>
+    <string name="find_job_date_parse_failure">日期解析错误</string>
+    <string name="find_job_image_save_failure">保存图片失败</string>
+    <string name="find_job_image_load_failure">等待图片下载完成时发生中断</string>
+    <string name="find_job_location_wait_failure">等待区域数据时出错</string>
+    <string name="find_job_location_null">暂无可选区域数据</string>
+    <string name="find_job_filter_init_failure">过滤器初始化失败</string>
+
+</resources>

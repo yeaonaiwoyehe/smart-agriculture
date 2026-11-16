@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey_background">
+    <!--顶部-->
+    <LinearLayout
+        android:id="@+id/job_header"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/find_job_header_height"
+        android:background="@color/white"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/find_job_submit"
+            android:textColor="@color/black"
+            android:layout_gravity="center"
+            android:textSize="@dimen/font_find_job_text_size_max"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/find_job_snack_bar_container"
+        android:layout_marginTop="@dimen/find_job_snack_bar_size"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/find_job_snack_bar_size"
+        android:orientation="horizontal"
+        android:visibility="invisible">
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/job_header">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/font_find_job_padding">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/font_find_job_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_task_name"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edt_find_job_task_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/font_find_job_margin"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:hint="@string/find_job_task_name_input"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/font_find_job_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_field_label"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_machine_type"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edt_find_job_machine_type"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/font_find_job_margin"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:focusable="false"
+                    android:hint="@string/find_job_choose"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:clickable="true"/>
+
+                <TextView
+                    android:id="@+id/tv_tap_machine_type"
+                    android:layout_width="@dimen/font_find_job_padding_max"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_marginStart="@dimen/font_find_job_margin_start"
+                    android:hint="@string/find_job_arrows"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_machine_type_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="@dimen/font_find_job_padding_top"
+                android:paddingBottom="@dimen/font_find_job_padding_top"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/font_find_job_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_field_label"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_workable_crops"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_workable_crop"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_choose_more"
+                    android:textSize="@dimen/font_find_job_text_size_small"
+                    android:layout_marginTop="@dimen/font_find_job_margin_top"
+                    android:textColor="@color/grey_hint" />
+
+                <EditText
+                    android:id="@+id/edt_workable_crops"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/font_find_job_margin"
+                    android:gravity="end"
+                    android:textAlignment="textEnd"
+                    android:background="@null"
+                    android:focusable="false"
+                    android:hint="@string/find_job_workable_crop_input"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+                <TextView
+                    android:id="@+id/tv_tap_workable_crops"
+                    android:layout_width="@dimen/font_find_job_padding_max"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_marginStart="@dimen/font_find_job_margin_start"
+                    android:hint="@string/find_job_arrows"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+            </LinearLayout>
+            <!-- 作物标签容器 -->
+            <LinearLayout
+                android:id="@+id/ll_workable_crops_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="@dimen/font_find_job_padding_top"
+                android:paddingBottom="@dimen/font_find_job_padding_top"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/font_find_job_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_field_label"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_having_transport"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edt_grain_transport_vehicle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/font_find_job_margin"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:focusable="false"
+                    android:hint="@string/find_job_choose"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+                <TextView
+                    android:id="@+id/tv_tap_grain_transport_vehicle"
+                    android:layout_width="@dimen/font_find_job_padding_max"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_marginStart="@dimen/font_find_job_margin_start"
+                    android:hint="@string/find_job_arrows"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_grain_transport_vehicle_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="@dimen/font_find_job_padding_top"
+                android:paddingBottom="@dimen/font_find_job_padding_top"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/font_find_job_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_field_label"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_work_area"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_choose_more"
+                    android:textSize="@dimen/font_find_job_text_size_small"
+                    android:layout_marginTop="@dimen/font_find_job_margin_top"
+                    android:textColor="@color/grey_hint" />
+
+                <EditText
+                    android:id="@+id/edt_find_job_work_area"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/font_find_job_margin"
+                    android:gravity="end"
+                    android:focusable="false"
+                    android:background="@null"
+                    android:hint="@string/find_job_work_area_input"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+                <TextView
+                    android:id="@+id/tv_tap_work_area"
+                    android:layout_width="@dimen/font_find_job_padding_max"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_marginStart="@dimen/font_find_job_margin_start"
+                    android:hint="@string/find_job_arrows"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_work_area_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="@dimen/font_find_job_padding_top"
+                android:paddingBottom="@dimen/font_find_job_padding_top"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/font_find_job_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_field_label"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_phone"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edt_find_job_phone"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/font_find_job_margin"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:hint="@string/find_job_phone_input"
+                    android:inputType="phone"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:background="@drawable/style_info"
+                android:padding="@dimen/font_find_job_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/required_field_label"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/find_job_valid_period"
+                    android:textSize="@dimen/font_find_job_text_size_mid"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_find_job_task_validity_period"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/font_find_job_margin"
+                    android:gravity="end"
+                    android:background="@null"
+                    android:focusable="false"
+                    android:hint="@string/find_job_valid_period_input"
+                    android:textSize="@dimen/font_find_job_text_size_mid" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:padding="@dimen/font_find_job_padding"
+                android:orientation="vertical"
+                android:background="@drawable/style_info">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/required_field_label"
+                        android:textColor="@android:color/holo_red_dark"
+                        android:textSize="@dimen/font_find_job_text_size_mid"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_machine_image"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/font_find_job_padding_top"
+                        android:text="@string/find_job_machine_image"
+                        android:textSize="@dimen/font_find_job_text_size_mid"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@+id/tv_machine_image"
+                        android:text="@string/find_job_machine_image_input"
+                        android:textSize="@dimen/font_find_job_text_size_small"
+                        android:layout_marginTop="@dimen/font_find_job_margin_top"
+                        android:textColor="@color/grey_hint" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="@dimen/font_find_job_margin">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_machine_images"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/font_find_job_machine_image"
+                        android:layout_weight="1"
+                        android:orientation="horizontal" />
+
+                    <ImageView
+                        android:id="@+id/iv_add_image"
+                        android:layout_width="@dimen/font_find_job_machine_image"
+                        android:layout_height="@dimen/font_find_job_machine_image"
+                        android:src="@drawable/img_add"
+                        android:scaleType="centerCrop"
+                        android:clickable="true"
+                        android:focusable="true"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_find_job_publish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/font_find_job_margin"
+                android:text="@string/find_job_add_publish"
+                android:textSize="@dimen/font_find_job_text_size_mid" />
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

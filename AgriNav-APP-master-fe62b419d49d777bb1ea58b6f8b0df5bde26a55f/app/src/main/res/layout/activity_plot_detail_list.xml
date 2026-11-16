@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="sortMessage"
+            type="cn.agrinav.front.entity.SortPlotDetail" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_font_plot_detail_list"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:background="@color/green_final"
+            app:titleCentered="true">
+
+            <TextView
+                android:layout_marginBottom="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/font_plot_detail_list"
+                android:textColor="@color/white"
+                android:layout_gravity="center"
+                android:textSize="20sp" />
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="@dimen/margin_component_tiny"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="@dimen/font_plot_detail_list_padding_mid">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="@integer/trajectory_weight_mid_b">
+
+                    <EditText
+                        android:text="@={sortMessage.minArea}"
+                        android:gravity="center"
+                        android:padding="@dimen/font_plot_detail_list_padding_min"
+                        android:inputType="number"
+                        android:backgroundTint="@color/grey"
+                        android:background="@drawable/trajectory_style_no_border_radius"
+                        android:textSize="@dimen/font_plot_detail_list_text_mid"
+                        android:hint="@string/font_plot_detail_list_min_area"
+                        android:layout_width="0dp"
+                        android:layout_weight="@integer/trajectory_weight_mid_s"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:text="@string/font_plot_detail_list_line"
+                        android:textColor="@color/grey_b"
+                        android:gravity="center"
+                        android:layout_width="0dp"
+                        android:layout_weight="@integer/trajectory_weight_small"
+                        android:layout_height="match_parent"
+                        android:paddingHorizontal="@dimen/font_plot_detail_list_padding_min" />
+
+                    <EditText
+                        android:text="@={sortMessage.maxArea}"
+                        android:gravity="center"
+                        android:padding="@dimen/font_plot_detail_list_padding_min"
+                        android:inputType="number"
+                        android:backgroundTint="@color/grey"
+                        android:background="@drawable/trajectory_style_no_border_radius"
+                        android:textSize="@dimen/font_plot_detail_list_text_mid"
+                        android:hint="@string/font_plot_detail_list_max_area"
+                        android:layout_width="0dp"
+                        android:layout_weight="@integer/trajectory_weight_mid_s"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="@integer/trajectory_weight_mid_s"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end">
+
+                    <ImageView
+                        android:padding="@dimen/font_plot_detail_list_padding_mid"
+                        android:id="@+id/image_btn_plot_detail_list_search"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="ContentDescription"
+                        android:src="@mipmap/search"
+                        android:layout_marginEnd="@dimen/margin_component_small" />
+
+                    <ImageView
+                        android:padding="@dimen/font_plot_detail_list_padding_mid"
+                        android:id="@+id/image_btn_plot_detail_list_reset"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@mipmap/refresh_icon"
+                        tools:ignore="ContentDescription"
+                        android:layout_marginEnd="@dimen/margin_component_tiny"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.scwang.smart.refresh.layout.SmartRefreshLayout
+                android:id="@+id/refreshLayout_plot_detail_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/grey_background"
+                android:padding="@dimen/trajectory_font_item_padding_small">
+
+                <com.scwang.smart.refresh.header.ClassicsHeader
+                    android:id="@+id/grid_header_plot_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <GridView
+                    android:id="@+id/gv_plot_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:numColumns="@integer/column_num"
+                    android:scrollbarSize="0dp"
+                    android:verticalSpacing="@dimen/margin_component_tiny" />
+
+                <com.scwang.smart.refresh.footer.ClassicsFooter
+                    android:id="@+id/grid_footer_plot_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+        </LinearLayout>
+    </LinearLayout>
+</layout>

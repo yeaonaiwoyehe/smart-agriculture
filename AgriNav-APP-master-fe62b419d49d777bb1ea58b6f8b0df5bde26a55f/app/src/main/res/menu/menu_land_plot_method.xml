@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_hand"
+        android:title="@string/land_method_hand"/>
+    <item android:id="@+id/menu_auto"
+        android:title="@string/land_method_auto"/>
+    <item android:id="@+id/enclosure"
+        android:title="@string/land_enclosure">
+    </item>
+</menu>

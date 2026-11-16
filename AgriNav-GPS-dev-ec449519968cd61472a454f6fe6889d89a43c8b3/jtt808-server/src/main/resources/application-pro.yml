@@ -1,0 +1,95 @@
+# 生产环境凭据通过环境变量注入，默认值仅为内网占位，不包含真实密码
+username: ${DEPLOY_USER:root}
+password: ${DEPLOY_PASSWORD:agrinav}
+spring:
+  application:
+    name: jt808
+  datasource:
+    url: jdbc:postgresql_postGIS://${PG_HOST:10.2.20.11}:${PG_PORT:5432}/${PG_DB:AgriNav}
+    username: ${PG_USER:root}
+    password: ${PG_PASSWORD:agrinav}
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgis.DriverWrapper
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  influxdb:
+    url: ${INFLUX_URL:http://10.2.20.11:8086}
+    token: ${INFLUX_TOKEN:}
+    bucket: ${INFLUX_BUCKET:trajectory}
+    measurement: effective_point
+    org: ${INFLUX_ORG:agrinav}
+    tag:
+      phoneNumber: phoneNumber
+      plotId: plotId
+      token: phoneNumber
+      workType: workType
+      width: width
+    field:
+      latitude: latitude
+      longitude: longitude
+      deviceTime: deviceTime
+  mvc:
+    format:
+      date-time: yyyy-MM-dd HH:mm:ss
+      date: yyyy-MM-dd
+      time: HH:mm:ss
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:10.2.20.16:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        acks: all
+        retries: 5
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      group-id: T0200Consumer
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+  elasticsearch:
+    host: ${ES_HOST:10.2.20.3}
+    port: ${ES_PORT:9200}
+    scheme: http
+    username: ${ES_USER:root}
+    password: ${ES_PASSWORD:agrinav}
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**.xml
+  type-aliases-package: org.yzh.web.model.entity
+  config-location: classpath:mybatis/mybatis-config.xml
+  type-handlers-package: com.eyougo.mybatis.postgis.type
+
+server:
+  port: 8100
+
+jt-server:
+  jt808:
+    enable: true
+    port:
+      udp: 7100
+      tcp: 7100
+    media-file:
+      path: ${JT_MEDIA_PATH:D:/jt_data/media_file}
+    alarm-file:
+      host: 127.0.0.1
+      port: 7200
+
+  alarm-file:
+    enable: true
+    port: 7200
+    path: ${JT_ALARM_PATH:D:/jt_data/alarm_file}
+
+minio:
+  url: ${MINIO_URL:http://10.2.20.6:9000}
+  accessKey: ${MINIO_ACCESS_KEY:minioadmin}
+  secretKey: ${MINIO_SECRET_KEY:minioadmin}
+  bucketName: ${MINIO_BUCKET:bkt-media}
+
+
+cms-server:
+  host: ${CMS_HOST:10.2.20.6}
+  port: ${CMS_PORT:80}

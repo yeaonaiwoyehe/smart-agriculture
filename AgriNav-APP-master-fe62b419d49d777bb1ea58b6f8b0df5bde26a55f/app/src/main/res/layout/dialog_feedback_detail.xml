@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/feedback_margin_horizontal"
+    android:layout_marginVertical="@dimen/feedback_margin_vertical"
+    android:background="@drawable/bg_feedback_dialog"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="@dimen/dialog_width"
+        android:layout_height="@dimen/dialog_height"
+        android:layout_gravity="center">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/feedback_padding">
+
+            <TextView
+                android:id="@+id/tv_feedback_detail_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/feedback_margin_bottom"
+                android:text="@string/feedback_tags"
+                android:textSize="@dimen/feedback_text_size_small"
+                android:textColor="@color/black_text"
+                android:textStyle="bold"/>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/dialog_chip_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/feedback_margin_bottom_max"
+                android:visibility="gone"
+                app:chipSpacingHorizontal="@dimen/chip_spacing" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/feedback_margin_bottom"
+                android:text="@string/feedback_question_mine"
+                android:textSize="@dimen/feedback_text_size_small"
+                android:textColor="@color/black_text"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tv_feedback_detail_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="@dimen/chip_padding_vertical"
+                android:textColor="@color/dialog_text_color"
+                android:textSize="@dimen/feedback_text_size_smallest" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <com.youth.banner.Banner
+                android:id="@+id/farm_item_banner"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/find_item_banner_page"/>
+            <ImageView
+                android:id="@+id/farm_item_image"
+                android:layout_width="match_parent"
+                android:scaleType="matrix"
+                android:visibility="gone"
+                android:layout_height="@dimen/find_item_banner_page"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@color/gridView_white">
+
+                <LinearLayout
+                    android:layout_width="@dimen/find_item_icon_lay_width"
+                    android:layout_height="@dimen/find_item_icon_lay_height"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <TextView
+                        android:background="@drawable/find_farm_item_detail_icon"
+                        android:layout_width="@dimen/find_item_icon_width"
+                        android:layout_height="@dimen/find_item_icon_height"/>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/find_item_detail_title_height"
+                    android:gravity="center_vertical"
+                    android:text="@string/find_item_detail_title"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:textSize="@dimen/find_item_detail_title_size" />
+            </LinearLayout>
+
+            <!-- 详情信息区域 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@android:color/white">
+
+                <!-- 任务名 -->
+                <LinearLayout style="@style/FindFarmDetailItemStyle">
+                    <TextView
+                        style="@style/FindFarmDetailLabelStyle"
+                        android:text="@string/find_item_task_name"/>
+                    <TextView
+                        android:id="@+id/tv_task_name"
+                        style="@style/FindFarmDetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/FindFarmDividerStyle"/>
+
+                <!-- 地块 -->
+                <LinearLayout style="@style/FindFarmDetailItemStyle">
+                    <TextView
+                        style="@style/FindFarmDetailLabelStyle"
+                        android:text="@string/find_item_land_plot"/>
+                    <TextView
+                        android:id="@+id/tv_land_plot"
+                        style="@style/FindFarmDetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/FindFarmDividerStyle"/>
+
+                <!-- 地块亩数 -->
+                <LinearLayout style="@style/FindFarmDetailItemStyle">
+                    <TextView
+                        style="@style/FindFarmDetailLabelStyle"
+                        android:text="@string/find_item_land_plot_area"/>
+                    <TextView
+                        android:id="@+id/tv_land_area"
+                        style="@style/FindFarmDetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/FindFarmDividerStyle"/>
+
+                <!-- 作业区域 -->
+                <LinearLayout style="@style/FindFarmDetailItemStyle">
+                    <TextView
+                        style="@style/FindFarmDetailLabelStyle"
+                        android:text="@string/find_item_work_location"/>
+                    <TextView
+                        android:id="@+id/tv_address"
+                        style="@style/FindFarmDetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/FindFarmDividerStyle"/>
+
+                <!-- 作物 -->
+                <LinearLayout style="@style/FindFarmDetailItemStyle">
+                    <TextView
+                        style="@style/FindFarmDetailLabelStyle"
+                        android:text="@string/find_item_crops"/>
+                    <TextView
+                        android:id="@+id/tv_crops"
+                        style="@style/FindFarmDetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/FindFarmDividerStyle"/>
+
+                <!-- 作业类型 -->
+                <LinearLayout style="@style/FindFarmDetailItemStyle">
+                    <TextView
+                        style="@style/FindFarmDetailLabelStyle"
+                        android:text="@string/find_item_operation"/>
+                    <TextView
+                        android:id="@+id/tv_operation_types"
+                        style="@style/FindFarmDetailContentStyle"/>
+                </LinearLayout>
+
+                <View style="@style/FindFarmDividerStyle"/>
+
+                <!-- 作业有效期 -->
+                <LinearLayout style="@style/FindFarmDetailItemStyle">
+                    <TextView
+                        style="@style/FindFarmDetailLabelStyle"
+                        android:text="@string/find_item_work_time"/>
+                    <TextView
+                        android:id="@+id/tv_operation_date"
+                        style="@style/FindFarmDetailContentStyle"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

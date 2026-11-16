@@ -1,0 +1,5 @@
+# 复制本文件为同目录下的 endpoint.properties 后按需修改
+# endpoint.properties 已被 .gitignore 忽略，不会进入版本库
+# 真机调试时把 10.0.2.2 换成运行后端的电脑局域网 IP（例如 192.168.1.100）
+serverUrl=http://10.0.2.2:8088
+jtt808Ip=http://10.0.2.2:7100

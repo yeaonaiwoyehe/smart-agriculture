@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_register_top_text">田界智航</string>
+   <dimen  name="login_register_top_text_margin">29dp</dimen>
+    <dimen name="login_register_top_text_size">18sp</dimen>
+    <!--    登录-->
+    <string name="login_welcome">欢迎登录</string>
+    <string name="login_account_text">还没有账号？</string>
+    <string name="login_account_register">点击注册</string>
+    <string name="login_edit_hint">请输入手机号码</string>
+    <string name="login_btn_confirm_text">确认</string>
+<!-- 注册-->
+    <string name="register_register_this">一键注册</string>
+    <string name="register_register_other">其他手机号注册</string>
+    <string name="register_other_welcome">欢迎注册田界智航账号</string>
+    <string name="register_other_btn_ok">立即注册</string>
+    <string name="register_other_text">手机号注册</string>
+    <string name="register_other_edt_content">请输入手机号码</string>
+
+ <!--这部分是其他手机号注册相关的-->
+
+    <dimen name="register_other_text_size_small">15sp</dimen>
+    <dimen name="register_other_text_size_mid">20sp</dimen>
+    <dimen name="register_other_text_size_big">45sp</dimen>
+    <dimen name="register_other_margin_small">20dp</dimen>
+    <dimen name="register_other_margin_mid">25dp</dimen>
+    <!--    textView -->
+    <dimen name="login_register_text_view_string_size">14sp</dimen>
+    <dimen name="login_register_text_view_string_margin_small">10dp</dimen>
+    <dimen name="login_register_text_view_string_margin_big">40dp</dimen>
+    <dimen name="login_register_text_size">30sp</dimen>
+    <dimen name="register_text_view_phone_margin_bottom">45dp</dimen>
+
+    <!--    输入框信息-->
+    <dimen name ="login_register_edt_text_size">16sp</dimen>
+    <dimen name ="login_register_edt_width">280dp</dimen>
+
+    <!--    button-->
+    <dimen name="login_register_btn_width">280dp</dimen>
+    <dimen name="login_register_btn_text_size">16sp</dimen>
+    <dimen name="login_register_btn_margin_vertical">15dp</dimen>
+
+    <!--    协议-->
+    <string name="protocol_ok">已阅读并同意</string>
+    <string name="protocol_see">《服务协议》</string>
+    <string name="protocol_personal_see">《隐私政策》</string>
+    <dimen name="protocol_text_size">12sp</dimen>
+    <dimen name="protocol_margin_or_padding">5dp</dimen>
+    <string name="protocol_read"> 服务协议</string>
+    <dimen name="protocol_text_size_small">15sp</dimen>
+    <dimen name="protocol_text_size_mid">20sp</dimen>
+    <string name="protocol_btn_text">已阅</string>
+    <string name="protocol_toast">后可关闭</string>
+     <string name="protocol_intent_key">serverType</string>
+
+
+<!-- 手势登录-->
+    <string name="gesture_text">请绘制手势密码</string>
+    <string name="gesture_other_way">其他方式登录</string>
+    <string name="gesture_more_way">更多</string>
+    <dimen name="gesture_text_size_small">14sp</dimen>
+    <dimen name="gesture_text_size_mid">16sp</dimen>
+    <dimen name="gesture_text_size_big">18sp</dimen>
+    <dimen name="gesture_margin_small">64dp</dimen>
+    <dimen name="gesture_margin_big">127dp</dimen>
+    <dimen name="gesture_margin_end">30dp</dimen>
+    <dimen name="gesture_margin_top">50dp</dimen>
+</resources>

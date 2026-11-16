@@ -1,0 +1,26 @@
+{
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "clientId": {
+      "type": "keyword"
+    },
+    "fileUrl": {
+      "type": "keyword"
+    },
+    "createTime": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss.SSS"
+    },
+    "longitude": {
+      "type": "double"
+    },
+    "latitude": {
+      "type": "double"
+    },
+    "location": {
+      "type": "keyword"
+    }
+  }
+}

@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<!--    关于用户pref的一些信息-->
+    <string name="user_pref_name">verification</string>
+    <string name="user_pref_key_user_name">userName</string>
+    <string name="user_pref_key_nick_name">nickName</string>
+    <string name="user_pref_key_phone">phone</string>
+    <string name="user_pref_key_avatar">avatar</string>
+    <string name="user_pref_key_dept_name">deptName</string>
+    <string name="user_pref_key_user_state">state</string>
+    <string name="user_pref_key_token">token</string>
+    <string name="user_pref_key_rsa_public">rsa_public</string>
+    <string name="user_pref_key_aes_public">aes_public</string>
+    <string name="user_pref_key_user_info">userInfo</string>
+    <string name="user_pref_key_finger">isAllowFingerLogin</string>
+    <string name="user_pref_key_gesture">isAllowGestureLogin</string>
+    <string name="user_pref_key_gesture_password">gesturePassword</string>
+    <string name="user_pref_delete_sdcard">deleteSDCardData</string>
+    <string name="user_gesture_open">请开启手势登录</string>
+    <string name="user_paint_gesture_old">请绘制原手势</string>
+    <string name="user_pref_key_server">url</string>
+    <string name="user_state_login">login</string>
+    <string name="user_state_exit">exit</string>
+    <string name="user_state_logout">logout</string>
+    <string name="user_first">first_use</string>
+<!--这部分是注册相关的-->
+
+    <string name="user_test">15531069469</string>
+
+
+    <string name="return_back">返回上一页</string>
+
+    <string name="verification_code_input">输入短信验证码</string>
+    <string name="verification_code_wait">验证码已发送至：  </string>
+    <string name="verification_code_get">获取验证码</string>
+    <string name="verification_code_gets">重新获取验证码</string>
+    <dimen name="verification_code_size_small">20sp</dimen>
+    <dimen name="verification_code_size_mid">25sp</dimen>
+    <dimen name="verification_code_size_big">35sp</dimen>
+    <dimen name="verification_margin_small">20dp</dimen>
+    <dimen name="verification_margin_mid">25dp</dimen>
+    <dimen name="verification_margin_big">40dp</dimen>
+    <dimen name="verification_margin_plus">90dp</dimen>
+    <integer name="verification_code_length">6</integer>
+    <dimen name="verification_code_line_height">4dp</dimen>
+    <dimen name="verification_code_line_space">15dp</dimen>
+    <dimen name="login_text_size_mid">25sp</dimen>
+    <dimen name="login_text_size_small">25sp</dimen>
+    <dimen name="login_margin_small">35sp</dimen>
+<!--    这部分是验证码页面的一些需要和后台服务器交互时候的参数名-->
+    <string name="verification_code_request_param_key_login_phone">phoneNumber</string>
+    <string name="verification_code_request_param_key_login_captcha">captcha</string>
+<!--    这里是用户在验证码页面可以看到的toast信息-->
+    <string name="toast_first_error_verification_code_request_false_text">请求失败，稍后再试，或检查网络状态,也可能是服务器正在维护</string>
+    <string name="toast_first_error_verification_code_request_false_server_text">服务器正在维护，请稍后再试</string>
+    <string name="toast_first_error_not_phone">手机号格式有误,请重新尝试</string>
+    <string name="toast_first_error_not_protocol">请先同意协议</string>
+    <string name="toast_first_error_not_gesture">暂时没有设置手势密码，请先开启</string>
+    <string name="toast_first_error_gesture">手势密码错误</string>
+    <string name="toast_first_error_false_num">错误次数超过最大次数</string>
+<!--    在跳转到验证码页面的时候所携带的额外信息的key-->
+    <string name="verification_code_extra_action">action</string>
+    <string name="verification_code_extra_phoneNumber">phoneNumber</string>
+
+<!--    验证码成功发送或者在验证码页面登陆注册成功的成功状态码-->
+    <integer name="verification_code_request_success">200</integer>
+
+<!--    用于标识跳转到验证码页面的时候的行为是登录还是注册-->
+    <integer name="action_login">0</integer>
+    <integer name="action_register">1</integer>
+
+<!--    我的页面-->
+    <string name="personal_info_phone">手机号：</string>
+    <string name="personal_info">个人信息</string>
+    <string name="personal_communication">通讯设置</string>
+    <string name="personal_security">安全设置</string>
+    <string name="personal_feedback">意见反馈</string>
+    <string name="personal_logout">退出登录</string>
+    <string name="personal_commit">上传土地</string>
+    <string name="personal_privacy">隐私政策</string>
+    <string name="personal_version">当前版本号：1.1.2</string>
+    <string name="personal_exit_title">确认退出登录？</string>
+    <string name="personal_exit_text">您确定要退出当前账号吗？</string>
+    <string name="personal_exit_button_confirm">确定</string>
+    <string name="personal_exit_button_cancel">取消</string>
+    <dimen name="personal_height_header">210dp</dimen>
+    <dimen name="personal_height_header_image">100dp</dimen>
+    <dimen name="personal_margin_info_top">70dp</dimen>
+    <dimen name="personal_margin_around_max">20dp</dimen>
+    <dimen name="personal_margin_around_mid">10dp</dimen>
+    <dimen name="personal_margin_around_small">1dp</dimen>
+    <dimen name="personal_size_image">100dp</dimen>
+    <dimen name="personal_size_info">100dp</dimen>
+    <dimen name="personal_size_text_max">20sp</dimen>
+    <dimen name="personal_size_text_mid">16sp</dimen>
+    <dimen name="personal_size_text_small">14sp</dimen>
+    <dimen name="personal_height_info">5dp</dimen>
+    <dimen name="personal_items_margin_top">185dp</dimen>
+    <dimen name="personal_items_image_height">25dp</dimen>
+    <dimen name="personal_button_width">335dp</dimen>
+    <dimen name="personal_button_margin">18dp</dimen>
+    <dimen name="personal_item_height">50dp</dimen>
+
+
+<!--    个人信息-->
+    <string name="personal_name">name</string>
+    <string name="personal_avatar">avatar</string>
+    <string name="personal_data">data</string>
+    <string name="personal_log">PersonInfoActivity</string>
+    <string name="personal_avatar_send_request">/system/user/profile/avatar</string>
+    <string name="personal_edit_name_length_limit">昵称不能超过15个字符</string>
+    <string name="personal_edit_name_blank_limit">昵称不能包含空格</string>
+    <string name="personal_edit_name_failure">修改失败</string>
+    <string name="personal_edit_name_request">/system/user/profile</string>
+    <string name="personal_info_avatar">头像</string>
+    <string name="personal_info_name">姓名</string>
+    <string name="personal_info_change_name">更改名字</string>
+    <string name="personal_info_edit_name">请输入名字</string>
+    <string name="personal_info_btn_ok">确定</string>
+    <string name="personal_avatar_not_found">图片未找到或无法读取</string>
+    <string name="personal_avatar_send_success">头像上传成功</string>
+    <string name="personal_avatar_send_failure">头像上传失败</string>
+    <string name="personal_avatar_permission_camera">需要权限来进行拍照</string>
+    <string name="personal_avatar_permission_gallery">需要权限来进行相册选择</string>
+    <string name="personal_name_edit_success">昵称编辑成功</string>
+    <string name="personal_name_edit_failure">昵称编辑失败</string>
+    <string name="personal_image_source_take">拍照</string>
+    <string name="personal_image_source_choose">从相册选择</string>
+    <string name="personal_permission_reject">未授权</string>
+    <dimen name="personal_info_text_size_max">25sp</dimen>
+    <dimen name="personal_info_text_size_mid">20sp</dimen>
+    <dimen name="personal_info_text_size_small">15sp</dimen>
+    <dimen name="personal_info_height">50dp</dimen>
+    <dimen name="personal_info_margin_top">20dp</dimen>
+    <dimen name="personal_info_margin_around">10dp</dimen>
+    <dimen name="personal_info_size_avatar">50dp</dimen>
+
+<!--    通讯设置-->
+    <string name="security_interface_url_input">请输入接口地址</string>
+    <string name="security_interface_url_success">接口地址设置成功</string>
+    <string name="security_gps_ip_input">请输入完整的GPS服务器地址</string>
+    <string name="security_gps_ip_success">GPS服务器地址设置成功</string>
+    <string name="communication_back_address">后端接口IP</string>
+    <string name="communication_gps_address">GPS轨迹IP</string>
+    <string name="communication_encrypt">**********</string>
+    <string name="communication_back_address_change">更改后端接口IP</string>
+    <string name="communication_back_address_input">请输入IP:例如192.168.1.1:8080</string>
+    <string name="communication_btn_ok">确定</string>
+    <string name="communication_change_hint">提示：如果您在设置成功后不希望使用更新后的数据，您可以重新设置或者重新登录，届时您的数据将被重置为默认数据</string>
+    <string name="communication_gps_address_change">更改GPS轨迹IP</string>
+    <string name="communication_gps_ip_input">请输入IP：例如192.168.1.1</string>
+    <string name="communication_gps_port_input">请输入端口：例如8080</string>
+    <dimen name="communication_item_height">50dp</dimen>
+    <dimen name="communication_margin_around">10dp</dimen>
+    <dimen name="communication_text_size_max">25sp</dimen>
+    <dimen name="communication_text_size_mid">20sp</dimen>
+    <dimen name="communication_text_size_mid_less">18sp</dimen>
+    <dimen name="communication_text_size_small">15sp</dimen>
+    <dimen name="communication_clue_text_size">10sp</dimen>
+
+<!--    安全设置-->
+    <string name="security_and_request">&amp;</string>
+    <string name="security_equal_request">=</string>
+    <string name="security_account_cancel_request">/signOut/</string>
+    <string name="security_code_send_request">phoneNumber</string>
+    <string name="security_phone_number_validate">/validate?phoneNumber=</string>
+    <string name="security_phone_number_update">/system/user/profile/phoneNumber?phoneNumber=</string>
+    <string name="security_gesture_log">GestureNewActivity</string>
+    <string name="security_finger_login">指纹登录</string>
+    <string name="security_finger_verify">请验证指纹</string>
+    <string name="security_finger_exit">退出指纹验证</string>
+    <string name="security_finger_not_support">手机不支持指纹</string>
+    <string name="security_finger_not_use">指纹不可用</string>
+    <string name="security_finger_not_have">暂无指纹信息</string>
+    <string name="security_gesture_login">手势登录</string>
+    <string name="security_phone_change">修改手机号</string>
+    <string name="security_gesture_change">修改手势</string>
+    <string name="security_account_cancel">注销账户</string>
+    <string name="security_account_cancel_title">账户注销</string>
+    <string name="security_account_cancel_message">注销账户后，您的账户信息将被清空，且无法恢复，您确定要注销账户吗？</string>
+    <string name="security_account_cancel_success">注销账户成功</string>
+    <string name="security_account_cancel_failure">注销账户失败</string>
+    <string name="confirmation_title">确认修改手机号</string>
+    <string name="confirmation_message">您确定要修改手机号吗？</string>
+    <string name="confirmation_positive_button">确认</string>
+    <string name="confirmation_negative_button">取消</string>
+    <string name="security_phone_verify">验证手机号</string>
+    <string name="security_phone_old_input">请输入原手机号</string>
+    <string name="security_phone_old_input_correct">请输入正确的手机号</string>
+    <string name="security_phone_next">下一步</string>
+    <string name="security_verification_code_input">输入短信验证码</string>
+    <string name="security_verification_send">验证码已发送至：</string>
+    <string name="security_verification_code_send">验证码已发送</string>
+    <string name="security_verification_code_send_failure">验证码发送失败</string>
+    <string name="security_verification_code_input_please">请输入验证码</string>
+    <string name="security_verification_get_code">获取验证码</string>
+    <string name="security_verification_get_code_again">重新获取验证码</string>
+    <string name="security_code_correct">验证码正确</string>
+    <string name="security_code_error">验证码错误</string>
+    <string name="security_phone_new_change">更换手机号</string>
+    <string name="security_phone_new_input">请输入新手机号</string>
+    <string name="security_phone_change_next">下一步</string>
+    <string name="security_gesture_error">绘制错误，请重新绘制</string>
+    <string name="security_gesture_verify_success">验证通过</string>
+    <dimen name="security_margin_around_max">20dp</dimen>
+    <dimen name="security_margin_around_mid">10dp</dimen>
+    <dimen name="security_margin_around_small">1dp</dimen>
+    <dimen name="security_text_size_max">25sp</dimen>
+    <dimen name="security_text_size_mid">20sp</dimen>
+    <dimen name="security_text_size_small">15sp</dimen>
+    <dimen name="security_item_height">50dp</dimen>
+    <dimen name="security_padding">20dp</dimen>
+    <dimen name="security_margin_bottom_max">40dp</dimen>
+    <dimen name="security_margin_bottom_mid">35dp</dimen>
+    <dimen name="security_margin_bottom_small">25dp</dimen>
+    <dimen name="security_code_height">290dp</dimen>
+    <dimen name="security_code_text_max">35sp</dimen>
+    <dimen name="security_code_text_mid">30sp</dimen>
+    <dimen name="security_code_text_small">16sp</dimen>
+    <dimen name="security_code_width">90dp</dimen>
+    <integer name="code_length">6</integer>
+    <integer name="phone_length">11</integer>
+    <dimen name="security_code_line_height">4dp</dimen>
+    <dimen name="security_code_space">15dp</dimen>
+
+<!--    意见反馈-->
+    <string name="feedback_input">说说您的建议和问题，以便我们提供更好的服务</string>
+    <string name="feedback_input_please">请输入您的建议</string>
+    <string name="feedback_submit">提交反馈</string>
+    <string name="feedback_thanks">感谢您的反馈</string>
+    <string name="feedback_failure">反馈失败</string>
+    <string name="feedback_question_tag">问题发生的场景</string>
+    <string name="feedback_question_mine">我的意见</string>
+    <string name="feedback_tags">相关标签</string>
+    <string name="feedback_analysis_failure">数据解析失败</string>
+    <string name="feedback_acquire_failure">获取失败：</string>
+    <string name="feedback_solved">已解决</string>
+    <string name="feedback_unsolved">未解决</string>
+    <string name="feedback_input_limit">输入内容不能超过300个字符</string>
+    <string name="feedback_request_send">/system/feedback</string>
+    <string name="feedback_request_get">/system/feedback/myFeedback?</string>
+    <string name="feedback_request_get_tags">/system/dict/data/type/sys_feedback_type</string>
+    <string name="feedback_request_pageNum">pageNum=</string>
+    <string name="feedback_request_pageSize">&amp;pageSize=</string>
+    <string name="feedback_request_data">data</string>
+    <string name="feedback_request_labels">labels</string>
+    <string name="feedback_request_content">content</string>
+    <string name="feedback_request_isChecked">isChecked</string>
+    <string name="feedback_request_dictCode">dictCode</string>
+    <string name="feedback_request_dictLabel">dictLabel</string>
+    <dimen name="feedback_card_corner">8dp</dimen>
+    <dimen name="feedback_card_elevation">4dp</dimen>
+    <dimen name="feedback_margin_top">20dp</dimen>
+    <dimen name="feedback_margin_bottom">10dp</dimen>
+    <dimen name="feedback_margin_bottom_max">16dp</dimen>
+    <dimen name="feedback_margin_horizontal">32dp</dimen>
+    <dimen name="feedback_margin_vertical">48dp</dimen>
+    <dimen name="feedback_padding">10dp</dimen>
+    <dimen name="feedback_padding_max">15dp</dimen>
+    <dimen name="feedback_padding_vertical">2dp</dimen>
+    <dimen name="feedback_text_size">16sp</dimen>
+    <dimen name="feedback_text_size_smallest">12sp</dimen>
+    <dimen name="feedback_text_size_small">14sp</dimen>
+    <dimen name="feedback_text_size_max">20sp</dimen>
+    <dimen name="feedback_size_input">14sp</dimen>
+    <dimen name="feedback_text_height">200dp</dimen>
+    <integer name="feedback_text_line">10</integer>
+    <dimen name="feedback_item_margin">3dp</dimen>
+    <dimen name="chip_stroke_width">1dp</dimen>
+    <dimen name="chip_corner_radius">16dp</dimen>
+    <dimen name="chip_spacing">8dp</dimen>
+    <dimen name="chip_height">32dp</dimen>
+    <dimen name="chip_margin_bottom">8dp</dimen>
+    <dimen name="chip_padding_horizontal">12dp</dimen>
+    <dimen name="chip_padding_vertical">6dp</dimen>
+    <dimen name="dialog_width">320dp</dimen>
+    <dimen name="dialog_height">240dp</dimen>
+    <dimen name="dialog_conner">20dp</dimen>
+    <dimen name="dialog_padding_text_vertical">15dp</dimen>
+    <dimen name="dialog_padding_vertical">10dp</dimen>
+    <dimen name="dialog_padding_horizontal">25dp</dimen>
+    <dimen name="dialog_size_max">18sp</dimen>
+    <dimen name="dialog_size_min">14sp</dimen>
+    <dimen name="item_width">345dp</dimen>
+    <dimen name="item_height">93dp</dimen>
+
+</resources>

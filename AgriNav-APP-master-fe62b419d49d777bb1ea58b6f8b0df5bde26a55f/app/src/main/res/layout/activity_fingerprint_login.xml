@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/bg" />
+
+    <TextView
+        android:id="@+id/tv_login_finger_more_protocol"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/login_finger_margin_mid"
+        android:layout_marginTop="@dimen/login_finger_margin_max_more"
+        android:gravity="end"
+        android:text="@string/login_finger_more"
+        android:textSize="@dimen/login_finger_text_size_mid" />
+
+    <LinearLayout
+        android:id="@+id/layout_middle_first"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/layout_middle"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/iv_login_finger_avatar_protocol"
+            android:layout_width="@dimen/login_finger_avatar_size"
+            android:layout_height="@dimen/login_finger_avatar_size"
+            android:layout_gravity="center"
+            tools:src="@drawable/login_avatar"
+            android:src="@drawable/login_avatar"/>
+
+        <TextView
+            android:id="@+id/tv_login_finger_phone_protocol"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/login_finger_margin_small"
+            android:gravity="center"
+            android:textSize="@dimen/login_finger_text_size_max"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_middle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_login_finger_protocol"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/login_finger_margin_mid"
+            android:layout_marginRight="@dimen/login_finger_margin_mid"
+            android:layout_marginBottom="@dimen/login_finger_margin_small"
+            android:text="@string/login_finger_text"
+            android:textSize="@dimen/login_finger_text_size_mid" />
+
+        <Button
+            android:id="@+id/btn_login_change_protocol"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar.Bridge"
+            android:text="@string/login_finger_change_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/login_finger_margin_mid"
+            android:layout_marginRight="@dimen/login_finger_margin_mid"
+            android:textColor="@color/black_text"
+            android:textSize="@dimen/login_finger_text_size_mid"
+            android:background="@drawable/style_button"
+            android:backgroundTintMode="multiply" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/layout_middle">
+        <CheckBox
+            android:id="@+id/rb_login_finger_protocol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/protocol_ok"
+            android:button="@drawable/icon_protocol_selector"
+            android:textSize="@dimen/login_finger_text_size_small" />
+        <TextView
+            android:id="@+id/tv_login_finger_protocol_read"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/protocol_see"
+            android:textStyle="bold"
+            android:textSize="@dimen/login_finger_text_size_small"/>
+        <TextView
+            android:id="@+id/tv_login_finger_read_protocol_personal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/protocol_personal_see"
+            android:fontFamily="@font/ping_fang"
+            android:textSize="@dimen/protocol_text_size"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</RelativeLayout>

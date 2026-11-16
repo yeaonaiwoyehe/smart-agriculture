@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@color/green_final"
+        app:titleCentered="true">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/personal_margin_around_mid"
+        android:gravity="center"
+        android:text="@string/personal_communication"
+        android:textSize="@dimen/communication_text_size_mid"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/personal_margin_around_max">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:text="@string/communication_back_address"
+                android:textSize="@dimen/communication_text_size_mid" />
+
+            <TextView
+                android:id="@+id/tv_communication_back_interface"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:text="@string/communication_encrypt"
+                android:textSize="@dimen/communication_text_size_small"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/login_finger_bottom_division_small"
+            android:background="@color/grey" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/communication_item_height"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="@string/communication_gps_address"
+                android:textSize="@dimen/communication_text_size_mid" />
+
+            <TextView
+                android:id="@+id/tv_communication_gps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:text="@string/communication_encrypt"
+                android:textSize="@dimen/communication_text_size_small" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</LinearLayout>
