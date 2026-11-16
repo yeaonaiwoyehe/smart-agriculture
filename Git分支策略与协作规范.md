@@ -1,6 +1,6 @@
 # AgriNav（田界智航）Git 分支策略与协作规范
 
-> 适用范围：AgriNav-APP、AgriNav-CMS、AgriNav-GPS 三个独立仓库，四人项目组统一遵守。
+> 适用范围：AgriNav 单仓库（Monorepo，内含 APP、CMS、GPS 三个子工程目录），四人项目组统一遵守。
 
 ## 一、分支模型
 
@@ -76,22 +76,24 @@ git push -u origin feature/xxx
 
 ## 六、当前仓库状态（阶段 0 基线）
 
-三个仓库均已完成首次提交并建立 `main`、`develop` 两个分支：
+三个子工程已合并为一个单仓库（Monorepo），并托管到 GitHub：
 
+* 远程地址：`https://github.com/yeaonaiwoyehe/smart-agriculture.git`
+* 仓库根目录：`E:\smart argiculture`，其下为 APP、CMS、GPS 三个子工程目录及 PRD、分工文档
+* 提交身份仅在本仓库内设置为 GitHub 账号（`耶奥奈沃耶赫`，使用 GitHub 隐私邮箱），未改动机器全局配置
+* 已推送 `main`、`develop` 两个分支，且均已设置上游跟踪
+* 全部真实密码、密钥、云凭据已从代码中移除，改由环境变量注入，根目录与各子工程均有 `.gitignore` 兜底
 
-
-* APP：首次提交 582 个文件，端点地址改由 Gradle 生成
-
-* CMS：首次提交 931 个文件，全部配置改为环境变量注入
-
-* GPS：首次提交 243 个文件，全部配置改为环境变量注入
-
-后续在远程托管平台建仓后，通过以下命令关联并推送：
-
-
+新成员克隆仓库：
 
 ```
-git remote add origin <远程仓库地址>
-git push -u origin main
-git push -u origin develop
+git clone https://github.com/yeaonaiwoyehe/smart-agriculture.git
+cd smart-agriculture
+git checkout develop
+```
+
+日常推送直接使用：
+
+```
+git push
 ```
