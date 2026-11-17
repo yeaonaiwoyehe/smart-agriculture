@@ -1,13 +1,19 @@
 package com.agri.cms.framework.config;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.agri.cms.framework.interceptor.impl.ApiAccessInterceptor;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.http.CacheControl;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,6 +37,32 @@ public class ResourcesConfig implements WebMvcConfigurer {
 
     @Resource
     private ApiAccessInterceptor apiAccessInterceptor;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    /**
+     * 注册 String -> Map 转换器
+     * 前端 GET 请求会把 BaseEntity 的 params（Map）以 JSON 字符串形式传递（如 "{}"、"{"beginTime":...}"），
+     * Spring Boot 3 默认无 String->Map 转换策略会报 500，这里用 Jackson 解析为 Map。
+     */
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new Converter<String, Map<String, Object>>() {
+            @Override
+            public Map<String, Object> convert(String source) {
+                if (source == null || source.trim().isEmpty()) {
+                    return new HashMap<>();
+                }
+                try {
+                    return objectMapper.readValue(source, new TypeReference<Map<String, Object>>() {
+                    });
+                } catch (Exception e) {
+                    return new HashMap<>();
+                }
+            }
+        });
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

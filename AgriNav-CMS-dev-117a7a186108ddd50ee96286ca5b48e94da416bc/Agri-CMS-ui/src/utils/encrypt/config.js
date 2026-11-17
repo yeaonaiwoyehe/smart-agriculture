@@ -23,8 +23,9 @@ const EXCLUDE_PATHS = [
            "/captcha*",
            "/signOut*",
            "/screen/**",
-           "/system/user/bind"
-  // "/**"
+           "/system/user/bind",
+  // 全局关闭传输加密，与后端 EncryptConfig（EXCLUDE_PATHS 含 /**）对齐：所有接口走明文 JSON
+  "/**"
 ]
 
 /**
