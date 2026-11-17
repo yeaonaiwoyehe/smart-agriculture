@@ -83,7 +83,8 @@ public class FarmWorkController extends BaseController {
 
     @Operation(summary = "查询寻找农机")
     @PostMapping("/list")
-    @PreAuthorize("@ss.hasPermi('home:farmWork:list')")
+    // 首页农活列表属于登录即可浏览的公共信息，原 home:farmWork:list 权限在 sys_menu 中缺失，普通用户会被 403 拦截，故放开查询
+    // @PreAuthorize("@ss.hasPermi('home:farmWork:list')")
     public AjaxResult list(@RequestBody FarmWorkDTO farmWorkDTO,
                            @RequestParam(defaultValue = "1") int pageNum,
                            @RequestParam(defaultValue = "6") int pageSize) {

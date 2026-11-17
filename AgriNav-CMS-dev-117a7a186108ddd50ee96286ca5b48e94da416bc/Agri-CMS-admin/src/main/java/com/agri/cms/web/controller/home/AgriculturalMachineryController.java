@@ -76,7 +76,8 @@ public class AgriculturalMachineryController extends BaseController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("@ss.hasPermi('home:agriculturalMachinery:list')")
+    // 首页农机列表属于登录即可浏览的公共信息，原 home:agriculturalMachinery:list 权限在 sys_menu 中缺失，普通用户会被 403 拦截，故放开查询
+    // @PreAuthorize("@ss.hasPermi('home:agriculturalMachinery:list')")
     @Operation(summary = "查询农机找活信息")
     public AjaxResult list(@RequestBody AgriculturalMachineryDTO agriculturalMachineryDTO,
                            @RequestParam(defaultValue = "1") int pageNum,

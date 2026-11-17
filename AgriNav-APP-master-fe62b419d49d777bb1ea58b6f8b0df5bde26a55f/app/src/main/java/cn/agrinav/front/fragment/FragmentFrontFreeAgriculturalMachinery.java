@@ -116,7 +116,10 @@ public class FragmentFrontFreeAgriculturalMachinery extends MyFragment{
                 if(!list.isEmpty()){
                     list.clear();
                 }
-                list.addAll(resultData.getData());
+                // 接口失败或无数据时 getData() 可能为 null，直接 addAll(null) 会触发空指针崩溃，这里判空保护
+                if (resultData.getData() != null){
+                    list.addAll(resultData.getData());
+                }
                 bingEvents(gridMachinery);
             });
         });

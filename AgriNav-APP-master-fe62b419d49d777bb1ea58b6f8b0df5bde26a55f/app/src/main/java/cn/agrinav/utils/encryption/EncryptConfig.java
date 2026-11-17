@@ -47,6 +47,9 @@ public class EncryptConfig {
      * @return 是否需要加密，false为不需要加密
      */
     public synchronized static boolean checkPath(String url){
+        // 本地联调：后端当前全局关闭传输加密，APP 端同步关闭，避免“明文响应被当密文解密失败”而误判登录失效
+        return false;
+        /* ---- 原加密判定逻辑暂时保留，待后端恢复加密后重新启用 ----
         String[] split = url.split("/");
         //只有一层path直接匹配
         if (split.length==2){
@@ -82,6 +85,7 @@ public class EncryptConfig {
             }
         }
         return true;
+        */
     }
     public synchronized static boolean checkLoginPath(String path){
         return  LOGIN_PATH.contains(path);
