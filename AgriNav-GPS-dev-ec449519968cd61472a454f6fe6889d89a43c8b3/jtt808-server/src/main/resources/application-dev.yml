@@ -2,7 +2,7 @@ spring:
   application:
     name: jt808
   datasource:
-    url: jdbc:postgresql_postGIS://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:postgres}
+    url: jdbc:postgresql_postGIS://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:AgriNav}
     username: ${PG_USER:postgres}
     password: ${PG_PASSWORD:agrinav}
     type: com.zaxxer.hikari.HikariDataSource
