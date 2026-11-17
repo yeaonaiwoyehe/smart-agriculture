@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FastByteArrayOutputStream;
 
@@ -48,6 +49,12 @@ public class CaptchaServiceImpl implements CaptchaService {
 
     private static final Logger log = LoggerFactory.getLogger(CaptchaServiceImpl.class);
 
+    /**
+     * 短信演示模式开关：开启后不调用腾讯云真实短信，验证码直接写日志并在接口返回
+     */
+    @Value("${sms.mock.enabled:false}")
+    private boolean mockEnabled;
+
     @Override
 //    @Log(title = "发送验证码", businessType = BusinessType.OTHER)
     public AjaxResult getCode(String phoneNumber) throws Exception {
@@ -56,6 +63,14 @@ public class CaptchaServiceImpl implements CaptchaService {
         String verifyKey = CacheConstants.CAPTCHA_CODE_KEY + phoneNumber;
         if (redisCache.hasKey(verifyKey)){
             throw new CaptchaRepeatException();
+        }
+        if (mockEnabled) {
+            // 演示模式：不真实发送短信，直接把验证码存入 Redis，并在接口/日志中返回，便于本机演示登录
+            redisCache.setCacheObject(verifyKey, random, Constants.CAPTCHA_EXPIRATION, TimeUnit.MINUTES);
+            log.warn("【演示模式】手机号 {} 的验证码为 {}（未真实发送短信）", phoneNumber, random);
+            AjaxResult mockResult = AjaxResult.success("演示模式，验证码已生成（未真实发送短信）");
+            mockResult.put("mockCode", random);
+            return mockResult;
         }
         try {
             AjaxResult result = smsUtils.sendSms(new String[]{random.toString()}, new String[]{phoneNumber});
