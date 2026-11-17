@@ -95,8 +95,8 @@
     <select id="queryHeatmapData" resultType="com.agri.cms.system.domain.vo.HeatmapDataVO">
     SELECT
         id,
-        ST_X(center_point::geometry) AS latitude,
-        ST_Y(center_point::geometry) AS longitude,
+        ST_Y(center_point::geometry) AS latitude,
+        ST_X(center_point::geometry) AS longitude,
         land_area AS weight
     FROM public.land_plot
     WHERE is_deleted = 0

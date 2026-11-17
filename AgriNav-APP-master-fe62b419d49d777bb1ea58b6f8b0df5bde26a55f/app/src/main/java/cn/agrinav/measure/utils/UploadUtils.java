@@ -121,9 +121,10 @@ public class UploadUtils {
 
         for (String pair : pairs) {
             String[] xy = pair.trim().split("\\s+");
-            double x = Double.parseDouble(xy[0]);
-            double y = Double.parseDouble(xy[1]);
-            latLngList.add(new LatLng(x, y));
+            double x = Double.parseDouble(xy[0]);  // WKT 第一个数是经度
+            double y = Double.parseDouble(xy[1]);  // 第二个数是纬度
+            // 高德 LatLng 顺序为 (纬度, 经度)，需交换
+            latLngList.add(new LatLng(y, x));
         }
 
         // 移除最后一个点(因为它与第一个点重复)

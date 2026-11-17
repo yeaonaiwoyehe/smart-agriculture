@@ -60,7 +60,8 @@ public class LandPlotController extends BaseController {
      * @author mfr
      * @since 2024/9/8
      */
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     @GetMapping
     @Operation(summary = "查询当前用户或部门下所有地块信息")
     public AjaxResult checkField(@RequestParam @NotNull long current,
@@ -71,7 +72,8 @@ public class LandPlotController extends BaseController {
     }
 
 
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     @GetMapping("/remeasure")
     @Operation(summary = "查询当前指定地块的复测历史信息")
     public AjaxResult findBeforeRemeasure(String id
@@ -128,7 +130,8 @@ public class LandPlotController extends BaseController {
      * @since 2024/12/7
      */
     @GetMapping("/history")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult findHistoryLandPlots(Page<LandPlot> page) {
         return success(landPlotService
                 .getHistoryLandPlots(page,getUserId(),getUsername()));
@@ -178,7 +181,8 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/byCoordinate")
     @Operation(summary = "根据经纬度查询地块信息")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult checkByCoordinate(@NotNull Double longitude,
                                         @NotNull Double latitude,
                                         @NotNull Double distance) {
@@ -195,7 +199,8 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/query")
     @Operation(summary = "根据条件查询地块信息")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult query(@RequestParam Map<String, Object> params) {
         // 查询
         LandPlotQueryDTO queryDTO = BeanUtil.toBean(params, LandPlotQueryDTO.class);
@@ -212,7 +217,8 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/queryByAddress")
     @Operation(summary = "根据位置模糊查询地块信息")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult queryByAddress(LandPlotQueryDTO queryDTO) {
         AjaxResult ajaxResult = landPlotService.queryByConditions(queryDTO);
 
@@ -230,7 +236,8 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/queryByAddressAll")
     @Operation(summary = "根据地址查询所有地块")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult queryByAddressAll(
             @RequestParam(required = false) String address
     ) {
@@ -253,7 +260,8 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据地块id查询地块信息")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult queryById(@PathVariable Long id) {
         return AjaxResult.success(landPlotService.getById(id));
     }
@@ -268,7 +276,8 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/heatmap")
     @Operation(summary = "获取地块热力图")
-    @PreAuthorize("@ss.hasPermi('field:square:heatcheck')")
+    // 首页地块热力图登录即可访问，放开权限
+    // @PreAuthorize("@ss.hasPermi('field:square:heatcheck')")
     public AjaxResult getHeatmapData() {
         List<HeatmapDataVO> heatmapData = landPlotService.getHeatmapData();
         return AjaxResult.success(heatmapData);
@@ -284,7 +293,8 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/area")
     @Operation(summary = "返回总体面积")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult getArea(@RequestParam(required = false, defaultValue = "0") Long addressCode,
                               @RequestParam(required = false, defaultValue = "1") int level) {
 
@@ -302,16 +312,12 @@ public class LandPlotController extends BaseController {
      */
     @GetMapping("/areaByAddress")
     @Operation(summary = "根据地址返回该地址内地块的面积之和")
-    @PreAuthorize("@ss.hasPermi('field:square:check')")
+    // 首页/地块查询类接口登录即可访问，放开权限（原 field:square:check 权限在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('field:square:check')")
     public AjaxResult getAreaByAddress(String address) {
-        // 判断地址是否为空
-        if (StringUtils.isBlank(address)) {
-            throw new LandPlotException("请输入地址");
-        }
-        double areaByAddress = landPlotService.getAreaByAddress(address);
+        // 地址为空时按全部地块统计（service 层空字符串 LIKE '%%' 匹配所有），保证首页定位失败时也能显示总面积
+        double areaByAddress = landPlotService.getAreaByAddress(StringUtils.isBlank(address) ? "" : address);
         return AjaxResult.success(areaByAddress);
-
-
     }
 
     @PreAuthorize("@ss.hasPermi('field:square:signout')")

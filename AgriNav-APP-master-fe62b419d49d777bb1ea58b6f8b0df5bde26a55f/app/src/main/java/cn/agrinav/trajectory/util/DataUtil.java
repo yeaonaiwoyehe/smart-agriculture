@@ -198,9 +198,10 @@ public class DataUtil {
 
         for (String coord : coordList) {
             String[] xy = coord.trim().split("\\s+");
-            String x = xy[0];
+            String x = xy[0];   // WKT 坐标顺序为 “经度 纬度”
             String y = xy[1];
-            LatLng latLng = new LatLng(Double.parseDouble(x), Double.parseDouble(y));
+            // 高德 LatLng 构造参数顺序为 (纬度, 经度)，这里必须交换，否则纬度取到经度会报“非法坐标值”
+            LatLng latLng = new LatLng(Double.parseDouble(y), Double.parseDouble(x));
             list.add(latLng);
         }
         return list;
@@ -235,8 +236,9 @@ public class DataUtil {
         Matcher matcher = pattern.matcher(boundary);
         while (matcher.find()) {
             try {
-                double latitude = Double.parseDouble(matcher.group(1));
-                double longitude = Double.parseDouble(matcher.group(2));
+                // WKT 第一个数是经度、第二个数是纬度；高德 LatLng 顺序为 (纬度, 经度)
+                double longitude = Double.parseDouble(matcher.group(1));
+                double latitude = Double.parseDouble(matcher.group(2));
                 LatLng latLng = new LatLng(latitude, longitude);
                 list.add(latLng);
             } catch (NumberFormatException e) {

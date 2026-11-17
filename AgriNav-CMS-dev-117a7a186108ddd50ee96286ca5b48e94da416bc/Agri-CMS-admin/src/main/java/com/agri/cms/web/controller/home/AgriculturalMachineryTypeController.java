@@ -44,7 +44,8 @@ public class AgriculturalMachineryTypeController extends BaseController {
      */
     @Operation(summary = "查询农机类型列表")
     @GetMapping("/list")
-    @PreAuthorize("@ss.hasPermi('home:agriculturalMachineryType:list')")
+    // 农机类型筛选登录即可访问，放开权限（原 home:agriculturalMachineryType:list 在 sys_menu 中缺失）
+    // @PreAuthorize("@ss.hasPermi('home:agriculturalMachineryType:list')")
     public AjaxResult list(@RequestParam(name = "pageNum", defaultValue = "1") int pageNum, @RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
         LambdaUpdateWrapper<AgriculturalMachineryType> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(AgriculturalMachineryType::getStatus, Constants.NOT_DELETED);

@@ -43,7 +43,8 @@ public class LandPlotExcludeController {
     //通过地块id查询无用区域
     @GetMapping("/queryByLandPlotId")
     @Operation(summary = "通过地块id查询无用区域")
-    @PreAuthorize("@ss.hasPermi('landplot:exclude:search')")
+    // 演示放开：查询类接口对登录用户可见，写操作权限注解保留
+    // @PreAuthorize("@ss.hasPermi('landplot:exclude:search')")
     public AjaxResult queryLandPlotExcludeByLandPlotId(@RequestParam Long landPlotId) {
         if (ObjectUtil.isEmpty(landPlotId)) {
             throw new LandPlotException("地块id为空");
