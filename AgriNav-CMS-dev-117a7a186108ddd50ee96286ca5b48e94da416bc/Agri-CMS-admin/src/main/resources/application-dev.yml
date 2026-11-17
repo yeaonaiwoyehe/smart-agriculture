@@ -99,11 +99,6 @@ spring:
     idle:
       time: 10000                # 空闲连接超时时间
       connections-per-route: 2   # 每个路由保持的最小空闲连接
-minio:
-  url: ${MINIO_URL:http://localhost:9000}
-  accessKey: ${MINIO_ACCESS_KEY:minioadmin}
-  secretKey: ${MINIO_SECRET_KEY:minioadmin}
-  bucketName: ${MINIO_BUCKET:bkt-map}
 tencentcloud:
   account:
     secret-id: ${TENCENT_SECRET_ID:}

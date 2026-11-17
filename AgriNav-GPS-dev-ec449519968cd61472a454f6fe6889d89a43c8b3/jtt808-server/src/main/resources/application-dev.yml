@@ -38,6 +38,7 @@ jt-server:
       tcp: 7100
     media-file:
       path: ${JT_MEDIA_PATH:D:/jt_data/media_file}
+      url-prefix: ${JT_MEDIA_URL_PREFIX:http://127.0.0.1:8100/media}
     alarm-file:
       host: 127.0.0.1
       port: 7200
@@ -46,12 +47,6 @@ jt-server:
     enable: true
     port: 7200
     path: ${JT_ALARM_PATH:D:/jt_data/alarm_file}
-
-minio:
-  url: ${MINIO_URL:http://localhost:9000}
-  accessKey: ${MINIO_ACCESS_KEY:minioadmin}
-  secretKey: ${MINIO_SECRET_KEY:minioadmin}
-  bucketName: ${MINIO_BUCKET:bkt-media}
 
 cms-server:
   host: ${CMS_HOST:localhost}

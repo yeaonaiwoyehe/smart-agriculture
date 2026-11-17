@@ -201,12 +201,6 @@
             <artifactId>ip2region</artifactId>
             <version>1.7.2</version>
         </dependency>
-        <!-- Minio 文件存储 -->
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.2.1</version>
-        </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>

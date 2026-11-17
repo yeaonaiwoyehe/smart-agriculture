@@ -20,8 +20,7 @@ import java.util.UUID;
 @Service
 public class GaodeMapService {
 
-    @Value("${minio.bucketName}")
-    private String bucketName;
+    private static final String bucketName = "bkt-local";
     @Value("${gaode.key}")
     private String apiKey;
     @Value("${gaode.url}")

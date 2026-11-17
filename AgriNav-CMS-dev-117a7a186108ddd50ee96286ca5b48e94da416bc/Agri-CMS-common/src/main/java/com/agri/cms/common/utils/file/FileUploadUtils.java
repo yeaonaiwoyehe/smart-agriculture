@@ -1,6 +1,5 @@
 package com.agri.cms.common.utils.file;
 
-import com.agri.cms.common.config.MinioConfig;
 import com.agri.cms.common.constant.Constants;
 import com.agri.cms.common.exception.file.FileNameLengthLimitExceededException;
 import com.agri.cms.common.exception.file.FileSizeLimitExceededException;
@@ -43,9 +42,9 @@ public class FileUploadUtils {
     private static String defaultBaseDir = "";
 
     /**
-     * Minio默认上传的地址
+     * 兼容保留的默认存储名（本地方案不再使用独立桶，仅作参数透传）
      */
-    private static String bucketName = MinioConfig.getBucketName();
+    private static String bucketName = "bkt-local";
 
     public static void setDefaultBaseDir(String defaultBaseDir) {
         FileUploadUtils.defaultBaseDir = defaultBaseDir;

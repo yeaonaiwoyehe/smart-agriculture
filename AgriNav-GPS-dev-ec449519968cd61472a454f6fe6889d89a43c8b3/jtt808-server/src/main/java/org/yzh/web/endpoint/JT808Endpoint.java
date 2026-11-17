@@ -8,7 +8,6 @@ import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yzh.protocol.basics.JTMessage;
 import org.yzh.protocol.commons.JT808;
@@ -17,7 +16,6 @@ import org.yzh.web.model.DTO.T0200DTO;
 import org.yzh.web.model.entity.DeviceDO;
 import org.yzh.web.model.enums.SessionKey;
 import org.yzh.web.service.AsyncQueueService;
-import org.yzh.web.service.FileService;
 import org.yzh.web.service.RpcService;
 
 import java.time.LocalDateTime;
@@ -30,9 +28,6 @@ import static org.yzh.protocol.commons.JT808.*;
 public class JT808Endpoint {
 
     private static final Logger log = LoggerFactory.getLogger(JT808Endpoint.class);
-
-    @Autowired
-    private FileService fileService;
 
     @Resource
     private AsyncQueueService asyncQueueService;
@@ -198,7 +193,6 @@ public class JT808Endpoint {
             return result;
         }
         asyncQueueService.sendMedia(message);
-        fileService.saveMediaFile(message);
         T8800 result = new T8800();
         result.setMediaId(message.getId());
         return result;

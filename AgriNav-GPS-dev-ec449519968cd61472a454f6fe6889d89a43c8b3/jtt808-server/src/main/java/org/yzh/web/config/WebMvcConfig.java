@@ -1,5 +1,6 @@
 package org.yzh.web.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,8 +20,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+    @Value("${jt-server.jt808.media-file.path}")
+    private String mediaFilePath;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 本地多媒体文件通过 HTTP /media/** 访问（方案 B：去 MinIO）
+        registry.addResourceHandler("/media/**")
+                .addResourceLocations("file:" + mediaFilePath.replace("\\", "/") + "/");
     }
 
     @Override
