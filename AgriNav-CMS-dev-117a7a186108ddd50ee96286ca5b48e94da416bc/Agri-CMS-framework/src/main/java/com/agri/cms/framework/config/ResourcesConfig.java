@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.agri.cms.framework.interceptor.impl.ApiAccessInterceptor;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -34,9 +33,6 @@ import com.agri.cms.framework.interceptor.RepeatSubmitInterceptor;
 public class ResourcesConfig implements WebMvcConfigurer {
     @Autowired
     private RepeatSubmitInterceptor repeatSubmitInterceptor;
-
-    @Resource
-    private ApiAccessInterceptor apiAccessInterceptor;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -82,9 +78,6 @@ public class ResourcesConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(apiAccessInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns("/login", "/register");
         registry.addInterceptor(repeatSubmitInterceptor).addPathPatterns("/**");
     }
 

@@ -102,10 +102,10 @@ public class CheckPathServiceImpl {
                     }
                 }
                 if (tmp == 1) {
-                    // 使用原始格式的坐标值
+                    // 使用原始格式的坐标值（testx=经度，testy=纬度）
                     String formattedX = String.format("%.6f", originalX);
                     String formattedY = String.format("%.6f", originalY);
-                    result.add(new EffectivePoint(formattedY, formattedX, String.valueOf(plotId)));
+                    result.add(new EffectivePoint(formattedX, formattedY, String.valueOf(plotId)));
                 }
             }
         }

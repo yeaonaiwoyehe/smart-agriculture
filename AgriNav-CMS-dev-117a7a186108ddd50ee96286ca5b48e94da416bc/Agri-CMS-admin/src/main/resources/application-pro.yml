@@ -79,31 +79,6 @@ spring:
           # #连接池最大阻塞等待时间（使用负值表示没有限制）
           max-wait: -1ms
       geo-distance: 1000
-  kafka:
-    bootstrap-servers: 10.2.20.16:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        enable.idempotence: true
-        acks: all
-        retries: 5
-        max.in.flight.requests.per.connection: 5
-  influxdb:
-    url: http://10.2.20.11:8086
-    token: J41htS3-Jv_TALRJi7srziWq92xmnHgKqRO7q0YSeTdFdYF0SJxKtWFWIuHd_kQnpc2aGPxzjcnsH091X-4Wwg==
-    bucket: trajectory
-    measurement: effective_point
-    org: agrinavi
-    startTime: 2024-09-01T00:00:00Z
-    tag:
-      phoneNumber: phoneNumber
-      plotId: plotId
-      token: token
-    field:
-      latitude: latitude
-      longitude: longitude
-      deviceTime: deviceTime
   elasticsearch:
     host: 10.2.20.3
     port: 9200

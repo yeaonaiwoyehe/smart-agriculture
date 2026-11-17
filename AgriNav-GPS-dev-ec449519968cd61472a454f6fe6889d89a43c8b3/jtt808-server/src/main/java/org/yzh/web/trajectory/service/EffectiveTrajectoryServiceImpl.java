@@ -39,7 +39,7 @@ public class EffectiveTrajectoryServiceImpl implements IEffectiveTrajectoryServi
              //拿到原始经纬度
             t0200.transform();
             //判断该点所属哪个地块
-            List<EffectivePoint> effectivePoints = checkPathService.checkPoint(t0200.getLat(), t0200.getLng());
+            List<EffectivePoint> effectivePoints = checkPathService.checkPoint(t0200.getLng(), t0200.getLat());
             List<String> plotIds = t0200ToPlotIdsMap.get(t0200);
             if (plotIds == null){
                 plotIds = effectivePoints.stream()
@@ -59,7 +59,7 @@ public class EffectiveTrajectoryServiceImpl implements IEffectiveTrajectoryServi
     public boolean insert(T0200 t0200) {
         List<Long> plotIds = new ArrayList<>();
         t0200.transform();
-        List<EffectivePoint> effectivePoints = checkPathService.checkPoint(t0200.getLat(), t0200.getLng());
+        List<EffectivePoint> effectivePoints = checkPathService.checkPoint(t0200.getLng(), t0200.getLat());
         effectivePoints.forEach(point -> {
             if (point.getPlotId() != null){
                 plotIds.add(Long.parseLong(point.getPlotId()));

@@ -93,8 +93,6 @@ public class SysLoginService {
 
     @Resource
     private SysWechatService sysWechatService;
-    @Value("${spring.influxdb.startTime}")
-    private String startTime;
     @Autowired
     private FarmWorkService farmWorkService;
     @Autowired

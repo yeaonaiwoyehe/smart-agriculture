@@ -1,130 +1,93 @@
 package org.yzh.web.trajectory.dao;
 
-import com.influxdb.client.QueryApi;
-import com.influxdb.client.WriteApi;
-import com.influxdb.client.domain.WritePrecision;
-import com.influxdb.client.write.Point;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import org.yzh.protocol.commons.transform.AttributeKey;
 import org.yzh.protocol.t808.T0200;
-import org.yzh.web.config.Constants;
+import org.yzh.web.mapper.EffectivePointBufferMapper;
+import org.yzh.web.model.entity.EffectivePointBuffer;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * @author 姚锦伦
- *  @since 2024/9/23
+ * 有效轨迹点数据访问实现（方案 B：去 InfluxDB，直接写入 PostgreSQL 暂存表）
  */
 @Repository
-public class EffectiveTrajectoryDaoImpl implements IEffectiveTrajectoryDao{
+public class EffectiveTrajectoryDaoImpl implements IEffectiveTrajectoryDao {
+
     @Autowired
-    private WriteApi writeApi;
-    @Value("${spring.influxdb.measurement}")
-    private String measurement;
-    @Value("${spring.influxdb.field.longitude}")
-    private String fieldLongitude;
-    @Value("${spring.influxdb.field.latitude}")
-    private String fieldLatitude;
-    @Value("${spring.influxdb.field.deviceTime}")
-    private String time;
-    @Value("${spring.influxdb.tag.token}")
-    private String tagPhoneNumber;
-    @Value("${spring.influxdb.tag.plotId}")
-    private String tagPlotId;
-    @Value("${spring.influxdb.tag.workType}")
-    private String tagWorkType;
-    @Value("${spring.influxdb.tag.width}")
-    private String tagWidth;
+    private EffectivePointBufferMapper effectivePointBufferMapper;
 
     /**
-     * 插入轨迹点数据
-     * @param t0200
-     * @param plotIds
-     * @return
+     * 单个位置点写入（每个所属地块一条记录）
      */
     @Override
-    public boolean insert(T0200 t0200,List<Long> plotIds) {
-        t0200.transform();
-        String clientId = t0200.getClientId();
-        Map<Integer, Object> attributes = t0200.getAttributes();
-        final String workType;
-        final String widthStr;
-        if(attributes != null){
-            workType = attributes.get(AttributeKey.WorkType) != null ? attributes.get(AttributeKey.WorkType).toString() : "-1";
-            widthStr = attributes.get(AttributeKey.Width) != null ?  attributes.get(AttributeKey.Width).toString() : "-1";
-        }else {
-            workType = "-1";
-            widthStr = "-1";
+    public boolean insert(T0200 t0200, List<Long> plotIds) {
+        if (plotIds == null || plotIds.isEmpty()) {
+            return true;
         }
-        plotIds.forEach(plotId -> {
-            Point point = Point.measurement(measurement)
-                    .addTag(tagPlotId, String.valueOf(plotId))
-                    .addTag(tagPhoneNumber, clientId)
-                    .addTag(tagWorkType, workType)
-                    .addTag(tagWidth, widthStr)
-                    .addField(fieldLongitude, String.valueOf(t0200.getLng()))
-                    .addField(fieldLatitude, String.valueOf(t0200.getLat()))
-                    .addField(time, String.valueOf(t0200.getDeviceTime()))
-                    .time(Instant.now(), WritePrecision.NS);
-            writeApi.writePoint(point);
-        });
+        t0200.transform();
+        List<EffectivePointBuffer> rows = new ArrayList<>(plotIds.size());
+        for (Long plotId : plotIds) {
+            rows.add(toEntity(t0200, String.valueOf(plotId)));
+        }
+        effectivePointBufferMapper.insert(rows.get(0));
+        for (int i = 1; i < rows.size(); i++) {
+            effectivePointBufferMapper.insert(rows.get(i));
+        }
         return true;
     }
 
     /**
-     * 批量插入轨迹点
-     * @param t0200ToPlotIdsMap
-     * @return
+     * 批量位置点写入
      */
     @Override
     public boolean insertBatch(Map<T0200, List<String>> t0200ToPlotIdsMap) {
-        try {
-            t0200ToPlotIdsMap.entrySet().stream().forEach(entry -> {
-                T0200 t0200 = entry.getKey();
-                List<String> plotIds = entry.getValue();
-
-                t0200.transform();
-                String clientId = t0200.getClientId();
-                final String workType;
-                final String widthStr;
-                Map<Integer, Object> attributes = t0200.getAttributes();
-                if(attributes != null){
-                    workType = attributes.get(AttributeKey.WorkType) != null ?
-                            String.valueOf(((Number) attributes.get(AttributeKey.WorkType)).intValue()) : "-1";
-                    widthStr = attributes.get(AttributeKey.Width) != null ?
-                            String.valueOf(((Number) attributes.get(AttributeKey.Width)).intValue()) : "-1";
-                }else {
-                    workType = "-1";
-                    widthStr = "-1";
-                }
-                List<Point> points = plotIds.stream()
-                        .map(plotId -> Point.measurement(measurement)
-                                .addTag(tagPlotId, plotId)
-                                .addTag(tagPhoneNumber, clientId)
-                                .addTag(tagWorkType, workType)
-                                .addTag(tagWidth, String.valueOf(widthStr))
-                                .addField(fieldLongitude, String.valueOf(t0200.getLng()))
-                                .addField(fieldLatitude, String.valueOf(t0200.getLat()))
-                                .addField(time, String.valueOf(t0200.getDeviceTime()))
-                                .time(Instant.now(), WritePrecision.NS))
-                        .collect(Collectors.toList());
-
-                // 批量插入
-                writeApi.writePoints(points);
-            });
-
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        List<EffectivePointBuffer> rows = new ArrayList<>();
+        for (Map.Entry<T0200, List<String>> entry : t0200ToPlotIdsMap.entrySet()) {
+            T0200 t0200 = entry.getKey();
+            List<String> plotIds = entry.getValue();
+            t0200.transform();
+            for (String plotId : plotIds) {
+                rows.add(toEntity(t0200, plotId));
+            }
         }
+        for (EffectivePointBuffer row : rows) {
+            effectivePointBufferMapper.insert(row);
+        }
+        return true;
+    }
+
+    /**
+     * 把 T0200 与所属地块组装成暂存记录
+     */
+    private EffectivePointBuffer toEntity(T0200 t0200, String plotId) {
+        Map<Integer, Object> attributes = t0200.getAttributes();
+        int workType = -1;
+        int width = -1;
+        if (attributes != null) {
+            Object wt = attributes.get(AttributeKey.WorkType);
+            if (wt != null) {
+                workType = ((Number) wt).intValue();
+            }
+            Object wd = attributes.get(AttributeKey.Width);
+            if (wd != null) {
+                width = ((Number) wd).intValue();
+            }
+        }
+
+        EffectivePointBuffer entity = new EffectivePointBuffer();
+        entity.setPhoneNumber(t0200.getClientId());
+        entity.setPlotId(Long.parseLong(plotId));
+        entity.setWorkType(workType);
+        entity.setWidth(width);
+        entity.setLongitude(t0200.getLng());
+        entity.setLatitude(t0200.getLat());
+        entity.setDeviceTime(t0200.getDeviceTime());
+        entity.setCreateTime(LocalDateTime.now());
+        return entity;
     }
 }

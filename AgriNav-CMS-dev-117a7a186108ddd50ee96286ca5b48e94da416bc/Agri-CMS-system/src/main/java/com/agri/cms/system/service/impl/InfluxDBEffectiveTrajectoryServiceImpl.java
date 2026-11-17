@@ -13,7 +13,6 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.dynamic.datasource.annotation.DSTransactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.influxdb.query.FluxTable;
 import org.postgis.LinearRing;
 import org.postgis.Polygon;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,53 +58,43 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
     private SysUserServiceImpl userService;
     private final String DEFAULT_TRAJECTORY_IMG_URL = "http://140.143.189.217:9000/bkt-map/default.jpg";
     private final Integer TWO_POINTS = 2;
-    @Value("${spring.influxdb.startTime}")
-    private String startTime;
+    /** 暂存点清理的历史起点（替代原 InfluxDB 固定 startTime） */
+    private final LocalDateTime BUFFER_START = LocalDateTime.of(2024, 1, 1, 0, 0);
     private final Double MINI_DISTENCE = 0.000000001;
     private final Double SQUARE_METER_TO_MU = 666.67;
     private final int DELETE = 2;
 
     @Override
     public List<Trajectory> queryByPhoneNumber(String phoneNumber, LocalDateTime startTime, LocalDateTime endTime) {
-        List<FluxTable> result = effectiveTrajectoryDao.queryByPhoneNumber(phoneNumber, startTime, endTime);
-        Map<String, Trajectory> trajectoryMap = new HashMap<>();
+        List<EffectivePointBuffer> rows = effectiveTrajectoryDao.queryByPhoneNumber(phoneNumber, startTime, endTime);
+        Map<Long, Trajectory> trajectoryMap = new HashMap<>();
 
-        result.forEach(table -> {
-            table.getRecords().forEach(record -> {
-                //获取轨迹信息
-                String plotId = Objects.requireNonNull(record.getValueByKey("plotId")).toString();
-                double latitude = Double.parseDouble(Objects.requireNonNull(record.getValueByKey("latitude")).toString());
-                double longitude = Double.parseDouble(Objects.requireNonNull(record.getValueByKey("longitude")).toString());
-                LocalDateTime deviceTime = LocalDateTime.parse(Objects.requireNonNull(record.getValueByKey("deviceTime")).toString());
-                int width = Integer.parseInt(Objects.requireNonNull(record.getValueByKey("width")).toString());
-                Integer workTypeId = Integer.parseInt(Objects.requireNonNull(record.getValueByKey("workType")).toString());
+        rows.forEach(row -> {
+            //每个地块对应一个轨迹
+            Trajectory trajectory = trajectoryMap.computeIfAbsent(row.getPlotId(), k -> new Trajectory());
+            trajectory.setPlotId(row.getPlotId());
+            trajectory.setWidth(row.getWidth());
+            trajectory.setWorkType(String.valueOf(row.getWorkType()));
+            trajectory.setPhoneNumber(phoneNumber);
+            Point point = new Point();
+            point.setLatitude(row.getLatitude());
+            point.setLongitude(row.getLongitude());
+            point.setTime(row.getDeviceTime());
 
-                //每个地块对应一个轨迹
-                Trajectory trajectory = trajectoryMap.computeIfAbsent(plotId, k -> new Trajectory());
-                trajectory.setPlotId(Long.parseLong(plotId));
-                trajectory.setWidth(width);
-                trajectory.setWorkType(String.valueOf(workTypeId));
-                trajectory.setPhoneNumber(phoneNumber);
-                Point point = new Point();
-                point.setLatitude(latitude);
-                point.setLongitude(longitude);
-                point.setTime(deviceTime);
+            if (trajectory.getPoints() == null) {
+                trajectory.setPoints(new ArrayList<>());
+            }
+            trajectory.getPoints().add(point);
+        });
 
-                if (trajectory.getPoints() == null) {
-                    trajectory.setPoints(new ArrayList<>());
-                }
-                trajectory.getPoints().add(point);
-                for (Trajectory trajectory1 : trajectoryMap.values()) {
-                    List<Point> points = trajectory1.getPoints();
-                    //根据时间排序
-                    points.sort(Comparator.comparing(Point::getTime));
-                    //设置轨迹的开始时间和结束时间
-                    if (!points.isEmpty()) {
-                        trajectory.setStartTime(startTime);
-                        trajectory.setEndTime(endTime);
-                    }
-                }
-            });
+        //按时间排序并设置起止时间
+        trajectoryMap.values().forEach(trajectory -> {
+            List<Point> points = trajectory.getPoints();
+            if (points != null && !points.isEmpty()) {
+                points.sort(Comparator.comparing(Point::getTime));
+                trajectory.setStartTime(startTime);
+                trajectory.setEndTime(endTime);
+            }
         });
 
         return new ArrayList<>(trajectoryMap.values());
@@ -127,50 +116,49 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
         trajectories.removeIf(trajectory -> trajectory.getPoints().size() < TWO_POINTS);
         trajectories.forEach(trajectory -> {
             UUID uuid = UUID.randomUUID();
-            try {
-                    //拿到地块边界点集
-                    Polygon boundary = landPlotService.getById(trajectory.getPlotId()).getBoundary();
-                    //拿到所属地块，判断所属地块的类型
-                    LandPlot landPlot = landPlotService.getById(trajectory.getPlotId());
-                    List<Point> boundaryPoints = PolygonUtil.polygonToListPoint(boundary);
-                    if (landPlot.getLandType().equals(LandPlotConstants.LAND_FOR_ARRANGING_FLOWERS)){
-                        //走插花地的逻辑
-                        //查询出所有大地块中的小地块
-                        LambdaQueryWrapper<LandPlotExclude> wrapper = new LambdaQueryWrapper<>();
-                        wrapper.eq(LandPlotExclude::getLandPlotId, trajectory.getPlotId()).
-                                eq(LandPlotExclude::getIsDeleted, Constants.NOT_DELETED);
-                        List<LandPlotExclude> landPlotExcludes = landPlotExcludeService.list(wrapper);
-                        //拿到小地块中的点集
-                        Map<Long, List<Point>> longListMap = assignPointsToPlots(trajectory.getPoints(), landPlotExcludes);
-                        //插入到pg数据库
-                        trajectoryExcludeService.saveTrajectoryExclude(longListMap,uuid);
-                        //生成缩略图
-                        String thumbnailUrl = gaodeMapService.generateThumbnail(trajectory.getPoints(), boundaryPoints);
-                        trajectory.setTrajectoryImg(thumbnailUrl);
-                        //计算面积
-                        BigDecimal sumArea = areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(trajectory.getPoints(),trajectory.getWidth());
-                        //拿到Map中的List<point>，封装成list<list<point>>
-                        List<List<Point>> listPoints = longListMap.values().stream().toList();
-                        BigDecimal needToSubtractArea = listPoints.stream().
-                                                        map(points -> areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(points, trajectory.getWidth())).
-                                                        reduce(BigDecimal.ZERO, BigDecimal::add);
-                        BigDecimal areaInMu = sumArea.subtract(needToSubtractArea).divide(BigDecimal.valueOf(SQUARE_METER_TO_MU), 4, RoundingMode.HALF_UP);
-                        trajectory.setArea(areaInMu);
+            //拿到地块边界点集
+            Polygon boundary = landPlotService.getById(trajectory.getPlotId()).getBoundary();
+            //拿到所属地块，判断所属地块的类型
+            LandPlot landPlot = landPlotService.getById(trajectory.getPlotId());
+            List<Point> boundaryPoints = PolygonUtil.polygonToListPoint(boundary);
 
-                    } else {
-                        //生成缩略图
-                        String thumbnailUrl = gaodeMapService.generateThumbnail(trajectory.getPoints(), boundaryPoints);
-                        trajectory.setTrajectoryImg(thumbnailUrl);
-                        //计算面积
-                        BigDecimal areaInSquareMeters = areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(trajectory.getPoints(),trajectory.getWidth());
-                        //换算单位为亩
-                        BigDecimal areaInMu = areaInSquareMeters.divide(BigDecimal.valueOf(SQUARE_METER_TO_MU), 4, RoundingMode.HALF_UP);
-                        trajectory.setArea(areaInMu);
-                    }
-            } catch (Exception e) {
-                //设置默认缩略图
-                trajectory.setArea(BigDecimal.ZERO);
+            //生成缩略图：依赖高德静态地图与对象存储，本地可能不具备，单独容错，失败不阻断面积计算
+            try {
+                String thumbnailUrl = gaodeMapService.generateThumbnail(trajectory.getPoints(), boundaryPoints);
+                trajectory.setTrajectoryImg(thumbnailUrl);
+            } catch (Exception thumbEx) {
                 trajectory.setTrajectoryImg(DEFAULT_TRAJECTORY_IMG_URL);
+            }
+
+            //计算面积：纯本地几何计算，不依赖外部服务
+            try {
+                if (landPlot.getLandType().equals(LandPlotConstants.LAND_FOR_ARRANGING_FLOWERS)) {
+                    //走插花地的逻辑：查询出所有大地块中的小地块
+                    LambdaQueryWrapper<LandPlotExclude> wrapper = new LambdaQueryWrapper<>();
+                    wrapper.eq(LandPlotExclude::getLandPlotId, trajectory.getPlotId()).
+                            eq(LandPlotExclude::getIsDeleted, Constants.NOT_DELETED);
+                    List<LandPlotExclude> landPlotExcludes = landPlotExcludeService.list(wrapper);
+                    //拿到小地块中的点集
+                    Map<Long, List<Point>> longListMap = assignPointsToPlots(trajectory.getPoints(), landPlotExcludes);
+                    //插入到pg数据库
+                    trajectoryExcludeService.saveTrajectoryExclude(longListMap, uuid);
+                    //计算总面积
+                    BigDecimal sumArea = areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(trajectory.getPoints(), trajectory.getWidth());
+                    //扣除小地块（空洞）面积
+                    List<List<Point>> listPoints = longListMap.values().stream().toList();
+                    BigDecimal needToSubtractArea = listPoints.stream().
+                            map(points -> areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(points, trajectory.getWidth())).
+                            reduce(BigDecimal.ZERO, BigDecimal::add);
+                    BigDecimal areaInMu = sumArea.subtract(needToSubtractArea).divide(BigDecimal.valueOf(SQUARE_METER_TO_MU), 4, RoundingMode.HALF_UP);
+                    trajectory.setArea(areaInMu);
+                } else {
+                    //计算面积并换算单位为亩
+                    BigDecimal areaInSquareMeters = areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(trajectory.getPoints(), trajectory.getWidth());
+                    BigDecimal areaInMu = areaInSquareMeters.divide(BigDecimal.valueOf(SQUARE_METER_TO_MU), 4, RoundingMode.HALF_UP);
+                    trajectory.setArea(areaInMu);
+                }
+            } catch (Exception areaEx) {
+                trajectory.setArea(BigDecimal.ZERO);
             }
 
             //如果两个点，在第二点经纬度相差很小的位置再生成一个点，保证能够进行插入
@@ -195,10 +183,8 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
         wrapper.set(TrajectoryInfo::getStatus, DELETE);
         wrapper.eq(TrajectoryInfo::getCreatedBy, userId);
         trajectoryInfoService.update(wrapper);
-        //清空该用户influxDB的所有点数据
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-        LocalDateTime parseStartTime = LocalDateTime.parse(startTime, formatter);
-        deleteByPhoneNumber(username, parseStartTime, LocalDateTime.now());
+        //清空该用户在暂存表中的所有点数据
+        deleteByPhoneNumber(username, BUFFER_START, LocalDateTime.now());
     }
 
     /**

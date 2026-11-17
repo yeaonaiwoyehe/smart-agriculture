@@ -75,12 +75,6 @@
 
         <!-- 以下为田界智航新增依赖 -->
 
-        <!-- 消息队列kafka-->
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>
-
         <!-- JDBC => postgreSQL数据库-->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -101,12 +95,6 @@
             <version>3.5.7</version>
         </dependency>
 
-        <!-- 集成InfluxDB -->
-        <dependency>
-            <groupId>com.influxdb</groupId>
-            <artifactId>influxdb-client-java</artifactId>
-            <version>7.2.0</version>
-        </dependency>
         <!-- 添加 PostGIS Java 库依赖 -->
         <dependency>
             <groupId>org.locationtech.jts</groupId>

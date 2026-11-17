@@ -71,21 +71,6 @@ spring:
           max-wait: -1ms
       geo-distance: 1000
 
-  influxdb:
-    url: ${INFLUX_URL:http://localhost:8086}
-    token: ${INFLUX_TOKEN:}
-    bucket: ${INFLUX_BUCKET:trajectory}
-    measurement: effective_point8
-    org: ${INFLUX_ORG:agrinav}
-    startTime: 2024-09-01T00:00:00Z
-    tag:
-      phoneNumber: phoneNumber
-      plotId: plotId
-      token: token
-    field:
-      latitude: latitude
-      longitude: longitude
-      deviceTime: deviceTime
   elasticsearch:
     host: ${ES_HOST:localhost}
     port: ${ES_PORT:9200}
@@ -114,16 +99,6 @@ spring:
     idle:
       time: 10000                # 空闲连接超时时间
       connections-per-route: 2   # 每个路由保持的最小空闲连接
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        enable.idempotence: true
-        acks: all
-        retries: 5
-        max.in.flight.requests.per.connection: 5
 minio:
   url: ${MINIO_URL:http://localhost:9000}
   accessKey: ${MINIO_ACCESS_KEY:minioadmin}
