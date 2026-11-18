@@ -11,6 +11,7 @@ import com.agri.cms.system.domain.AppPermission;
 import com.agri.cms.system.domain.vo.AppPermissionVO;
 import com.agri.cms.system.mapper.AppPermissionMapper;
 import com.agri.cms.system.service.IAppPermissionService;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -25,6 +26,7 @@ import java.util.List;
  * @author 李鸿麟
  */
 @Service
+@DS("pg")
 public class AppPermissionServiceImpl extends ServiceImpl<AppPermissionMapper, AppPermission> implements IAppPermissionService {
 
     @Resource

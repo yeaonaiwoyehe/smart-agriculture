@@ -9,6 +9,7 @@ import com.agri.cms.system.mapper.SysFeedbackMapper;
 import com.agri.cms.system.service.ISysDictDataService;
 import com.agri.cms.system.service.ISysFeedbackService;
 import com.agri.cms.system.service.SysFeedbackLabelService;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@DS("pg")
 public class ISysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, Feedback> implements ISysFeedbackService {
     @Resource
     private SysFeedbackLabelService sysFeedbackLabelService;

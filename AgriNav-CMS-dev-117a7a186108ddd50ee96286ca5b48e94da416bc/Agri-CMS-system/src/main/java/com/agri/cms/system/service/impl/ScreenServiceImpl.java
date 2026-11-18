@@ -176,6 +176,9 @@ public class ScreenServiceImpl extends ServiceImpl<ScreenMapper, ScreenStatistic
     public ScreenStatisticsVO getFieldWorkTypeWithBiggestCountNum() {
         // 1.先从缓存里面拿数据
         List<ScreenStatistics> fieldWorkStatistics = redisCache.getCacheObject(Constants.SCREEN_REDIS_KEY);
+        if (CollUtil.isEmpty(fieldWorkStatistics)) {
+            return new ScreenStatisticsVO();
+        }
 
         // 2.处理数据，依据工作类型进行分组，然后对于工作次数进行累加，最后返回最大的那个
         Map.Entry<String, Integer> stringIntegerEntry = fieldWorkStatistics.stream()
@@ -209,8 +212,7 @@ public class ScreenServiceImpl extends ServiceImpl<ScreenMapper, ScreenStatistic
             // 1. 从缓存获取数据
             List<ScreenStatistics> cropStatistics = redisCache.getCacheObject(Constants.SCREEN_REDIS_KEY);
 
-
-            if (cropStatistics.isEmpty()) {
+            if (CollUtil.isEmpty(cropStatistics)) {
                 log.warn("No crop statistics found in cache");
                 return new ScreenStatisticsVO();
             }
@@ -255,6 +257,9 @@ public class ScreenServiceImpl extends ServiceImpl<ScreenMapper, ScreenStatistic
     public List<ProvinceVO> getCropDetails() {
         // 1.先从redis里拿数据
         List<ScreenStatistics> cropStatistics = redisCache.getCacheObject(Constants.SCREEN_REDIS_KEY);
+        if (CollUtil.isEmpty(cropStatistics)) {
+            return Collections.emptyList();
+        }
 
         // 2.转换数据，统计出cropStatistics中每个作物的总亩数
         Map<String, BigDecimal> collect = cropStatistics.stream()

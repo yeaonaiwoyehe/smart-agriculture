@@ -4,6 +4,7 @@ package com.agri.cms.web.controller.screen;
 import cn.hutool.core.collection.CollectionUtil;
 import com.agri.cms.system.domain.vo.*;
 import com.agri.cms.system.service.impl.ScreenServiceImpl;
+import com.agri.cms.common.core.domain.AjaxResult;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -221,5 +222,19 @@ public class ScreenController {
     @PreAuthorize("@ss.hasPermi('system:screen:display')")
     public List<ProvinceVO> getLandPlotCountInDetailedProvince(@RequestParam @NotNull(message = "传入省份编码不可为空") String provinceCode) {
         return screenService.getOneProvinceLandPlotCounts(provinceCode);
+    }
+
+    /**
+     * 手动触发大屏统计刷新
+     * 定时任务默认每天凌晨 1 点执行 updateScreenStatistics；此端点用于演示或运维时立即重建
+     * screen_statistics 表与 Redis 缓存（screen:statistics:list）。
+     *
+     * @return AjaxResult
+     */
+    @GetMapping("/refresh")
+    @PreAuthorize("@ss.hasPermi('system:screen:display')")
+    public AjaxResult refreshScreenStatistics() {
+        screenService.updateScreenStatistics();
+        return AjaxResult.success("大屏统计刷新成功");
     }
 }

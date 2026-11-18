@@ -177,14 +177,25 @@ public class TrajectoryPointsServiceImpl extends ServiceImpl<TrajectoryPointsMap
                 LambdaQueryWrapper<FieldWork> workWapper = new LambdaQueryWrapper<>();
                 workWapper.eq(FieldWork::getId, Long.parseLong(info.getWorkType()));
                 FieldWork fieldWork = fieldWorkMapper.selectOne(workWapper);
-                trajectoryChecked.setWorkType(fieldWork.getWorkName());
-                //查询工作类型对应的作物id
+                if (fieldWork != null) {
+                    trajectoryChecked.setWorkType(fieldWork.getWorkName());
+                }
+                //查询工作类型对应的作物id（一个农活可关联多种作物，使用 selectList）
                 LambdaQueryWrapper<CropWork> cropWorkWapper = new LambdaQueryWrapper<>();
                 cropWorkWapper.eq(CropWork::getWorkId, Long.parseLong(info.getWorkType()));
-                CropWork cropWork = cropWorkMapper.selectOne(cropWorkWapper);
-                //查询作物名称
-                if (cropWork != null) {
-                    trajectoryChecked.setCrop(cropMapper.selectById(cropWork.getCropId()).getCropName());
+                List<CropWork> cropWorks = cropWorkMapper.selectList(cropWorkWapper);
+                //查询并拼接所有作物名称
+                if (cropWorks != null && !cropWorks.isEmpty()) {
+                    List<String> cropNames = new ArrayList<>();
+                    for (CropWork cw : cropWorks) {
+                        Crop crop = cropMapper.selectById(cw.getCropId());
+                        if (crop != null) {
+                            cropNames.add(crop.getCropName());
+                        }
+                    }
+                    if (!cropNames.isEmpty()) {
+                        trajectoryChecked.setCrop(String.join("、", cropNames));
+                    }
                 }
             }
 
@@ -291,14 +302,25 @@ public class TrajectoryPointsServiceImpl extends ServiceImpl<TrajectoryPointsMap
                 LambdaQueryWrapper<FieldWork> workWapper = new LambdaQueryWrapper<>();
                 workWapper.eq(FieldWork::getId, Long.parseLong(info.getWorkType()));
                 FieldWork fieldWork = fieldWorkMapper.selectOne(workWapper);
-                trajectory.setWorkType(fieldWork.getWorkName());
-                //查询工作类型对应的作物id
+                if (fieldWork != null) {
+                    trajectory.setWorkType(fieldWork.getWorkName());
+                }
+                //查询工作类型对应的作物id（一个农活可关联多种作物，使用 selectList）
                 LambdaQueryWrapper<CropWork> cropWorkWapper = new LambdaQueryWrapper<>();
                 cropWorkWapper.eq(CropWork::getWorkId, Long.parseLong(info.getWorkType()));
-                CropWork cropWork = cropWorkMapper.selectOne(cropWorkWapper);
-                //查询作物名称
-                if (cropWork != null) {
-                    trajectory.setCrop(cropMapper.selectById(cropWork.getCropId()).getCropName());
+                List<CropWork> cropWorks = cropWorkMapper.selectList(cropWorkWapper);
+                //查询并拼接所有作物名称
+                if (cropWorks != null && !cropWorks.isEmpty()) {
+                    List<String> cropNames = new ArrayList<>();
+                    for (CropWork cw : cropWorks) {
+                        Crop crop = cropMapper.selectById(cw.getCropId());
+                        if (crop != null) {
+                            cropNames.add(crop.getCropName());
+                        }
+                    }
+                    if (!cropNames.isEmpty()) {
+                        trajectory.setCrop(String.join("、", cropNames));
+                    }
                 }
             }
 
