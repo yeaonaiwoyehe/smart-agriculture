@@ -86,7 +86,7 @@ public class SysLoginController {
     @Operation(summary = "手机号登录注册")
     public AjaxResult loginOrRegisterByMobile(
             @RequestParam(value = "phoneNumber") @NotEmpty(message = "手机号不得为空") String phoneNumber,
-            @RequestParam(value = "captcha") @NotEmpty(message = "验证码不得为空") String captcha) throws Exception {
+            @RequestParam(value = "captcha", required = false) String captcha) throws Exception {
         if (!PhoneUtil.isPhone(phoneNumber)) {
             throw new Exception("手机号格式不正确");
         }

@@ -70,6 +70,13 @@ public class SysLoginService {
     @Resource
     private CaptchaService captchaService;
 
+    /**
+     * 演示/开发模式免验证码开关：开启后登录跳过短信验证码校验，
+     * 便于本机与答辩演示一键登录；生产环境可通过环境变量 SMS_LOGIN_SKIP_CAPTCHA=false 关闭。
+     */
+    @Value("${sms.login.skip-captcha:true}")
+    private boolean skipCaptcha;
+
 
     @Resource
     private AuthenticationManager authenticationManager;
@@ -116,20 +123,23 @@ public class SysLoginService {
      * @return 结果
      */
     public AjaxResult login(String username, String password, String code) throws Exception {
-        // 验证码校验
-        try {
-            captchaService.validate(username, code);
-        } catch (Exception e) {
-            if (e instanceof CaptchaExpireException) {
-                AsyncManager.me().execute(AsyncFactory
-                        .recordLogininfor(username, Constants.LOGIN_FAIL,
-                                MessageUtils.message("user.jcaptcha.expire")));
-            } else {
-                AsyncManager.me().execute(AsyncFactory.
-                        recordLogininfor(username, Constants.LOGIN_FAIL,
-                                MessageUtils.message("user.jcaptcha.error")));
+        // 演示模式免验证码：仅在关闭开关时才执行短信验证码校验
+        if (!skipCaptcha) {
+            // 验证码校验
+            try {
+                captchaService.validate(username, code);
+            } catch (Exception e) {
+                if (e instanceof CaptchaExpireException) {
+                    AsyncManager.me().execute(AsyncFactory
+                            .recordLogininfor(username, Constants.LOGIN_FAIL,
+                                    MessageUtils.message("user.jcaptcha.expire")));
+                } else {
+                    AsyncManager.me().execute(AsyncFactory.
+                            recordLogininfor(username, Constants.LOGIN_FAIL,
+                                    MessageUtils.message("user.jcaptcha.error")));
+                }
+                throw e;
             }
-            throw e;
         }
         return ((SysLoginService) AopContext.currentProxy()).defaultLogin(username, password);
     }

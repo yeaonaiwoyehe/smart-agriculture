@@ -89,7 +89,7 @@ export default {
   data() {
     return {
       loginForm: {
-        phoneNumber: "",
+        phoneNumber: "15888888888",
         captcha: ""
       },
       loginRules: {
@@ -97,7 +97,8 @@ export default {
           {required: true, trigger: "blur", message: "请输入您的手机号"},
           {pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号码", trigger: "blur"}
         ],
-        captcha: [{required: true, trigger: "change", message: "请输入验证码"}]
+        // 演示模式免验证码：验证码非必填，留空即可直接登录
+        captcha: [{required: false, trigger: "change"}]
       },
       loading: false,
       redirect: undefined,
