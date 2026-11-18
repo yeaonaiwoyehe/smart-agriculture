@@ -50,9 +50,9 @@ import cn.agrinav.personal.utils.JsonAnalysis;
 import cn.agrinav.trajectory.activity.TrajectoryReuploadActivity;
 import cn.agrinav.user.ProtocolActivity;
 import cn.agrinav.user.login.LoginActivity;
+import cn.agrinav.user.login.LoginActivity;
 import cn.agrinav.user.login.otherways.FingerprintLoginActivity;
 import cn.agrinav.user.login.otherways.GestureActivity;
-import cn.agrinav.user.login.otherways.WxLoginActivity;
 import cn.agrinav.utils.DialogUtils;
 
 public class FragmentPersonal extends Fragment {
@@ -323,7 +323,7 @@ public class FragmentPersonal extends Fragment {
             Intent intent = new Intent(activity, GestureActivity.class);
             startActivity(intent);
         }else {
-            Intent intent = new Intent(activity, WxLoginActivity.class);
+            Intent intent = new Intent(activity, LoginActivity.class);
             startActivity(intent);
         }
     }

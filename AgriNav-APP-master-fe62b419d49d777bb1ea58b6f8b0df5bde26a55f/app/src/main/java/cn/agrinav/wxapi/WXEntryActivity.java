@@ -17,7 +17,6 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 
 import cn.agrinav.R;
 import cn.agrinav.user.login.LoginActivity;
-import cn.agrinav.user.login.otherways.WxLoginActivity;
 import cn.agrinav.utils.ToastUtil;
 
 /**
@@ -60,9 +59,7 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
                 //用户同意授权
                 String code = authResp.code;
                 //TODO:如果后期需要access_token那么我就要拿到这些信息
-                Intent intent = new Intent(this, WxLoginActivity.class);
-                intent.putExtra(getString(R.string.wx_intent_code),code);
-                intent.putExtra(getString(R.string.wx_intent_state),authResp.state);
+                Intent intent = new Intent(this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             } else {

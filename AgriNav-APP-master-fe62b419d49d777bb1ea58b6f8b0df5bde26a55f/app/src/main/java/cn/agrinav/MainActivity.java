@@ -34,8 +34,8 @@ import java.io.File;
 import cn.agrinav.base.BaseActivity;
 
 import cn.agrinav.front.activity.ScanCodeActivity;
+import cn.agrinav.user.login.LoginActivity;
 import cn.agrinav.user.login.otherways.FingerprintLoginActivity;
-import cn.agrinav.user.login.otherways.WxLoginActivity;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -155,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
             } else if(getString(R.string.user_state_logout).equals(state)){
-                //等于logout说明刚刚注销了
-                Intent intent = new Intent(MainActivity.this, WxLoginActivity.class);
+                //等于logout说明刚刚注销了，直接进入手机号登录页
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }else {
@@ -166,8 +166,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }else {
-            //等于null说明初次登录
-            Intent intent = new Intent(MainActivity.this, WxLoginActivity.class);
+            //等于null说明初次登录，直接进入手机号登录页
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }

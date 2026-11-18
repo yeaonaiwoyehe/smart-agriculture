@@ -17,9 +17,9 @@ import java.util.List;
 
 import cn.agrinav.AgriNavApplication;
 import cn.agrinav.R;
+import cn.agrinav.user.login.LoginActivity;
 import cn.agrinav.user.login.otherways.FingerprintLoginActivity;
 import cn.agrinav.user.login.otherways.GestureActivity;
-import cn.agrinav.user.login.otherways.WxLoginActivity;
 import cn.agrinav.utils.encryption.AESUtils;
 import cn.agrinav.utils.encryption.EncryptConfig;
 import cn.agrinav.utils.encryption.RSAUtils;
@@ -240,7 +240,7 @@ public class OkHttpUtils {
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         }else {
-            Intent intent = new Intent(context, WxLoginActivity.class);
+            Intent intent = new Intent(context, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         }

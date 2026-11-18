@@ -331,10 +331,10 @@ public class FingerprintLoginActivity extends AppCompatActivity {
             tvChangeCancel = bottomPopWindowChange.findViewById(R.id.tv_login_finger_change_cancel);
             // 底部弹窗
             changeBottomDialog();
-            // 点击换个登录方式中的微信登录
+            // 点击换个登录方式中的手机号登录
             tvChangeWechat.setOnClickListener(view -> {
-                // 跳转到WechatLoginActivity
-                Intent intent = new Intent(this, WxLoginActivity.class);
+                // 跳转到手机号登录页
+                Intent intent = new Intent(this, LoginActivity.class);
                 startActivity(intent);
             });
             // 点击换个登录方式中短信验证码登录
