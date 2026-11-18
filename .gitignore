@@ -27,6 +27,7 @@ pnpm-debug.log*
 # ===== 本地环境与密钥（安全红线）=====
 **/.env
 **/.env.local
+**/.env.development
 **/*.local
 **/endpoint.properties
 **/local.properties

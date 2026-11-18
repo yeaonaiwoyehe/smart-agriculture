@@ -88,7 +88,7 @@
 
 <script>
 import { queryWorkingLandPlot } from "@/api/field/work";
-import AMapLoader from '@amap/amap-jsapi-loader';
+import { loadAMap } from '@/utils/amap';
 import request from '@/utils/request';
 
 export default {
@@ -170,11 +170,7 @@ export default {
       try {
         // 初始化地图（如果还没有初始化）
         if (!this.map) {
-          const AMap = await AMapLoader.load({
-            key: '6702779c26dca9d62b2125cd5560da8b',
-            version: '2.0',
-            plugins: ['AMap.Polygon', 'AMap.Polyline', 'AMap.Marker']
-          });
+          const AMap = await loadAMap(['AMap.Polygon', 'AMap.Polyline', 'AMap.Marker']);
 
           this.AMap = AMap;
           this.map = new AMap.Map('boundaryMap', {
@@ -348,7 +344,8 @@ export default {
     parseBoundary(boundary) {
       const coordsString = boundary.match(/\(\((.*?)\)\)/)[1];
       return coordsString.split(',').map(pair => {
-        const [lat, lng] = pair.trim().split(' ');
+        // WKT 每对为“经度 纬度”，高德需要 [经度, 纬度]
+        const [lng, lat] = pair.trim().split(' ');
         return [parseFloat(lng), parseFloat(lat)];
       });
     },

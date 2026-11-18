@@ -19,7 +19,7 @@
   </template>
 
   <script>
-  import AMapLoader from '@amap/amap-jsapi-loader'
+  import { loadAMap } from '@/utils/amap'
   import request from '@/utils/request'
 
   export default {
@@ -77,11 +77,7 @@
     },
     methods: {
       initMap() {
-        AMapLoader.load({
-          key: '6702779c26dca9d62b2125cd5560da8b',
-          version: '2.0',
-          plugins: ['AMap.Polyline', 'AMap.Marker', 'AMap.Scale', 'AMap.ToolBar']
-        }).then((AMap) => {
+        loadAMap(['AMap.Polyline', 'AMap.Marker', 'AMap.Scale', 'AMap.ToolBar']).then((AMap) => {
           this.AMap = AMap
           this.map = new AMap.Map('map-container-ori', {
             zoom: 14,
@@ -464,7 +460,8 @@
       parseBoundary(boundary) {
         const coordsString = boundary.match(/\(\((.*?)\)\)/)[1];
         return coordsString.split(',').map(pair => {
-          const [lat, lng] = pair.trim().split(' ');
+          // WKT 每对为“经度 纬度”，高德需要 [经度, 纬度]
+          const [lng, lat] = pair.trim().split(' ');
           return [parseFloat(lng), parseFloat(lat)];
         });
       },

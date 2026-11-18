@@ -8,7 +8,7 @@
 
 <script>
 import {getHeatmapData} from '@/api/field/square'
-import AMapLoader from '@amap/amap-jsapi-loader'
+import { loadAMap } from '@/utils/amap'
 
 export default {
   name: 'FullScreenHeatmap',
@@ -24,11 +24,7 @@ export default {
   },
   methods: {
     initMap() {
-      AMapLoader.load({
-        key: '6702779c26dca9d62b2125cd5560da8b',
-        version: '2.0',
-        plugins: ['AMap.HeatMap', 'AMap.DistrictLayer']
-      }).then((AMap) => {
+      loadAMap(['AMap.HeatMap', 'AMap.DistrictLayer']).then((AMap) => {
         this.map = new AMap.Map('full-screen-container', {
           zoom: 15,
           center: [114.52400, 37.99800],

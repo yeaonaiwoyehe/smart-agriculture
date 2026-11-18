@@ -6,7 +6,6 @@ import errorCode from '@/utils/errorCode'
 import {tansParams, blobValidate} from "@/utils/ruoyi";
 import cache from '@/plugins/cache'
 import {saveAs} from 'file-saver'
-import AMapLoader from '@amap/amap-jsapi-loader'; // 引入高德API加载器
 import { isEncryptPath } from '@/utils/encrypt/config'
 import { encrypt, decrypt, isEncryptEnabled } from '@/utils/encrypt'
 

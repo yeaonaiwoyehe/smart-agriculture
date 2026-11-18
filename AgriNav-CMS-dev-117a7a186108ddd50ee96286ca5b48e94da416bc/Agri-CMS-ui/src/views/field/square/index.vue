@@ -314,7 +314,7 @@
 import {listLandPlot, getLandPlot, delLandPlot, addLandPlot, updateLandPlot, queryLandPlot, restoreLandPlot} from "@/api/field/square";
 import { listLandPlotExclude } from "@/api/field/exclude";
 import Pagination from "@/components/Pagination";
-import AMapLoader from '@amap/amap-jsapi-loader'
+import { loadAMap } from '@/utils/amap'
 
 export default {
   name: "Square",
@@ -587,11 +587,7 @@ export default {
       });
     },
     initMap() {
-      AMapLoader.load({
-        key: '6702779c26dca9d62b2125cd5560da8b',
-        version: '2.0',
-        plugins: ['AMap.Polygon']
-      }).then((AMap) => {
+      loadAMap(['AMap.Polygon']).then((AMap) => {
         this.AMap = AMap;
         this.map = new AMap.Map('boundaryMap', {
           zoom: 14,
@@ -662,7 +658,8 @@ export default {
     parseBoundary(boundary) {
       const coordsString = boundary.match(/\(\((.*?)\)\)/)[1];
       return coordsString.split(',').map(pair => {
-        const [lat, lng] = pair.trim().split(' ');
+        // WKT 每对为“经度 纬度”，高德 Polygon path 同样需要 [经度, 纬度]
+        const [lng, lat] = pair.trim().split(' ');
         return [parseFloat(lng), parseFloat(lat)];
       });
     },
@@ -698,11 +695,7 @@ export default {
     },
 
     initDetailMap() {
-      AMapLoader.load({
-        key: '6702779c26dca9d62b2125cd5560da8b',
-        version: '2.0',
-        plugins: ['AMap.Polygon']
-      }).then((AMap) => {
+      loadAMap(['AMap.Polygon']).then((AMap) => {
         const detailMap = new AMap.Map('detailBoundaryMap', {
           zoom: 14,
           viewMode: '3D',
