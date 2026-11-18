@@ -1,0 +1,232 @@
+# ============================================================
+# AgriNav（田界智航）全云端编排 —— 单台 4核4G 轻量服务器
+# 中间件端口仅在内部网络 agrinav 互通，不直接暴露公网；
+# 公网入口只有 nginx(80) 与 gps 的 JT808 端口(7100 TCP/UDP)
+# ============================================================
+services:
+
+  # ---------------- MySQL：若依系统库 ----------------
+  mysql:
+    image: mysql:8.0
+    container_name: agrinav-mysql
+    restart: unless-stopped
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --innodb-buffer-pool-size=256M
+      --max-connections=120
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - agrinav
+    expose:
+      - "3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- PostgreSQL/PostGIS：农业业务库 ----------------
+  postgres:
+    image: postgis/postgis:17-3.5
+    container_name: agrinav-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    networks:
+      - agrinav
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- Redis：缓存/登录态 ----------------
+  redis:
+    image: redis:7-alpine
+    container_name: agrinav-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - agrinav
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- Elasticsearch：搜索（单节点，限内存）----------------
+  elasticsearch:
+    image: elasticsearch:8.17.0
+    container_name: agrinav-es
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - agrinav
+    expose:
+      - "9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\"' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ---------------- CMS：Spring Boot 后端（8088）----------------
+  cms:
+    build:
+      context: ./cms
+    image: agrinav/cms:latest
+    container_name: agrinav-cms
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: pro
+      MYSQL_HOST: mysql
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PG_HOST: postgres
+      PG_PORT: ${PG_PORT}
+      PG_DB: ${PG_DB}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      ES_HOST: elasticsearch
+      ES_PORT: ${ES_PORT}
+      ES_USER: ${ES_USER}
+      ES_PASSWORD: ${ES_PASSWORD}
+      TOKEN_SECRET: ${TOKEN_SECRET}
+      WX_MOBILE_CLIENT_ID: ${WX_MOBILE_CLIENT_ID}
+      WX_MOBILE_CLIENT_SECRET: ${WX_MOBILE_CLIENT_SECRET}
+      WX_WEB_CLIENT_ID: ${WX_WEB_CLIENT_ID}
+      WX_WEB_CLIENT_SECRET: ${WX_WEB_CLIENT_SECRET}
+      SMS_MOCK_ENABLED: ${SMS_MOCK_ENABLED}
+      AGRI_PROFILE: ${AGRI_PROFILE}
+    volumes:
+      - cms-upload:${AGRI_PROFILE}
+    networks:
+      - agrinav
+    expose:
+      - "8088"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:8088/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  # ---------------- GPS：JT808 接入服务（8100/7100/7200）----------------
+  gps:
+    build:
+      context: ./gps
+    image: agrinav/gps:latest
+    container_name: agrinav-gps
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      cms:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: pro
+      PG_HOST: postgres
+      PG_PORT: ${PG_PORT}
+      PG_DB: ${PG_DB}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      ES_HOST: elasticsearch
+      ES_PORT: ${ES_PORT}
+      ES_USER: ${ES_USER}
+      ES_PASSWORD: ${ES_PASSWORD}
+      CMS_HOST: cms
+      CMS_PORT: 8088
+      JT_MEDIA_PATH: ${JT_MEDIA_PATH}
+      JT_ALARM_PATH: ${JT_ALARM_PATH}
+      JT_MEDIA_URL_PREFIX: ${PUBLIC_BASE_URL}/media
+    volumes:
+      - gps-media:${JT_MEDIA_PATH}
+      - gps-alarm:${JT_ALARM_PATH}
+    networks:
+      - agrinav
+    ports:
+      # 车载终端必须公网可达（TCP + UDP）
+      - "7100:7100"
+      - "7100:7100/udp"
+      # 以下两个默认在云安全组不放行，需要时再开
+      - "8100:8100"
+      - "7200:7200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:8100/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 80s
+
+  # ---------------- Nginx：前端静态托管 + 反向代理（唯一公网HTTP入口）----------------
+  nginx:
+    image: nginx:stable
+    container_name: agrinav-nginx
+    restart: unless-stopped
+    depends_on:
+      cms:
+        condition: service_started
+      gps:
+        condition: service_started
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    networks:
+      - agrinav
+    ports:
+      - "80:80"
+
+# ============================================================
+networks:
+  agrinav:
+    name: agrinav
+    driver: bridge
+
+volumes:
+  mysql-data:
+  pg-data:
+  redis-data:
+  es-data:
+  cms-upload:
+  gps-media:
+  gps-alarm:

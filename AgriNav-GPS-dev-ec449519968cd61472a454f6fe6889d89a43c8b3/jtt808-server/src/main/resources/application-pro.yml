@@ -1,13 +1,11 @@
-# 生产环境凭据通过环境变量注入，默认值仅为内网占位，不包含真实密码
-username: ${DEPLOY_USER:root}
-password: ${DEPLOY_PASSWORD:agrinav}
+# 生产环境：连接与凭据通过环境变量注入；默认值为容器网络内的服务名
 spring:
   application:
     name: jt808
   datasource:
-    url: jdbc:postgresql_postGIS://${PG_HOST:10.2.20.11}:${PG_PORT:5432}/${PG_DB:AgriNav}
-    username: ${PG_USER:root}
-    password: ${PG_PASSWORD:agrinav}
+    url: jdbc:postgresql_postGIS://${PG_HOST:postgres}:${PG_PORT:5432}/${PG_DB:AgriNav}
+    username: ${PG_USER:postgres}
+    password: ${PG_PASSWORD}
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: org.postgis.DriverWrapper
   jackson:
@@ -19,11 +17,11 @@ spring:
       date: yyyy-MM-dd
       time: HH:mm:ss
   elasticsearch:
-    host: ${ES_HOST:10.2.20.3}
+    host: ${ES_HOST:elasticsearch}
     port: ${ES_PORT:9200}
     scheme: http
-    username: ${ES_USER:root}
-    password: ${ES_PASSWORD:agrinav}
+    username: ${ES_USER:}
+    password: ${ES_PASSWORD:}
 mybatis-plus:
   mapper-locations: classpath*:mapper/**.xml
   type-aliases-package: org.yzh.web.model.entity
@@ -40,8 +38,8 @@ jt-server:
       udp: 7100
       tcp: 7100
     media-file:
-      path: ${JT_MEDIA_PATH:D:/jt_data/media_file}
-      url-prefix: ${JT_MEDIA_URL_PREFIX:http://127.0.0.1:8100/media}
+      path: ${JT_MEDIA_PATH:/app/media}
+      url-prefix: ${JT_MEDIA_URL_PREFIX:http://localhost/media}
     alarm-file:
       host: 127.0.0.1
       port: 7200
@@ -49,8 +47,8 @@ jt-server:
   alarm-file:
     enable: true
     port: 7200
-    path: ${JT_ALARM_PATH:D:/jt_data/alarm_file}
+    path: ${JT_ALARM_PATH:/app/alarm}
 
 cms-server:
-  host: ${CMS_HOST:10.2.20.6}
-  port: ${CMS_PORT:80}
+  host: ${CMS_HOST:cms}
+  port: ${CMS_PORT:8088}

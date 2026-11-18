@@ -40,3 +40,8 @@ pnpm-debug.log*
 **/.DS_Store
 **/Thumbs.db
 **/*.log
+
+# ===== deploy 运行时产物（部署脚本与手册入库，运行时文件不入库）=====
+deploy/.env
+deploy/**/app.jar
+deploy/frontend/dist/

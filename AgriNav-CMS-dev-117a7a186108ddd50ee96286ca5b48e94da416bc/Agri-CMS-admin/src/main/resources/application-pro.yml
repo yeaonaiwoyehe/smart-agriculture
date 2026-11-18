@@ -1,16 +1,13 @@
-# 生产环境通过环境变量注入，不允许在版本库中保留真实凭据
-username: ${DEPLOY_USER:root}
-password: ${DEPLOY_PASSWORD:agrinav}
+# 生产环境：所有连接与凭据通过环境变量注入，版本库不保留真实地址和密码
 server:
   port: 8088
-# 数据源配置
 spring:
   datasource:
     druid:
       stat-view-servlet:
         enabled: true
-        loginUsername: ruoyi
-        loginPassword: 123456
+        loginUsername: ${DRUID_LOGIN_USER:ruoyi}
+        loginPassword: ${DRUID_LOGIN_PASSWORD:123456}
     dynamic:
       druid:
         initial-size: 5
@@ -30,83 +27,64 @@ spring:
         filters: stat,slf4j
         connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
       datasource:
-        # 主库数据源
+        # 主库：MySQL（若依系统表）
         master:
           type: com.alibaba.druid.pool.DruidDataSource
           driver-class-name: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://10.2.20.6:3306/agri-navi?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: ${username}
-          password: ${password}
-        # 从库数据源
+          url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DB:ry-vue}?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+          username: ${MYSQL_USER:root}
+          password: ${MYSQL_PASSWORD}
+        # 从库：PostgreSQL/PostGIS（农业业务表）
         pg:
           type: com.alibaba.druid.pool.DruidDataSource
           lazy: true
           driver-class-name: org.postgis.DriverWrapper
-          url: jdbc:postgresql_postGIS://10.2.20.11:5432/AgriNav
-          username: ${username}
-          password: ${password}
+          url: jdbc:postgresql_postGIS://${PG_HOST:postgres}:${PG_PORT:5432}/${PG_DB:AgriNav}
+          username: ${PG_USER:postgres}
+          password: ${PG_PASSWORD}
           druid:
-            initial-size: 5                      # 初始连接数
-            max-active: 20                       # 最大活跃连接数
-            min-idle: 5                          # 最小空闲连接数
-            max-wait: 60000                      # 最大等待时间
-            validation-query: SELECT 1           # 验证查询
-            test-while-idle: true                # 空闲连接检测
-            time-between-eviction-runs-millis: 60000  # 检测间隔
-            min-evictable-idle-time-millis: 300000   # 连接最小空闲时间
+            initial-size: 5
+            max-active: 20
+            min-idle: 5
+            max-wait: 60000
+            validation-query: SELECT 1
+            test-while-idle: true
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 300000
   data:
-    # redis 配置
     redis:
-      # 地址
-      #      host: 82.156.217.74
-      host: 10.2.20.16
-      # 端口，默认为6379
-      port: 6379
-      # 数据库索引
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
       database: 0
-      # 密码
-      password: ${password}
-      # 连接超时时间
+      password: ${REDIS_PASSWORD}
       timeout: 10s
       lettuce:
         pool:
-          # 连接池中的最小空闲连接
           min-idle: 0
-          # 连接池中的最大空闲连接
           max-idle: 8
-          # 连接池的最大数据库连接数
           max-active: 8
-          # #连接池最大阻塞等待时间（使用负值表示没有限制）
           max-wait: -1ms
       geo-distance: 1000
   elasticsearch:
-    host: 10.2.20.3
-    port: 9200
-    username: ${username}
-    password: ${password}
+    host: ${ES_HOST:elasticsearch}
+    port: ${ES_PORT:9200}
+    username: ${ES_USER:}
+    password: ${ES_PASSWORD:}
     scheme: http
     index: original_point
-    request-size: 5000       # 添加请求大小配置
-
-    # 连接超时配置
-    connection-timeout: 30000     # 增加到30秒，考虑网络延迟
-    socket-timeout: 600000        # 增加到10分钟，适应大数据量查询
-
-    # 连接池配置
+    request-size: 5000
+    connection-timeout: 30000
+    socket-timeout: 600000
     pool:
-      max-conn-total: 100        # 增加总连接数
-      max-conn-per-route: 40     # 增加每个路由的最大连接数
-      validate-after-inactivity: 2000  # 降低验证间隔
-
-    # 添加重试配置
+      max-conn-total: 100
+      max-conn-per-route: 40
+      validate-after-inactivity: 2000
     retry:
       max-retries: 3
       initial-backoff: 1000
-
-    # 添加空闲连接配置
     idle:
-      time: 10000                # 空闲连接超时时间
-      connections-per-route: 2    # 每个路由保持的最小空闲连接
+      time: 10000
+      connections-per-route: 2
 
 tencentcloud:
   account:
@@ -116,6 +94,9 @@ tencentcloud:
     sdk-app-id: ${SMS_APP_ID:}
     sign-name: ${SMS_SIGN:田界智航APP}
     template-id: ${SMS_TEMPLATE_ID:}
+sms:
+  mock:
+    enabled: ${SMS_MOCK_ENABLED:true}
 justAuth:
   mobile:
     wechat:
@@ -125,4 +106,4 @@ justAuth:
     wechat:
       client-id: ${WX_WEB_CLIENT_ID:}
       client-secret: ${WX_WEB_CLIENT_SECRET:}
-      redirect-uri: ${WX_WEB_REDIRECT_URI:http://localhost:8088/loginOAuth}
+      redirect-uri: ${WX_WEB_REDIRECT_URI:http://localhost/loginOAuth}
