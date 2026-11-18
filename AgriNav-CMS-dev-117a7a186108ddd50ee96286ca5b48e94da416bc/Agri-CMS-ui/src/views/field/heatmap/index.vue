@@ -17,6 +17,7 @@ export default {
     return {
       map: null,
       heatmap: null,
+      amap: null,
       viewMode: '3D'
     }
   },
@@ -26,6 +27,7 @@ export default {
   methods: {
     initMap() {
       loadAMap(['AMap.HeatMap', 'AMap.DistrictLayer']).then((AMap) => {
+        this.amap = AMap
         this.map = new AMap.Map('container', {
           zoom: 15,
           center: [114.52400, 37.99800],
@@ -74,9 +76,9 @@ export default {
         count: Number(item.weight)
       }))
 
-      this.heatmap = new AMap.HeatMap(this.map, {
-        radius: 25,
-        opacity: [0, 0.8],
+      this.heatmap = new this.amap.HeatMap(this.map, {
+        radius: 28,
+        opacity: [0, 0.85],
         gradient: {
           0: '#000B45',     // 深邃藏青色（与背景相同）
           0.2: '#000080',   // 深蓝色
@@ -89,17 +91,17 @@ export default {
         zooms: [3, 18]
       })
 
-      const maxWeight = Math.max(...heatmapData.map(item => item.count))
-
+      // 每个作业点权重为 1，max 固定为 4：单点不直接满红，
+      // 多个相邻点的热力圈叠加后才逐级变热，形成有层次的作业覆盖带。
       this.heatmap.setDataSet({
         data: heatmapData,
-        max: maxWeight
+        max: 4
       })
 
       this.fitMapBounds(heatmapData)
     },
     fitMapBounds(heatmapData) {
-      const bounds = new AMap.Bounds(
+      const bounds = new this.amap.Bounds(
         [Math.min(...heatmapData.map(p => p.lng)), Math.min(...heatmapData.map(p => p.lat))],
         [Math.max(...heatmapData.map(p => p.lng)), Math.max(...heatmapData.map(p => p.lat))]
       )

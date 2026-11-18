@@ -82,6 +82,7 @@ public class JT808Endpoint {
             }
         }catch (Exception e){
             log.error("调用远程接口失败，原因:"+e.getMessage());
+            result.setResultCode(T8100.NotFoundTerminal);
         }
         return result;
     }

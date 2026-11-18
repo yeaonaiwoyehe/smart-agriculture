@@ -50,7 +50,7 @@ public class AttributeConverter extends MapSchema<Number, Object> {
 
                 .addSchema(AttributeKey.InstallErrorMsg, NumberSchema.DWORD_INT)
                 .addSchema(AttributeKey.AlgorithmErrorMsg, NumberSchema.DWORD_INT)
-                .addSchema(AttributeKey.WorkType, NumberSchema.BYTE_INT)
+                .addSchema(AttributeKey.WorkType, NumberSchema.WORD_INT)
                 .addSchema(AttributeKey.Width, NumberSchema.BYTE_INT)
         ;
     }

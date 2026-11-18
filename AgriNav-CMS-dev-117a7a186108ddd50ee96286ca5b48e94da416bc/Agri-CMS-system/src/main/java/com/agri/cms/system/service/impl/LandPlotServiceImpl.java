@@ -12,12 +12,14 @@ import com.agri.cms.common.utils.StringUtils;
 import com.agri.cms.common.utils.file.FileUploadUtils;
 import com.agri.cms.system.domain.dto.AddressAreaDTO;
 import com.agri.cms.system.domain.LandAddress;
+import com.agri.cms.system.domain.EffectivePointBuffer;
 import com.agri.cms.system.domain.LandPlot;
 import com.agri.cms.system.domain.dto.LandPlotQueryDTO;
 import com.agri.cms.system.domain.record.LandPlotRecord;
 import com.agri.cms.system.domain.vo.HeatmapDataVO;
 import com.agri.cms.system.domain.vo.LandPlotVO;
 import com.agri.cms.system.mapper.LandPlotMapper;
+import com.agri.cms.system.mapper.EffectivePointBufferMapper;
 import com.agri.cms.system.service.ILandAddressService;
 import com.agri.cms.system.service.ILandPlotExcludeService;
 import com.agri.cms.system.service.ISysUserService;
@@ -79,6 +81,9 @@ public class LandPlotServiceImpl extends ServiceImpl<LandPlotMapper, LandPlot> i
 
     @Resource
     private ElasticsearchTemplate template;
+
+    @Resource
+    private EffectivePointBufferMapper effectivePointBufferMapper;
 
     @Override
     @Transactional
@@ -368,7 +373,17 @@ public class LandPlotServiceImpl extends ServiceImpl<LandPlotMapper, LandPlot> i
 
     @Override
     public List<HeatmapDataVO> getHeatmapData() {
-        return landPlotMapper.queryHeatmapData();
+        // 基于真实作业 GPS 点（effective_point_buffer）渲染作业热力图，
+        // 每个点权重为 1，热力图按半径内点的叠加密度自动呈现作业覆盖热度。
+        List<EffectivePointBuffer> points = effectivePointBufferMapper.selectList(null);
+        return points.stream().map(p -> {
+            HeatmapDataVO vo = new HeatmapDataVO();
+            vo.setId(p.getId());
+            vo.setLongitude(p.getLongitude());
+            vo.setLatitude(p.getLatitude());
+            vo.setWeight(1.0);
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     /**
