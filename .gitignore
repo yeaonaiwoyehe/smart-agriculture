@@ -28,6 +28,7 @@ pnpm-debug.log*
 **/.env
 **/.env.local
 **/.env.development
+**/dev-local.env
 **/*.local
 **/endpoint.properties
 **/local.properties
