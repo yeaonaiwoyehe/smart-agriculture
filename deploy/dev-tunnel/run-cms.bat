@@ -26,7 +26,7 @@ if not defined CMS_HOME (
 
 echo ============================================================
 echo  Starting CMS backend...
-echo  Make sure tunnel.bat is already running in another window.
+echo  Connecting directly to the public cloud database (no tunnel).
 echo  Project: %CMS_HOME%
 echo ============================================================
 cd /d "%CMS_HOME%"
