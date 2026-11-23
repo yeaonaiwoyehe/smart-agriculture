@@ -1,6 +1,8 @@
 package com.agri.cms.ai.controller;
 
 import com.agri.cms.ai.client.LlmClient;
+import com.agri.cms.ai.intent.IntentRecognitionService;
+import com.agri.cms.ai.intent.IntentResult;
 import com.agri.cms.ai.prompt.AgentType;
 import com.agri.cms.ai.prompt.PromptTemplateManager;
 import com.agri.cms.common.core.controller.BaseController;
@@ -13,14 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * 大模型对话测试接口。
  *
- * /llm/chat：不携带系统提示词的原始对话，用于确认接入链路（A-01）；
- * /llm/agent：按指定智能体（如 AG-01、MA-03）加载对应的系统提示词后再对话，
- * 用于验证提示词模板集中管理是否生效（A-03）。
+ * /llm/chat：不携带系统提示词的原始对话（A-01）；
+ * /llm/agent：按指定智能体加载系统提示词后对话（A-03）；
+ * /llm/intent：输出结构化意图与参数，缺参时返回追问话术（A-04）。
  *
  * @author agrinav
  */
@@ -33,10 +36,14 @@ public class LlmTestController extends BaseController {
 
     private final LlmClient llmClient;
     private final PromptTemplateManager promptTemplateManager;
+    private final IntentRecognitionService intentRecognitionService;
 
-    public LlmTestController(LlmClient llmClient, PromptTemplateManager promptTemplateManager) {
+    public LlmTestController(LlmClient llmClient,
+                             PromptTemplateManager promptTemplateManager,
+                             IntentRecognitionService intentRecognitionService) {
         this.llmClient = llmClient;
         this.promptTemplateManager = promptTemplateManager;
+        this.intentRecognitionService = intentRecognitionService;
     }
 
     /**
@@ -44,7 +51,6 @@ public class LlmTestController extends BaseController {
      */
     @GetMapping("/chat")
     public AjaxResult chat(@RequestParam String message) {
-        // 显式用两参数版本，避免 String 被重载匹配到 success(String msg)，确保回复进入 data
         return AjaxResult.success("操作成功", llmClient.chat(message));
     }
 
@@ -68,6 +74,27 @@ public class LlmTestController extends BaseController {
 
         String systemPrompt = promptTemplateManager.getSystemPrompt(type, variables);
         return AjaxResult.success("操作成功", llmClient.chat(systemPrompt, message));
+    }
+
+    /**
+     * 意图识别：返回结构化意图、参数；缺参时附带一次追问话术。
+     */
+    @GetMapping("/intent")
+    public AjaxResult intent(@RequestParam String message,
+                             @RequestParam(required = false) String side) {
+        IntentResult result = intentRecognitionService.recognize(message, side);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("intent", result.intent().getCode());
+        data.put("intentName", result.intent().getDisplayName());
+        data.put("confidence", result.confidence());
+        data.put("parameters", result.parameters());
+        data.put("missingParams", result.missingParams());
+        data.put("needFollowUp", result.needFollowUp());
+        if (result.needFollowUp()) {
+            data.put("followUpQuestion", intentRecognitionService.buildFollowUpQuestion(result));
+        }
+        return AjaxResult.success("操作成功", data);
     }
 
     /**

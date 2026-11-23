@@ -60,6 +60,13 @@ public class PromptTemplateManager {
     }
 
     /**
+     * 按任意 classpath 模板路径加载并渲染变量，用于不属于某个具体智能体的通用模板。
+     */
+    public String renderTemplate(String templatePath, Map<String, ?> variables) {
+        return render(loadTemplate(templatePath), variables);
+    }
+
+    /**
      * 从 classpath 加载模板文本，读取失败返回空串并记录日志。
      */
     private String loadTemplate(String path) {
