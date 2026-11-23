@@ -1,4 +1,5 @@
 package com.agri.cms.quartz.controller;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ import com.agri.cms.quartz.service.ISysJobLogService;
  */
 @RestController
 @RequestMapping("/monitor/jobLog")
+@Tag(name = "定时任务日志")
 public class SysJobLogController extends BaseController {
     @Autowired
     private ISysJobLogService jobLogService;

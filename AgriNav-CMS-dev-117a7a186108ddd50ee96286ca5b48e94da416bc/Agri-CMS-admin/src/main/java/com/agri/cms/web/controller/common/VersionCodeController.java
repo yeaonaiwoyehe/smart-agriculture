@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.common;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import cn.hutool.core.lang.Assert;
 import com.agri.cms.common.annotation.Anonymous;
@@ -23,6 +24,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/version")
 @Anonymous
+@Tag(name = "APP版本管理")
 public class VersionCodeController extends BaseController {
 
 

@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.agri.cms.common.constant.Constants;
 import com.agri.cms.common.utils.StringUtils;
@@ -21,6 +22,7 @@ import jakarta.annotation.Resource;
 @PreAuthorize("@ss.hasRole('manager')")
 @RestController
 @RequestMapping("/system/releaseNote")
+@Tag(name = "版本发布说明")
 public class SysReleaseNoteController extends BaseController {
 
     @Resource

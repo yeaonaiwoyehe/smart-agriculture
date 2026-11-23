@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.key;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 import com.agri.cms.common.core.domain.AjaxResult;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/system/key")
+@Tag(name = "密钥交换")
 public class KeyExchangeController {
 
     @Autowired

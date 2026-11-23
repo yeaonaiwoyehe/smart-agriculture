@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ import com.agri.cms.system.service.ISysDeptService;
  */
 @RestController
 @RequestMapping("/system/dept")
+@Tag(name = "部门管理")
 public class SysDeptController extends BaseController {
     @Autowired
     private ISysDeptService deptService;

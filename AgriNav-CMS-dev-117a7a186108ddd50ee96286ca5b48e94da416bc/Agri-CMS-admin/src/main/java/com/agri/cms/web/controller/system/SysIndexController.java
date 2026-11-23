@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import com.agri.cms.common.utils.StringUtils;
  * @author ruoyi
  */
 @RestController
+@Tag(name = "系统首页")
 public class SysIndexController {
     /**
      * 系统基础配置
