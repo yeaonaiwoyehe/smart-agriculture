@@ -1,5 +1,6 @@
 package com.agri.cms.web.controller.ai;
 
+import com.agri.cms.ai.knowledge.FaqIndexService;
 import com.agri.cms.ai.knowledge.KnowledgeDocument;
 import com.agri.cms.ai.knowledge.KnowledgeIndexService;
 import com.agri.cms.ai.knowledge.KnowledgeQaService;
@@ -33,13 +34,16 @@ public class KnowledgeBaseController extends BaseController {
     private final KnowledgeIndexService indexService;
     private final KnowledgeRetrievalService retrievalService;
     private final KnowledgeQaService knowledgeQaService;
+    private final FaqIndexService faqIndexService;
 
     public KnowledgeBaseController(KnowledgeIndexService indexService,
                                    KnowledgeRetrievalService retrievalService,
-                                   KnowledgeQaService knowledgeQaService) {
+                                   KnowledgeQaService knowledgeQaService,
+                                   FaqIndexService faqIndexService) {
         this.indexService = indexService;
         this.retrievalService = retrievalService;
         this.knowledgeQaService = knowledgeQaService;
+        this.faqIndexService = faqIndexService;
     }
 
     @Operation(summary = "知识库统计")
@@ -66,6 +70,20 @@ public class KnowledgeBaseController extends BaseController {
     @GetMapping("/ask")
     public AjaxResult ask(@RequestParam String question) {
         return success(knowledgeQaService.answer(question));
+    }
+
+    @Operation(summary = "常见问题话术列表")
+    @GetMapping("/faq/list")
+    public AjaxResult faqList() throws Exception {
+        return success(faqIndexService.listAll());
+    }
+
+    @Operation(summary = "重建常见问题话术（管理员）")
+    @PreAuthorize("@ss.hasRole('admin')")
+    @PostMapping("/faq/rebuild")
+    public AjaxResult faqRebuild() throws Exception {
+        long count = faqIndexService.rebuild();
+        return AjaxResult.success("常见问题话术重建完成，共 " + count + " 条", count);
     }
 
     @Operation(summary = "重建知识库索引（管理员）")
