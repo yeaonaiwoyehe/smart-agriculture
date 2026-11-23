@@ -51,6 +51,23 @@ public class ToolRegistry {
     }
 
     /**
+     * 返回全部工具实例（副本），用于按当前用户权限过滤。A-09 引入。
+     */
+    public List<AgentTool> listTools() {
+        return List.copyOf(tools.values());
+    }
+
+    /**
+     * 把指定工具实例（通常是权限过滤后的子集）生成定义。A-09 引入。
+     */
+    public List<ToolDefinition> toDefinitions(List<AgentTool> toolList) {
+        if (toolList == null || toolList.isEmpty()) {
+            return List.of();
+        }
+        return toolList.stream().map(this::toDefinition).toList();
+    }
+
+    /**
      * 生成指定名称工具的定义，未知名称自动跳过。
      */
     public List<ToolDefinition> listDefinitions(List<String> toolNames) {

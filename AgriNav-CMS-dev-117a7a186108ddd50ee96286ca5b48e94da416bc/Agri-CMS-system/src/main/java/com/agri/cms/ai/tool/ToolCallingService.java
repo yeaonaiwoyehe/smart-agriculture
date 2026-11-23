@@ -7,6 +7,7 @@ import com.agri.cms.ai.model.ChatCompletionResponse;
 import com.agri.cms.ai.model.ChatMessage;
 import com.agri.cms.ai.model.ToolCall;
 import com.agri.cms.ai.model.ToolDefinition;
+import com.agri.cms.common.utils.SecurityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,18 +40,21 @@ public class ToolCallingService {
     private final ToolArgumentValidator argumentValidator;
     private final ConfirmationManager confirmationManager;
     private final AuditLogService auditLogService;
+    private final ToolAccessControl accessControl;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ToolCallingService(LlmClient llmClient,
                               ToolRegistry toolRegistry,
                               ToolArgumentValidator argumentValidator,
                               ConfirmationManager confirmationManager,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService,
+                              ToolAccessControl accessControl) {
         this.llmClient = llmClient;
         this.toolRegistry = toolRegistry;
         this.argumentValidator = argumentValidator;
         this.confirmationManager = confirmationManager;
         this.auditLogService = auditLogService;
+        this.accessControl = accessControl;
     }
 
     /**
@@ -88,6 +92,13 @@ public class ToolCallingService {
             return result;
         }
 
+        // 确认执行前再次校验权限，防止越权确认
+        if (!accessControl.canAccess(tool)) {
+            ToolConversation result = ToolConversation.failed(accessControl.denyReason(tool));
+            writeAudit(pending.summary(), result, elapsedMillis(startNanos));
+            return result;
+        }
+
         ToolResult result = tool.execute(pending.arguments());
         if (!result.success()) {
             ToolConversation conv = ToolConversation.failed(
@@ -109,7 +120,9 @@ public class ToolCallingService {
      * 执行一次带工具的模型交互。
      */
     private ToolConversation run(List<ChatMessage> messages) {
-        List<ToolDefinition> tools = toolRegistry.listDefinitions();
+        // 只把当前用户有权限的工具下发给大模型，模型看不到无权工具
+        List<AgentTool> accessible = accessControl.accessibleTools(toolRegistry.listTools());
+        List<ToolDefinition> tools = toolRegistry.toDefinitions(accessible);
         ChatCompletionResponse response = llmClient.exchange(messages, tools);
         if (response == null) {
             return ToolConversation.failed("智能助手暂时无法响应，请稍后再试");
@@ -133,6 +146,13 @@ public class ToolCallingService {
         }
 
         Map<String, Object> arguments = parseArguments(rawArguments);
+
+        // 执行前权限兜底校验：即使模型经工具清单过滤，也防止直接调用越权工具
+        if (!accessControl.canAccess(tool)) {
+            log.warn("越权工具调用被拒绝：用户={} 工具={}", SecurityUtils.getUsername(), tool.name());
+            return ToolConversation.failed(accessControl.denyReason(tool));
+        }
+
         List<String> missing = argumentValidator.validate(tool, arguments);
         if (!missing.isEmpty()) {
             return ToolConversation.needParams("缺少必要信息：" + String.join("、", missing)

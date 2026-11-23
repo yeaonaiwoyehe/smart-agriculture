@@ -43,6 +43,21 @@ public interface AgentTool {
     boolean isWriteOperation();
 
     /**
+     * 调用该工具所需的权限标识（复用菜单 perms 体系，如 agri:settlement:generate）。
+     * 返回 null 或空表示登录即可使用，不做额外权限限制。A-09 引入。
+     */
+    default String requiredPermission() {
+        return null;
+    }
+
+    /**
+     * 是否仅管理员可调用。默认 false；管理类工具（如派单）置为 true。A-09 引入。
+     */
+    default boolean isAdminOnly() {
+        return false;
+    }
+
+    /**
      * 执行工具，参数已通过框架校验。
      *
      * @param arguments 调用参数
