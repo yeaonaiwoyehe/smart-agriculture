@@ -5,6 +5,8 @@ import com.agri.cms.ai.intent.IntentRecognitionService;
 import com.agri.cms.ai.intent.IntentResult;
 import com.agri.cms.ai.prompt.AgentType;
 import com.agri.cms.ai.prompt.PromptTemplateManager;
+import com.agri.cms.ai.tool.ToolCallingService;
+import com.agri.cms.ai.tool.ToolConversation;
 import com.agri.cms.common.core.controller.BaseController;
 import com.agri.cms.common.core.domain.AjaxResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,13 +39,16 @@ public class LlmTestController extends BaseController {
     private final LlmClient llmClient;
     private final PromptTemplateManager promptTemplateManager;
     private final IntentRecognitionService intentRecognitionService;
+    private final ToolCallingService toolCallingService;
 
     public LlmTestController(LlmClient llmClient,
                              PromptTemplateManager promptTemplateManager,
-                             IntentRecognitionService intentRecognitionService) {
+                             IntentRecognitionService intentRecognitionService,
+                             ToolCallingService toolCallingService) {
         this.llmClient = llmClient;
         this.promptTemplateManager = promptTemplateManager;
         this.intentRecognitionService = intentRecognitionService;
+        this.toolCallingService = toolCallingService;
     }
 
     /**
@@ -95,6 +100,28 @@ public class LlmTestController extends BaseController {
             data.put("followUpQuestion", intentRecognitionService.buildFollowUpQuestion(result));
         }
         return AjaxResult.success("操作成功", data);
+    }
+
+    /**
+     * 工具调用：携带工具清单请求大模型，读工具直接执行，写工具返回确认令牌。
+     */
+    @GetMapping("/tool")
+    public AjaxResult tool(@RequestParam String message,
+                           @RequestParam(required = false) String systemPrompt) {
+        ToolConversation result = toolCallingService.handle(systemPrompt, message);
+        return AjaxResult.success("操作成功", result);
+    }
+
+    /**
+     * 写操作二次确认：凭确认令牌执行写工具，返回回执编号。
+     */
+    @GetMapping("/tool/confirm")
+    public AjaxResult toolConfirm(@RequestParam String token) {
+        ToolConversation result = toolCallingService.confirm(token);
+        if ("FAILED".equals(result.status())) {
+            return AjaxResult.error(result.reply());
+        }
+        return AjaxResult.success("操作成功", result);
     }
 
     /**
