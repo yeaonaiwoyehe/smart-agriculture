@@ -129,3 +129,8 @@ llm:
   connect-timeout: ${DEEPSEEK_CONNECT_TIMEOUT:10}
   read-timeout: ${DEEPSEEK_READ_TIMEOUT:60}
   temperature: ${DEEPSEEK_TEMPERATURE:0.7}
+  max-retries: ${DEEPSEEK_MAX_RETRIES:2}
+  retry-backoff-millis: ${DEEPSEEK_RETRY_BACKOFF:1000}
+  max-concurrent: ${DEEPSEEK_MAX_CONCURRENT:5}
+  acquire-timeout-millis: ${DEEPSEEK_ACQUIRE_TIMEOUT:10000}
+  fallback-message: ${DEEPSEEK_FALLBACK_MESSAGE:抱歉，智能助手暂时无法响应，请稍后再试，或联系人工客服。}
