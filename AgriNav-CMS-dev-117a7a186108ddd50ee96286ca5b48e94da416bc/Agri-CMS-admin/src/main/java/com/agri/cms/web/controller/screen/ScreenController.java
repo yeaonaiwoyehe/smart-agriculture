@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.screen;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 import cn.hutool.core.collection.CollectionUtil;
@@ -24,6 +25,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/screen")
+@Tag(name = "数据大屏")
 public class ScreenController {
 
     @Resource

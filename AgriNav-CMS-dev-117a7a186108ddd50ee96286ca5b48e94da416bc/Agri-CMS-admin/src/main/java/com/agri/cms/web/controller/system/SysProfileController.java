@@ -32,7 +32,7 @@ import java.util.Map;
  * @author ruoyi
  */
 
-@Tag(name = "SysProfileController", description = "个人信息 业务处理")
+@Tag(name = "个人信息", description = "个人信息业务处理")
 @RestController
 @RequestMapping("/system/user/profile")
 public class SysProfileController extends BaseController {

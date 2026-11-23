@@ -89,7 +89,7 @@ mybatis-plus:
   type-aliases-package: com.agri.cms.**.domain
   config-location: classpath:mybatis/mybatis-config.xml
   type-handlers-package: com.eyougo.mybatis.postgis.type
-# Springdoc配置
+# Springdoc配置（分组统一在 SwaggerConfig 中以 Bean 形式维护）
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -97,11 +97,7 @@ springdoc:
     enabled: true
     path: /swagger-ui.html
     tags-sorter: alpha
-  group-configs:
-    - group: 'default'
-      display-name: '测试模块'
-      paths-to-match: '/**'
-      packages-to-scan: com.agri.cms.web.controller.tool
+    operations-sorter: alpha
 
 
 # 防止XSS攻击

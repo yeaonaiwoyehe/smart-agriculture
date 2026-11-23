@@ -1,4 +1,5 @@
 package com.agri.cms.ai.controller;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.agri.cms.ai.client.LlmClient;
 import com.agri.cms.ai.intent.IntentRecognitionService;
@@ -33,6 +34,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/llm")
+@Tag(name = "智能体测试")
 public class LlmTestController extends BaseController {
 
     private static final DateTimeFormatter DATE_FORMATTER =

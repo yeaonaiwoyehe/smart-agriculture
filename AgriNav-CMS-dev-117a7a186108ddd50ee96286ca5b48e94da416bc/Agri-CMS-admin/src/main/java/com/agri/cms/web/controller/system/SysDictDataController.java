@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import com.agri.cms.system.service.ISysDictTypeService;
  */
 @RestController
 @RequestMapping("/system/dict/data")
+@Tag(name = "字典数据")
 public class SysDictDataController extends BaseController {
     @Autowired
     private ISysDictDataService dictDataService;

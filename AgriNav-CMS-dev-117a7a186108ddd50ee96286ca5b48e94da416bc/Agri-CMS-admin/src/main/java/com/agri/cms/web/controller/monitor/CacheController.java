@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.monitor;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,6 +31,7 @@ import com.agri.cms.system.domain.SysCache;
  */
 @RestController
 @RequestMapping("/monitor/cache")
+@Tag(name = "缓存监控")
 public class CacheController {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;

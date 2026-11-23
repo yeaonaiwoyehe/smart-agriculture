@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ import com.agri.cms.system.service.ISysPostService;
  */
 @RestController
 @RequestMapping("/system/post")
+@Tag(name = "岗位管理")
 public class SysPostController extends BaseController {
     @Autowired
     private ISysPostService postService;

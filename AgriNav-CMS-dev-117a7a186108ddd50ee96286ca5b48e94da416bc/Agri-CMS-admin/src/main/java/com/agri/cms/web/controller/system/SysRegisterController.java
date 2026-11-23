@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,7 @@ import com.agri.cms.system.service.ISysConfigService;
  * @author ruoyi
  */
 @RestController
+@Tag(name = "用户注册")
 public class SysRegisterController extends BaseController {
     @Autowired
     private SysRegisterService registerService;

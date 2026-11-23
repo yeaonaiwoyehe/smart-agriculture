@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -39,6 +40,7 @@ import com.agri.cms.system.service.ISysUserService;
  */
 @RestController
 @RequestMapping("/system/role")
+@Tag(name = "角色管理")
 public class SysRoleController extends BaseController {
     @Autowired
     private ISysRoleService roleService;

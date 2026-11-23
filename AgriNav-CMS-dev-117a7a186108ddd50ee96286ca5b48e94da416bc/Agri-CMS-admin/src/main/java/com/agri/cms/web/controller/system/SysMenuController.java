@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ import com.agri.cms.system.service.ISysMenuService;
  */
 @RestController
 @RequestMapping("/system/menu")
+@Tag(name = "菜单管理")
 public class SysMenuController extends BaseController {
     @Autowired
     private ISysMenuService menuService;

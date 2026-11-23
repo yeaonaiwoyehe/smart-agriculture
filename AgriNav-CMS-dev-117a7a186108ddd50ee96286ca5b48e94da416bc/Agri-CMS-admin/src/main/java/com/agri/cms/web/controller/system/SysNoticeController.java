@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import com.agri.cms.system.service.ISysNoticeService;
  */
 @RestController
 @RequestMapping("/system/notice")
+@Tag(name = "通知公告")
 public class SysNoticeController extends BaseController {
     @Autowired
     private ISysNoticeService noticeService;

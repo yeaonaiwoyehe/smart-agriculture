@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.monitor;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ import com.agri.cms.system.service.ISysOperLogService;
  */
 @RestController
 @RequestMapping("/monitor/operlog")
+@Tag(name = "操作日志")
 public class SysOperlogController extends BaseController {
     @Autowired
     private ISysOperLogService operLogService;

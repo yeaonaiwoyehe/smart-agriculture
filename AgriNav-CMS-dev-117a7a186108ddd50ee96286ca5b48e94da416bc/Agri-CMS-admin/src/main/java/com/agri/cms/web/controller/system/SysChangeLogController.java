@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.agri.cms.common.annotation.Anonymous;
 import com.agri.cms.common.core.controller.BaseController;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RestController
 @RequestMapping("/system/changelog")
+@Tag(name = "变更日志")
 public class SysChangeLogController extends BaseController {
 
     @Resource

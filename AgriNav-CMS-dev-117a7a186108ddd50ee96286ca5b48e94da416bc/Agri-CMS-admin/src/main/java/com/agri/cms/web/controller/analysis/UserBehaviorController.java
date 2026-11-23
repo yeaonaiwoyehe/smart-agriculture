@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.analysis;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 import com.agri.cms.common.core.domain.AjaxResult;
@@ -24,6 +25,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/analysis/user")
+@Tag(name = "用户行为分析")
 public class UserBehaviorController {
     @Resource
     private IUserBehaviorAnalysisService userBehaviorAnalysisService;
