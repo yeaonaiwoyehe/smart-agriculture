@@ -9,22 +9,17 @@ import com.agri.cms.system.domain.vo.Point;
 import com.agri.cms.system.domain.vo.Trajectory;
 import com.agri.cms.system.service.*;
 import com.agri.cms.system.utils.PolygonUtil;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.dynamic.datasource.annotation.DSTransactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import org.postgis.LinearRing;
 import org.postgis.Polygon;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,8 +46,6 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
     @Autowired
     private LandPlotExcludeServiceImpl landPlotExcludeService;
     @Autowired
-    private CheckPathServiceImpl checkPathService;
-    @Autowired
     private TrajectoryExcludeService trajectoryExcludeService;
     @Autowired
     private SysUserServiceImpl userService;
@@ -61,7 +54,6 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
     /** 暂存点清理的历史起点（替代原 InfluxDB 固定 startTime） */
     private final LocalDateTime BUFFER_START = LocalDateTime.of(2024, 1, 1, 0, 0);
     private final Double MINI_DISTENCE = 0.000000001;
-    private final Double SQUARE_METER_TO_MU = 666.67;
     private final int DELETE = 2;
 
     @Override
@@ -70,8 +62,16 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
         Map<Long, Trajectory> trajectoryMap = new HashMap<>();
 
         rows.forEach(row -> {
+            if (row.getWidth() == null || row.getWidth() <= 0 || row.getPlotId() == null
+                    || row.getLongitude() == null || row.getLatitude() == null || row.getDeviceTime() == null) {
+                throw new IllegalArgumentException("暂存轨迹缺少有效幅宽、地块、坐标或时间");
+            }
             //每个地块对应一个轨迹
             Trajectory trajectory = trajectoryMap.computeIfAbsent(row.getPlotId(), k -> new Trajectory());
+            if (trajectory.getPoints() != null && (trajectory.getWidth() != row.getWidth()
+                    || !Objects.equals(trajectory.getWorkType(), String.valueOf(row.getWorkType())))) {
+                throw new IllegalArgumentException("同一地块内幅宽或作业类型发生变化，请按作业批次核算");
+            }
             trajectory.setPlotId(row.getPlotId());
             trajectory.setWidth(row.getWidth());
             trajectory.setWorkType(String.valueOf(row.getWorkType()));
@@ -109,59 +109,59 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
     @Async("taskExecutor")
     @DSTransactional(rollbackFor = Exception.class)
     public void createTrajectory(String phoneNumber, LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null || endTime == null || startTime.isAfter(endTime)) {
+            throw new IllegalArgumentException("作业起止时间无效");
+        }
         List<Trajectory> trajectories = queryByPhoneNumber(phoneNumber, startTime, endTime);
-        //通过phoneNumber查询userId
-        String userId = userService.selectUserByUserName(phoneNumber).getUserId().toString();
-        //移除小于2个点的轨迹
-        trajectories.removeIf(trajectory -> trajectory.getPoints().size() < TWO_POINTS);
-        trajectories.forEach(trajectory -> {
+        if (trajectories.isEmpty()) {
+            return;
+        }
+        var user = userService.selectUserByUserName(phoneNumber);
+        if (user == null) {
+            throw new IllegalArgumentException("机手不存在");
+        }
+        String userId = user.getUserId().toString();
+        Map<Trajectory, LandPlot> plots = new IdentityHashMap<>();
+        Map<Trajectory, Map<Long, List<Point>>> excludedPoints = new IdentityHashMap<>();
+        // 先校验并计算整个批次；任何失败都向上传播，不生成零面积单，也不清理暂存点。
+        for (Trajectory trajectory : trajectories) {
+            if (trajectory.getPoints().size() < TWO_POINTS) {
+                throw new IllegalStateException("轨迹点不足，保留暂存数据等待补齐");
+            }
+            LandPlot plot = landPlotService.getById(trajectory.getPlotId());
+            if (plot == null || plot.getBoundary() == null) {
+                throw new IllegalArgumentException("地块不存在或缺少边界");
+            }
+            plots.put(trajectory, plot);
+            List<Polygon> exclusions = new ArrayList<>();
+            if (LandPlotConstants.LAND_FOR_ARRANGING_FLOWERS.equals(plot.getLandType())) {
+                LambdaQueryWrapper<LandPlotExclude> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(LandPlotExclude::getLandPlotId, trajectory.getPlotId())
+                        .eq(LandPlotExclude::getIsDeleted, Constants.NOT_DELETED);
+                List<LandPlotExclude> records = landPlotExcludeService.list(wrapper);
+                records.forEach(record -> exclusions.add(record.getBoundary()));
+                excludedPoints.put(trajectory, assignPointsToPlots(trajectory.getPoints(), records));
+            }
+            BigDecimal squareMetres = areaCalculationService.calculateClippedArea(
+                    trajectory.getPoints(), trajectory.getWidth(), plot.getBoundary(), exclusions);
+            // 1 平方米 = 0.0015 亩，避免用截断的 666.67 反除引入误差。
+            trajectory.setArea(squareMetres.multiply(new BigDecimal("0.0015"))
+                    .setScale(4, RoundingMode.HALF_UP));
+        }
+        for (Trajectory trajectory : trajectories) {
             UUID uuid = UUID.randomUUID();
-            //拿到地块边界点集
-            Polygon boundary = landPlotService.getById(trajectory.getPlotId()).getBoundary();
-            //拿到所属地块，判断所属地块的类型
-            LandPlot landPlot = landPlotService.getById(trajectory.getPlotId());
-            List<Point> boundaryPoints = PolygonUtil.polygonToListPoint(boundary);
-
-            //生成缩略图：依赖高德静态地图与对象存储，本地可能不具备，单独容错，失败不阻断面积计算
+            LandPlot plot = plots.get(trajectory);
+            // 缩略图失败仅影响展示，不影响已经核验的面积。
             try {
-                String thumbnailUrl = gaodeMapService.generateThumbnail(trajectory.getPoints(), boundaryPoints);
-                trajectory.setTrajectoryImg(thumbnailUrl);
+                trajectory.setTrajectoryImg(gaodeMapService.generateThumbnail(
+                        trajectory.getPoints(), PolygonUtil.polygonToListPoint(plot.getBoundary())));
             } catch (Exception thumbEx) {
                 trajectory.setTrajectoryImg(DEFAULT_TRAJECTORY_IMG_URL);
             }
-
-            //计算面积：纯本地几何计算，不依赖外部服务
-            try {
-                if (landPlot.getLandType().equals(LandPlotConstants.LAND_FOR_ARRANGING_FLOWERS)) {
-                    //走插花地的逻辑：查询出所有大地块中的小地块
-                    LambdaQueryWrapper<LandPlotExclude> wrapper = new LambdaQueryWrapper<>();
-                    wrapper.eq(LandPlotExclude::getLandPlotId, trajectory.getPlotId()).
-                            eq(LandPlotExclude::getIsDeleted, Constants.NOT_DELETED);
-                    List<LandPlotExclude> landPlotExcludes = landPlotExcludeService.list(wrapper);
-                    //拿到小地块中的点集
-                    Map<Long, List<Point>> longListMap = assignPointsToPlots(trajectory.getPoints(), landPlotExcludes);
-                    //插入到pg数据库
-                    trajectoryExcludeService.saveTrajectoryExclude(longListMap, uuid);
-                    //计算总面积
-                    BigDecimal sumArea = areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(trajectory.getPoints(), trajectory.getWidth());
-                    //扣除小地块（空洞）面积
-                    List<List<Point>> listPoints = longListMap.values().stream().toList();
-                    BigDecimal needToSubtractArea = listPoints.stream().
-                            map(points -> areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(points, trajectory.getWidth())).
-                            reduce(BigDecimal.ZERO, BigDecimal::add);
-                    BigDecimal areaInMu = sumArea.subtract(needToSubtractArea).divide(BigDecimal.valueOf(SQUARE_METER_TO_MU), 4, RoundingMode.HALF_UP);
-                    trajectory.setArea(areaInMu);
-                } else {
-                    //计算面积并换算单位为亩
-                    BigDecimal areaInSquareMeters = areaCalculationService.calculateTrajectoryAreaAndDuplicateRemoval(trajectory.getPoints(), trajectory.getWidth());
-                    BigDecimal areaInMu = areaInSquareMeters.divide(BigDecimal.valueOf(SQUARE_METER_TO_MU), 4, RoundingMode.HALF_UP);
-                    trajectory.setArea(areaInMu);
-                }
-            } catch (Exception areaEx) {
-                trajectory.setArea(BigDecimal.ZERO);
+            if (excludedPoints.containsKey(trajectory)) {
+                trajectoryExcludeService.saveTrajectoryExclude(excludedPoints.get(trajectory), uuid);
             }
-
-            //如果两个点，在第二点经纬度相差很小的位置再生成一个点，保证能够进行插入
+            // 兼容现有以 Polygon 存储轨迹的格式；补点发生在面积计算之后。
             if (trajectory.getPoints().size() == TWO_POINTS) {
                 Point point = new Point();
                 point.setLongitude(trajectory.getPoints().get(1).getLongitude() + MINI_DISTENCE);
@@ -169,9 +169,11 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
                 point.setTime(trajectory.getPoints().get(1).getTime());
                 trajectory.getPoints().add(point);
             }
-            trajectoryPointsService.savePoints(trajectory, uuid);
+            if (!Boolean.TRUE.equals(trajectoryPointsService.savePoints(trajectory, uuid))) {
+                throw new IllegalStateException("轨迹保存失败，保留暂存数据");
+            }
             trajectoryInfoService.saveInfo(trajectory, uuid, userId);
-        });
+        }
         deleteByPhoneNumber(phoneNumber, startTime, endTime);
     }
 
@@ -195,36 +197,26 @@ public class InfluxDBEffectiveTrajectoryServiceImpl implements InfluxDBEffective
      * @author 姚锦伦
      * @since 2024/11/19
      */
-   public Map<Long, List<Point>> assignPointsToPlots(List<Point> points, List<LandPlotExclude> plots) {
-    if (CollectionUtil.isEmpty(plots) || CollectionUtil.isEmpty(points)) {
-        return new HashMap<>();
+    public Map<Long, List<Point>> assignPointsToPlots(List<Point> points, List<LandPlotExclude> plots) {
+        Map<Long, List<Point>> result = new HashMap<>();
+        if (CollectionUtil.isEmpty(plots) || CollectionUtil.isEmpty(points)) {
+            return result;
+        }
+        org.locationtech.jts.geom.GeometryFactory factory = new org.locationtech.jts.geom.GeometryFactory();
+        for (LandPlotExclude plot : plots) {
+            try {
+                org.locationtech.jts.geom.Geometry geometry = new org.locationtech.jts.io.WKTReader(factory)
+                        .read(plot.getBoundary().toString().replaceFirst("^SRID=[0-9]+;", ""));
+                List<Point> matches = points.stream().filter(point -> geometry.covers(factory.createPoint(
+                        new org.locationtech.jts.geom.Coordinate(point.getLongitude(), point.getLatitude()))))
+                        .collect(Collectors.toCollection(ArrayList::new));
+                if (!matches.isEmpty()) {
+                    result.put(plot.getId(), matches);
+                }
+            } catch (org.locationtech.jts.io.ParseException exception) {
+                throw new IllegalArgumentException("排除区域边界无法解析", exception);
+            }
+        }
+        return result;
     }
-
-    return points.stream()
-        .flatMap(point -> plots.stream()
-            .filter(plot -> {
-                // 获取地块边界点集
-                List<double[]> list = checkPathService.parsePolygonDouble(
-                    plot.getBoundary().toString()
-                );
-
-                // 转换点的坐标到相同精度
-                double testy = point.getLongitude() * 1000000.0;
-                double testx = point.getLatitude() * 1000000.0;
-
-                // 使用rayMethod判断点是否在多边形内
-                return checkPathService.rayMethod(list, testx, testy) == 1;
-            })
-            .map(plot -> new AbstractMap.SimpleEntry<>(plot.getId(), point))
-        )
-        .collect(Collectors.groupingBy(
-            Map.Entry::getKey,
-            Collectors.mapping(
-                Map.Entry::getValue,
-                Collectors.toList()
-            )
-        ));
-    }
-
-
 }

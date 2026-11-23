@@ -1,5 +1,19 @@
 import request from '@/utils/request'
 
+// 默认只做文件预检，正式导入必须显式传入 false。
+export function importGeoJsonLandPlots(file, dryRun = true, encoding = 'UTF-8') {
+  const data = new FormData()
+  data.append('file', file)
+  return request({
+    url: /\.zip$/i.test(file.name) ? '/landPlot/import/shapefile' : '/landPlot/import/geojson',
+    method: 'post',
+    params: { dryRun, encoding },
+    data,
+    timeout: 60000,
+    returnBusinessErrors: true
+  })
+}
+
 // 查询地块列表（分页）
 export function listLandPlot(current, size) {
   return request({

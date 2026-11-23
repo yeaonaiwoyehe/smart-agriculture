@@ -28,6 +28,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -86,7 +87,7 @@ public class TrajectoryPointsServiceImpl extends ServiceImpl<TrajectoryPointsMap
 
         for (int i = 0; i < points.size(); i++) {
             Point point = points.get(i);
-            geometryBuilder.append(String.format("%f %f", point.getLongitude(), point.getLatitude()));
+            geometryBuilder.append(String.format(Locale.ROOT, "%.12f %.12f", point.getLongitude(), point.getLatitude()));
             timesBuilder.append(point.getTime());
 
             if (i < points.size() - 1) {
@@ -97,7 +98,7 @@ public class TrajectoryPointsServiceImpl extends ServiceImpl<TrajectoryPointsMap
         // 闭合多边形
         if (!points.isEmpty()) {
             Point firstPoint = points.get(0);
-            geometryBuilder.append(String.format(",%f %f", firstPoint.getLongitude(), firstPoint.getLatitude()));
+            geometryBuilder.append(String.format(Locale.ROOT, ",%.12f %.12f", firstPoint.getLongitude(), firstPoint.getLatitude()));
         }
         geometryBuilder.append("))");
 
@@ -108,13 +109,11 @@ public class TrajectoryPointsServiceImpl extends ServiceImpl<TrajectoryPointsMap
             trajectoryPoints.setTimes(timesBuilder.toString());
             trajectoryPointsList.add(trajectoryPoints);
         } catch (SQLException e) {
-            // 记录错误并继续处理其他轨迹
-            log.error("为轨迹创建 Polygon 时出错: " + trajectory.getPlotId(), e);
+            throw new IllegalStateException("轨迹几何保存失败: " + trajectory.getPlotId(), e);
         }
 
         // 批量保存到数据库
-        this.saveBatch(trajectoryPointsList);
-        return true;
+        return this.saveBatch(trajectoryPointsList);
     }
 
     @Override
