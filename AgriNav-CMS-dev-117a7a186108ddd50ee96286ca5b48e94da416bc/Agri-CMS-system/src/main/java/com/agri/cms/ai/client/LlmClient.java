@@ -11,6 +11,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,19 @@ public class LlmClient {
      */
     public String chat(String userMessage) {
         return chat(List.of(ChatMessage.user(userMessage)));
+    }
+
+    /**
+     * 带系统提示词的单轮对话：在用户消息前插入一条 system 消息，
+     * 用于设定智能体角色与规则（A-03）。systemPrompt 为空时退化为普通单轮对话。
+     */
+    public String chat(String systemPrompt, String userMessage) {
+        List<ChatMessage> messages = new ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            messages.add(ChatMessage.system(systemPrompt));
+        }
+        messages.add(ChatMessage.user(userMessage));
+        return chat(messages);
     }
 
     /**
