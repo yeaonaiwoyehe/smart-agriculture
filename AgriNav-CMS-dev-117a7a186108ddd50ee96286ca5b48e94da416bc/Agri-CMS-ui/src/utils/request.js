@@ -165,6 +165,12 @@ service.interceptors.response.use(res => {
     const code = res.data.code || 200
     const msg = errorCode[code] || res.data.msg || errorCode['default']
 
+    // 文件导入需要展示逐条校验结果；显式选择时保留业务错误响应。
+    // 登录过期、权限错误及 HTTP 网络错误仍走原有处理。
+    if (res.config.returnBusinessErrors && code === 500) {
+      return res.data
+    }
+
     if (code === 401) {
       if (!isRelogin.show) {
         isRelogin.show = true;
