@@ -3,6 +3,8 @@ package com.agri.cms.web.controller.dispatch;
 import com.agri.cms.common.core.controller.BaseController;
 import com.agri.cms.common.core.domain.AjaxResult;
 import com.agri.cms.common.core.page.TableDataInfo;
+import com.agri.cms.ai.agent.DispatchSuggestionResult;
+import com.agri.cms.ai.agent.DispatchSuggestionService;
 import com.agri.cms.system.domain.WorkDispatch;
 import com.agri.cms.system.domain.dto.BatchDispatchRequest;
 import com.agri.cms.system.domain.dto.DispatchRequest;
@@ -34,9 +36,12 @@ import java.util.List;
 public class DispatchController extends BaseController {
 
     private final DispatchService dispatchService;
+    private final DispatchSuggestionService suggestionService;
 
-    public DispatchController(DispatchService dispatchService) {
+    public DispatchController(DispatchService dispatchService,
+                              DispatchSuggestionService suggestionService) {
         this.dispatchService = dispatchService;
+        this.suggestionService = suggestionService;
     }
 
     @Operation(summary = "单选派单")
@@ -102,5 +107,13 @@ public class DispatchController extends BaseController {
     @GetMapping("/stats")
     public AjaxResult stats() {
         return success(dispatchService.completionStats());
+    }
+
+    @Operation(summary = "调度派单建议（MA-01，仅建议不派单）")
+    @GetMapping("/suggestion")
+    @PreAuthorize("@ss.hasRole('admin')")
+    public AjaxResult suggestion() {
+        DispatchSuggestionResult result = suggestionService.suggest();
+        return AjaxResult.success(result);
     }
 }
