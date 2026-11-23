@@ -131,11 +131,13 @@ public class LlmTestController extends BaseController {
 
     /**
      * 两类问答路由：业务数据问答走工具取数，制度知识问答走知识库，分别标注来源。
+     * 传 conversationId 续接已有会话，不传则新建会话。
      */
     @GetMapping("/route")
     public AjaxResult route(@RequestParam String message,
-                            @RequestParam(required = false) String side) {
-        RoutedAnswer answer = questionRoutingService.route(message, side);
+                            @RequestParam(required = false) String side,
+                            @RequestParam(required = false) Long conversationId) {
+        RoutedAnswer answer = questionRoutingService.route(message, side, conversationId);
         return AjaxResult.success("操作成功", answer);
     }
 

@@ -6,18 +6,21 @@ import com.agri.cms.ai.tool.ToolConversation;
 import java.util.List;
 
 /**
- * 问答路由的统一返回结果（A-07）。
+ * 问答路由的统一返回结果（A-07，A-10 扩展会话与工具信息）。
  *
  * 在回答之外显式标注路由类型与来源，并透传业务写操作的确认令牌与回执，
  * 让前端能够区分"业务取数"与"制度知识"并展示来源。
  *
- * @param routeType    路由类型 code
- * @param routeName    路由类型显示名
- * @param status       处理状态：REPLY / NEED_CONFIRM / NEED_PARAMS / FAILED
- * @param answer       回答文本
- * @param source       来源标注
- * @param confirmToken 写操作确认令牌，可空
- * @param receiptNo    回执编号，可空
+ * @param routeType      路由类型 code
+ * @param routeName      路由类型显示名
+ * @param status         处理状态：REPLY / NEED_CONFIRM / NEED_PARAMS / FAILED
+ * @param answer         回答文本
+ * @param source         来源标注
+ * @param confirmToken   写操作确认令牌，可空
+ * @param receiptNo      回执编号，可空
+ * @param toolName       实际命中的工具名，可空（A-10 会话留存用）
+ * @param costMs         本轮处理耗时（毫秒），可空（A-10）
+ * @param conversationId 所属会话 ID，可空（A-10，前端据此续接对话）
  * @author agrinav
  */
 public record RoutedAnswer(
@@ -27,7 +30,10 @@ public record RoutedAnswer(
         String answer,
         String source,
         String confirmToken,
-        String receiptNo
+        String receiptNo,
+        String toolName,
+        Long costMs,
+        Long conversationId
 ) {
 
     /**
@@ -42,7 +48,10 @@ public record RoutedAnswer(
                 conv.reply(),
                 source,
                 conv.confirmToken(),
-                conv.receiptNo());
+                conv.receiptNo(),
+                conv.toolName(),
+                null,
+                null);
     }
 
     /**
@@ -64,6 +73,9 @@ public record RoutedAnswer(
                 knowledge.content(),
                 source,
                 null,
+                null,
+                null,
+                null,
                 null);
     }
 
@@ -77,6 +89,9 @@ public record RoutedAnswer(
                 "REPLY",
                 answer,
                 "来源：—（闲聊，未取数）",
+                null,
+                null,
+                null,
                 null,
                 null);
     }
@@ -92,7 +107,19 @@ public record RoutedAnswer(
                 answer,
                 "来源：—",
                 null,
+                null,
+                null,
+                null,
                 null);
+    }
+
+    /**
+     * 附上所属会话 ID 与本轮耗时，返回新的结果对象（record 不可变）。
+     */
+    public RoutedAnswer withConversation(Long conversationId, Long costMs) {
+        return new RoutedAnswer(
+                routeType, routeName, status, answer, source,
+                confirmToken, receiptNo, toolName, costMs, conversationId);
     }
 
     private static String buildDataSource(ToolConversation conv) {
