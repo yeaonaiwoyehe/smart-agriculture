@@ -5,6 +5,8 @@ import com.agri.cms.ai.intent.IntentRecognitionService;
 import com.agri.cms.ai.intent.IntentResult;
 import com.agri.cms.ai.prompt.AgentType;
 import com.agri.cms.ai.prompt.PromptTemplateManager;
+import com.agri.cms.ai.routing.QuestionRoutingService;
+import com.agri.cms.ai.routing.RoutedAnswer;
 import com.agri.cms.ai.tool.ToolCallingService;
 import com.agri.cms.ai.tool.ToolConversation;
 import com.agri.cms.common.core.controller.BaseController;
@@ -40,15 +42,18 @@ public class LlmTestController extends BaseController {
     private final PromptTemplateManager promptTemplateManager;
     private final IntentRecognitionService intentRecognitionService;
     private final ToolCallingService toolCallingService;
+    private final QuestionRoutingService questionRoutingService;
 
     public LlmTestController(LlmClient llmClient,
                              PromptTemplateManager promptTemplateManager,
                              IntentRecognitionService intentRecognitionService,
-                             ToolCallingService toolCallingService) {
+                             ToolCallingService toolCallingService,
+                             QuestionRoutingService questionRoutingService) {
         this.llmClient = llmClient;
         this.promptTemplateManager = promptTemplateManager;
         this.intentRecognitionService = intentRecognitionService;
         this.toolCallingService = toolCallingService;
+        this.questionRoutingService = questionRoutingService;
     }
 
     /**
@@ -122,6 +127,16 @@ public class LlmTestController extends BaseController {
             return AjaxResult.error(result.reply());
         }
         return AjaxResult.success("操作成功", result);
+    }
+
+    /**
+     * 两类问答路由：业务数据问答走工具取数，制度知识问答走知识库，分别标注来源。
+     */
+    @GetMapping("/route")
+    public AjaxResult route(@RequestParam String message,
+                            @RequestParam(required = false) String side) {
+        RoutedAnswer answer = questionRoutingService.route(message, side);
+        return AjaxResult.success("操作成功", answer);
     }
 
     /**
