@@ -28,10 +28,14 @@ public class QueryWorkOrderBillingTool implements AgentTool {
 
     private final ObjectMapper objectMapper;
     private final SettlementQueryService queryService;
+    private final DataOwnershipChecker ownershipChecker;
 
-    public QueryWorkOrderBillingTool(ObjectMapper objectMapper, SettlementQueryService queryService) {
+    public QueryWorkOrderBillingTool(ObjectMapper objectMapper,
+                                     SettlementQueryService queryService,
+                                     DataOwnershipChecker ownershipChecker) {
         this.objectMapper = objectMapper;
         this.queryService = queryService;
+        this.ownershipChecker = ownershipChecker;
     }
 
     @Override
@@ -77,6 +81,11 @@ public class QueryWorkOrderBillingTool implements AgentTool {
         String workOrderId = ToolArgs.toText(ToolArgs.get(arguments, TRAJECTORY_INFO_ID));
         if (workOrderId == null || workOrderId.isBlank()) {
             return ToolResult.fail("请提供要查询的作业单号。");
+        }
+
+        // 数据范围校验：普通用户仅能查询本人作业单，越权拒绝
+        if (!ownershipChecker.canAccessWorkOrder(workOrderId)) {
+            return ToolResult.fail("无权查看该作业单：这不是您本人的作业单，仅可查询自己的作业数据。");
         }
 
         WorkOrderBillingView view = queryService.getWorkOrderBilling(workOrderId);
