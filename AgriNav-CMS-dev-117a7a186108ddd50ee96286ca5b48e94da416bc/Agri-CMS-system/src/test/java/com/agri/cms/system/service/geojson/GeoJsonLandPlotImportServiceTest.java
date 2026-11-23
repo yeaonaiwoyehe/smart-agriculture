@@ -93,4 +93,34 @@ public class GeoJsonLandPlotImportServiceTest {
         service.importPlots(GeoJsonPlotParserTest.file(f),42);
         verify(mapper).insertPlot(anyLong(),any(),anyString(),anyString(),eq("42"));
     }
+    private ShapefileLandPlotImportService shapefileImporter() {
+        return new ShapefileLandPlotImportService(new ShapefilePlotParser(new GeoJsonPlotParser()),service);
+    }
+    private java.io.InputStream shapeFile(String... codes) throws Exception {
+        return new java.io.ByteArrayInputStream(ShapefileTestData.zip(ShapefileTestData.files(java.nio.charset.StandardCharsets.UTF_8,codes)));
+    }
+    @Test public void shapefilePreviewNeverConnectsToSharedStorage() throws Exception {
+        var result=shapefileImporter().process(shapeFile("SHP1"),true,"UTF-8",0);
+        assertTrue(result.isDryRun());assertEquals(1,result.getValidCount());
+        assertEquals(0,result.getImportedCount());verifyNoInteractions(mapper,source,redis);
+    }
+    @Test public void shapefileUsesSharedTransactionAndKeepsItsSource() throws Exception {
+        var result=shapefileImporter().process(shapeFile("SHP1"),false,"UTF-8",42);
+        assertEquals(1,result.getImportedCount());
+        var plot=ArgumentCaptor.forClass(ParsedGeoJsonPlot.class);
+        verify(mapper).insertPlot(anyLong(),plot.capture(),anyString(),anyString(),eq("42"));
+        assertEquals("Shapefile",plot.getValue().sourceFormat());
+        var order=inOrder(connection,redis);order.verify(connection).commit();
+        order.verify(redis).setCacheGeoValue(anyString(),any(),any());
+    }
+    @Test public void shapefileSecondRowFailureRollsBackWholeBatch() throws Exception {
+        when(mapper.insertBoundary(anyLong())).thenReturn(1,0);
+        assertThrows(IllegalStateException.class,()->shapefileImporter().process(shapeFile("SHP1","SHP2"),false,"UTF-8",42));
+        verify(connection).rollback();verify(connection,never()).commit();verifyNoInteractions(redis);
+    }
+    @Test public void previewResultCannotBeReusedAsFinalImport() throws Exception {
+        var preview=service.preview(GeoJsonPlotParserTest.file(GeoJsonPlotParserTest.feature("A")));
+        assertThrows(IllegalArgumentException.class,()->service.importValidated(preview,42));
+        verifyNoInteractions(mapper,redis);
+    }
 }

@@ -33,8 +33,17 @@ public class GeoJsonLandPlotImportService {
     /** 地块、编码关联和包围盒同事务；任意写入失败则整批回滚。 */
     @Transactional(rollbackFor = Exception.class)
     public GeoJsonImportResult importPlots(InputStream file, long userId) {
+        return importValidated(parser.parse(file,false),userId);
+    }
+
+    /** 两种文件格式共用同一事务写入规则；由其他 Spring Bean 调用以启用事务。 */
+    @Transactional(rollbackFor = Exception.class)
+    public GeoJsonImportResult importValidated(GeoJsonImportResult result, long userId) {
         if (userId <= 0) throw new IllegalArgumentException("导入人身份无效");
-        GeoJsonImportResult result=parser.parse(file,false);
+        if (result == null || result.isDryRun() || result.getTotalCount() == 0
+                || (result.getInvalidCount() == 0 && result.getPlots().size() != result.getTotalCount())) {
+            throw new IllegalArgumentException("正式导入必须使用完整的非预检校验结果");
+        }
         if (result.getInvalidCount() != 0) return result;
         if (!mapper.hasCodeTable()) {
             throw new IllegalStateException("请先由团队确认并应用 database/geojson_import_code_ddl.sql，再正式导入");

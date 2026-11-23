@@ -28,6 +28,16 @@ public class LandPlotQueryDTO {
 
     private String measurementMethod;
     private String address;
+    private String groupType;
+    private String groupCode;
+    private boolean ungrouped;
+
+    public String getGroupType() { return groupType; }
+    public void setGroupType(String value) { groupType=value; }
+    public String getGroupCode() { return groupCode; }
+    public void setGroupCode(String value) { groupCode=value; }
+    public boolean isUngrouped() { return ungrouped; }
+    public void setUngrouped(boolean value) { ungrouped=value; }
     private boolean isCurrent = true;
     private long current = Constants.PAGE_NUM;
     private long size = Constants.PAGE_SIZE_DEFAULT;

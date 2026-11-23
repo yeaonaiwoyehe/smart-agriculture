@@ -23,7 +23,7 @@ public interface GeoJsonLandPlotImportMapper {
             VALUES (#{id}, #{plot.landName}, #{plot.landType},
                     ST_Area(ST_GeomFromText(#{wkt},4326)::geography) * 0.0015,
                     0, #{plot.address}, #{userId}, CURRENT_TIMESTAMP, #{userId}, CURRENT_TIMESTAMP,
-                    'GeoJSON', ST_GeomFromText(#{wkt},4326), ST_GeomFromText(#{centre},4326))
+                    #{plot.sourceFormat}, ST_GeomFromText(#{wkt},4326), ST_GeomFromText(#{centre},4326))
             """)
     int insertPlot(@Param("id") long id, @Param("plot") ParsedGeoJsonPlot plot,
                    @Param("wkt") String wkt, @Param("centre") String centre, @Param("userId") String userId);

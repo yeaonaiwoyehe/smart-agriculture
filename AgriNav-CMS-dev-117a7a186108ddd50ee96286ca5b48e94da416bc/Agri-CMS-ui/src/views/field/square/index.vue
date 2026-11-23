@@ -70,6 +70,9 @@
           </el-row>
         </el-form>
 
+        <land-plot-group-panel ref="plotGroups" :selected-ids="ids" :plot-ids="visiblePlotIds"
+                               @filter="filterByGroup" @names="groupNames = $event" @changed="getList"/>
+
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
             <el-button
@@ -122,11 +125,11 @@
               type="primary"
               plain
               icon="el-icon-upload2"
-              aria-label="导入 GeoJSON"
+              aria-label="导入地块文件"
               size="mini"
               v-hasPermi="['field:square:save']"
               @click="geoJsonImportVisible = true"
-            >导入 GeoJSON</el-button>
+            >导入地块文件</el-button>
           </el-col>
           <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
         </el-row>
@@ -135,6 +138,12 @@
                   class="custom-table">
           <el-table-column type="selection" width="55" align="center"/>
           <el-table-column label="地块名称" align="center" prop="landName"/>
+          <el-table-column label="行政村 / 片区" align="center" min-width="140">
+            <template slot-scope="scope">
+              <div>{{ groupNames[scope.row.id] && groupNames[scope.row.id].VILLAGE || '未分组' }}</div>
+              <div class="region-label">{{ groupNames[scope.row.id] && groupNames[scope.row.id].REGION || '未分组' }}</div>
+            </template>
+          </el-table-column>
           <el-table-column label="地类类型" align="center" prop="landType">
             <template slot-scope="scope">
               <el-tag type="primary">{{ scope.row.landType }}</el-tag>
@@ -265,10 +274,12 @@ import {listLandPlot, getLandPlot, delLandPlot, addLandPlot, updateLandPlot, que
 import Pagination from "@/components/Pagination";
 import LandPlotDetailDialog from './components/LandPlotDetailDialog.vue'
 import GeoJsonImportDialog from './components/GeoJsonImportDialog.vue'
+import LandPlotGroupPanel from './components/LandPlotGroupPanel.vue'
 
 export default {
   name: "Square",
   components: {
+    LandPlotGroupPanel,
     GeoJsonImportDialog,
     LandPlotDetailDialog,
     Pagination
@@ -278,8 +289,10 @@ export default {
       geoJsonImportVisible: false,
       plotDetailVisible: false,
       selectedPlot: {},
+      groupNames: {},
       // 遮罩层
       loading: true,
+      listRequest: 0,
       // 选中数组
       ids: [],
       // 非单个禁用
@@ -329,6 +342,9 @@ export default {
       fullAddress: '',
     };
   },
+  computed: {
+    visiblePlotIds() { return this.landPlots.map(plot => String(plot.id)) }
+  },
   created() {
     this.queryParams.current = 1;
     this.queryParams.size = 10;
@@ -336,8 +352,13 @@ export default {
 
   },
   methods: {
+    filterByGroup(filter) {
+      this.queryParams = { ...this.queryParams, groupType: undefined, groupCode: undefined, ungrouped: undefined, ...filter, current: 1 }
+      this.getList()
+    },
     /** 条件查询地块列表 */
     getList() {
+      const request = ++this.listRequest;
       this.loading = true;
 
       // 处理日期范围
@@ -354,22 +375,15 @@ export default {
       if (params.beginArea === undefined) delete params.beginArea;
       if (params.endArea === undefined) delete params.endArea;
 
-      console.log('查询参数:', params); // 添加日志
-
       queryLandPlot(params).then(response => {
-        console.log('API 响应:', response); // 添加日志
+        if (request !== this.listRequest) return;
         this.landPlots = response.data || [];
         this.total = response.total || 0;
+        if (this.$refs.plotGroups) this.$refs.plotGroups.refresh();
         this.loading = false;
 
-        console.log('获取到的数据条数:', this.landPlots.length); // 添加日志
-
-        if (this.landPlots.length === 0) {
-          this.$message.warning('没有更多的地块了，查看本页之前的地块吧');
-        } else if (this.landPlots.length < this.queryParams.size) {
-          this.$message.info('当前页为最后一页');
-        }
       }).catch(error => {
+        if (request !== this.listRequest) return;
         console.error('条件查询地块列表失败:', error);
         this.$modal.msgError('条件查询地块列表失败');
         this.loading = false;
@@ -419,6 +433,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      if (this.$refs.plotGroups) this.$refs.plotGroups.clearFilter();
       this.resetForm("queryForm");
       this.dateRange = [];
       this.queryParams = {
@@ -561,6 +576,7 @@ export default {
 </script>
 
 <style scoped>
+.region-label { color: #74847c; font-size: 12px; margin-top: 4px; }
 .app-container {
   height: 100%;
 }

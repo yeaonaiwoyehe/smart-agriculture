@@ -17,6 +17,13 @@
 
     <dependencies>
 
+        <!-- Shapefile 读取与 PRJ 坐标系校验，Java 17 兼容系列。 -->
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-shapefile</artifactId>
+            <version>34.6</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -36,5 +43,20 @@
         </dependency>
 
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>osgeo-release</id>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <!-- 不解析第三方 POM 引入的快照仓库，当前仅使用固定正式版本。 -->
+        <repository>
+            <id>osgeo-snapshot</id>
+            <url>https://repo.osgeo.org/repository/snapshot/</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+    </repositories>
 
 </project>

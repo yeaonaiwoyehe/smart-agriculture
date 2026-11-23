@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="导入地块 · GeoJSON"
+    title="导入地块 · GeoJSON / Shapefile"
     :visible="visible"
     width="min(900px, 94vw)"
     append-to-body
@@ -13,7 +13,7 @@
     <div class="geojson-import">
       <p class="intro">上传已有地块边界，先检查文件，再确认导入。想先体验一下？可以直接用示例预检。</p>
       <el-alert
-        title="支持 .geojson / .json，最大 10MB，每次最多 1000 块地。请使用 WGS84 经纬度；首版支持无空洞的单面地块。"
+        title="支持 GeoJSON 或 Shapefile ZIP，最大 10MB，每次最多 1000 块地。请使用 WGS84 经纬度；首版支持无空洞的单面地块。"
         type="info" :closable="false" show-icon
       />
       <div class="file-picker">
@@ -22,13 +22,28 @@
           <strong>{{ selectedFile ? selectedFile.name : '选择地块文件' }}</strong>
           <span>{{ selectedFile ? fileSize : '地块编号、地块名称和地址为必填属性。' }}</span>
         </div>
-        <input ref="fileInput" class="file-input" type="file" accept=".geojson,.json" :disabled="busy" @change="chooseFile"/>
+        <input ref="fileInput" class="file-input" type="file" accept=".geojson,.json,.zip" :disabled="busy" @change="chooseFile"/>
         <el-button :disabled="busy" icon="el-icon-folder-opened" @click="$refs.fileInput.click()">选择文件</el-button>
+      </div>
+      <div v-if="isShapefile" class="shape-options">
+        <p>ZIP 内需包含同名 .shp、.shx、.dbf、.prj 文件；属性列为 plotCode、landName、address，可选 landType。</p>
+        <label for="shape-encoding">属性文字编码</label>
+        <el-select id="shape-encoding" v-model="encoding" size="small" :disabled="busy" @change="invalidatePreview">
+          <el-option label="UTF-8" value="UTF-8"/><el-option label="GBK（常见中文数据）" value="GBK"/><el-option label="GB18030" value="GB18030"/>
+        </el-select>
+        <span>如有 .cpg 文件，优先使用文件声明的编码。</span>
       </div>
       <div class="file-actions">
         <el-button type="primary" :loading="previewing" :disabled="!selectedFile || importing || loadingSample" @click="preview">开始预检</el-button>
-        <el-button :loading="loadingSample" :disabled="previewing || importing" @click="trySample">用示例预检</el-button>
-        <a :href="sampleUrl" download="地块导入示例.geojson" class="sample-link">下载示例文件</a>
+        <el-dropdown :disabled="busy" @command="trySample">
+          <el-button :loading="loadingSample" :disabled="busy">用示例预检 <i class="el-icon-arrow-down el-icon--right"></i></el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="geojson">GeoJSON 示例</el-dropdown-item>
+            <el-dropdown-item command="shapefile">Shapefile ZIP 示例</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+        <a :href="sampleUrl" download="地块导入示例.geojson" class="sample-link">下载 GeoJSON 示例</a>
+        <a :href="shapeSampleUrl" download="地块导入示例.zip" class="sample-link">下载 ZIP 示例</a>
       </div>
       <el-alert v-if="errorMessage" class="result-message" :title="errorMessage" type="error" :closable="false" show-icon/>
       <template v-if="result">
@@ -71,11 +86,13 @@ export default {
   name: 'GeoJsonImportDialog',
   props: { visible: { type: Boolean, default: false } },
   data() {
-    return { selectedFile: null, result: null, errorMessage: '', previewing: false, importing: false, loadingSample: false }
+    return { selectedFile: null, encoding: 'UTF-8', result: null, errorMessage: '', previewing: false, importing: false, loadingSample: false }
   },
   computed: {
+    isShapefile() { return !!this.selectedFile && /\.zip$/i.test(this.selectedFile.name) },
     busy() { return this.previewing || this.importing || this.loadingSample },
     sampleUrl() { return `${process.env.BASE_URL || '/'}land-plots-example.geojson` },
+    shapeSampleUrl() { return `${process.env.BASE_URL || '/'}land-plots-example.zip` },
     fileSize() { return `${(this.selectedFile.size / 1024).toFixed(1)} KB` },
     canImport() {
       return !this.busy && !!this.selectedFile && !!this.result && this.result.dryRun === true &&
@@ -83,8 +100,10 @@ export default {
     }
   },
   methods: {
+    invalidatePreview() { this.result = null; this.errorMessage = '' },
     reset() {
       this.selectedFile = null
+      this.encoding = 'UTF-8'
       this.result = null
       this.errorMessage = ''
       if (this.$refs.fileInput) this.$refs.fileInput.value = ''
@@ -97,8 +116,8 @@ export default {
       this.errorMessage = ''
       this.selectedFile = null
       if (!file) return false
-      if (!/\.(geojson|json)$/i.test(file.name) || !file.size || file.size > 10 * 1024 * 1024) {
-        this.errorMessage = '请选择非空的 .geojson 或 .json 文件，大小不能超过 10MB。'
+      if (!/\.(geojson|json|zip)$/i.test(file.name) || !file.size || file.size > 10 * 1024 * 1024) {
+        this.errorMessage = '请选择非空的 .geojson、.json 或 .zip 文件，大小不能超过 10MB。'
         return false
       }
       this.selectedFile = file
@@ -125,22 +144,23 @@ export default {
       this.result = null
       this.errorMessage = ''
       try {
-        this.applyResponse(await importGeoJsonLandPlots(this.selectedFile, true))
+        this.applyResponse(await importGeoJsonLandPlots(this.selectedFile, true, this.encoding))
       } catch (error) {
         this.errorMessage = this.friendlyError(error.message || error)
       } finally {
         this.previewing = false
       }
     },
-    async trySample() {
+    async trySample(format = 'geojson') {
       if (this.busy) return
       this.loadingSample = true
       this.result = null
       this.errorMessage = ''
       try {
-        const response = await fetch(this.sampleUrl)
+        const shape = format === 'shapefile'
+        const response = await fetch(shape ? this.shapeSampleUrl : this.sampleUrl)
         if (!response.ok) throw new Error('示例文件加载失败，请稍后重试。')
-        const file = new File([await response.blob()], '地块导入示例.geojson', { type: 'application/geo+json' })
+        const file = new File([await response.blob()], shape ? '地块导入示例.zip' : '地块导入示例.geojson', { type: shape ? 'application/zip' : 'application/geo+json' })
         if (this.setFile(file)) await this.preview()
       } catch (error) {
         this.errorMessage = this.friendlyError(error.message || error)
@@ -157,7 +177,7 @@ export default {
           confirmButtonText: '确认导入', cancelButtonText: '取消', type: 'warning'
         })
         this.errorMessage = ''
-        const response = await importGeoJsonLandPlots(file, false)
+        const response = await importGeoJsonLandPlots(file, false, this.encoding)
         this.applyResponse(response)
         if (response.code === 200 && this.result && this.result.importedCount > 0) this.$emit('imported')
       } catch (error) {
@@ -172,6 +192,10 @@ export default {
 </script>
 
 <style scoped>
+.shape-options { margin-top: 14px; padding: 12px; background: #f5f8fc; color: #52677f; font-size: 13px; line-height: 1.8; }
+.shape-options p { margin: 0 0 10px; }
+.shape-options label { margin-right: 12px; }
+.shape-options span { display: block; margin-top: 6px; }
 .intro { margin: 0 0 16px; color: #475569; font-size: 14px; line-height: 1.8; }
 .file-picker { display: flex; gap: 14px; align-items: center; padding: 22px 18px; margin-top: 20px; border: 1px dashed #b5c9e0; border-radius: 8px; background: #f7faff; }
 .file-icon { font-size: 32px; color: #409eff; }

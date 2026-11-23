@@ -72,7 +72,7 @@ export default {
     areaSquareMetres() { return this.validArea === null ? '—' : (this.validArea / 0.0015).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
     perimeterText() { return this.perimeter === null ? '—' : `约 ${this.perimeter.toFixed(2)} 米` },
     isDemo() { return this.plot.measurementMethod === 'GeoJSON' && this.plot.landName === 'dev-b导入测试田' },
-    sourceDescription() { return this.plot.measurementMethod === 'GeoJSON' ? '由导入边界计算，尚未实测核验' : '现有业务记录，尚未独立复核' }
+    sourceDescription() { return ['GeoJSON', 'Shapefile'].includes(this.plot.measurementMethod) ? '由导入边界计算，尚未实测核验' : '现有业务记录，尚未独立复核' }
   },
   methods: {
     async open() {
