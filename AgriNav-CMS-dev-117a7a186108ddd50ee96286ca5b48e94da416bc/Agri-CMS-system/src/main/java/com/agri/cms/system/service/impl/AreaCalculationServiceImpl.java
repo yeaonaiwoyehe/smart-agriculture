@@ -56,6 +56,29 @@ public class AreaCalculationServiceImpl {
                                         org.postgis.Polygon boundary,
                                         List<org.postgis.Polygon> exclusions, boolean clip) {
         validate(points, width);
+        return segmentedCoverage(List.of(points), width, boundary, exclusions, clip).effectiveAreaSquareMetres();
+    }
+
+    /** B-10：各片段内构建幅宽带，片段间不连线，全部幅宽带统一去重。 */
+    public CoverageBreakdown calculateSegmentedCoverage(List<List<Point>> segments, int width,
+                                                        org.postgis.Polygon boundary,
+                                                        List<org.postgis.Polygon> exclusions) {
+        return segmentedCoverage(segments, width, boundary, exclusions, true);
+    }
+
+    public record CoverageBreakdown(BigDecimal travelLengthMetres, BigDecimal grossAreaSquareMetres,
+                                    BigDecimal uniqueAreaSquareMetres, BigDecimal inBoundaryAreaSquareMetres,
+                                    BigDecimal overlapDeductionSquareMetres, BigDecimal outsideDeductionSquareMetres,
+                                    BigDecimal exclusionDeductionSquareMetres, BigDecimal effectiveAreaSquareMetres,
+                                    BigDecimal effectiveAreaMu) { }
+
+    private CoverageBreakdown segmentedCoverage(List<List<Point>> segments, int width,
+                                                org.postgis.Polygon boundary,
+                                                List<org.postgis.Polygon> exclusions, boolean clip) {
+        if (segments == null || width <= 0) {
+            throw new IllegalArgumentException("轨迹片段不能为空引用，幅宽必须为正数（厘米）");
+        }
+        for (List<Point> segment : segments) validate(segment, width);
         if (clip && boundary == null) {
             throw new IllegalArgumentException("地块边界不能为空");
         }
@@ -63,26 +86,39 @@ public class AreaCalculationServiceImpl {
             throw new IllegalArgumentException("排除区域列表不能为空引用");
         }
         // 即使轨迹不足两个点也校验输入几何，避免把坏数据当作正常零面积。
-        Point origin = points.isEmpty() ? new Point(0, 0) : points.get(0);
+        Point origin = segments.stream().filter(segment -> !segment.isEmpty())
+                .findFirst().map(segment -> segment.get(0)).orElse(null);
+        if (origin == null && boundary != null) {
+            try {
+                Coordinate first = new WKTReader(GEOMETRIES).read(boundary.toString()
+                        .replaceFirst("^SRID=[0-9]+;", "")).getCoordinate();
+                if (first == null) throw new IllegalArgumentException("地块边界为空");
+                origin = new Point(first.x, first.y);
+                validateCoordinate(first.x, first.y);
+            } catch (ParseException invalid) {
+                throw new IllegalArgumentException("地块边界无法解析", invalid);
+            }
+        }
+        if (origin == null) origin = new Point(0, 0);
         Projection projection = new Projection(origin);
         Geometry field = clip ? projectPolygon(boundary, projection) : null;
         List<Geometry> excluded = new ArrayList<>();
         for (org.postgis.Polygon polygon : exclusions) {
             excluded.add(projectPolygon(polygon, projection));
         }
-        if (points.size() < 2) {
-            return squareMetres(0);
-        }
-
         List<Geometry> strips = new ArrayList<>();
-        Coordinate start = projection.project(points.get(0).getLongitude(), points.get(0).getLatitude());
+        double travelLength = 0;
         double halfWidth = width / 200.0;
-        for (int i = 1; i < points.size(); i++) {
+        for (List<Point> points : segments) {
+          if (points.isEmpty()) continue;
+          Coordinate start = projection.project(points.get(0).getLongitude(), points.get(0).getLatitude());
+          for (int i = 1; i < points.size(); i++) {
             Coordinate end = projection.project(points.get(i).getLongitude(), points.get(i).getLatitude());
             double dx = end.x - start.x;
             double dy = end.y - start.y;
             double length = Math.hypot(dx, dy);
             if (length > 1e-8) {
+                travelLength += length;
                 double nx = -dy / length * halfWidth;
                 double ny = dx / length * halfWidth;
                 strips.add(GEOMETRIES.createPolygon(new Coordinate[]{
@@ -93,18 +129,31 @@ public class AreaCalculationServiceImpl {
                         new Coordinate(start.x + nx, start.y + ny)}));
             }
             start = end;
+          }
         }
         if (strips.isEmpty()) {
-            return squareMetres(0);
+            return breakdown(0, 0, 0, 0, 0);
         }
         Geometry coverage = UnaryUnionOp.union(strips);
+        double gross = travelLength * width / 100.0;
+        double unique = Math.min(gross, coverage.getArea());
         if (field != null) {
             coverage = coverage.intersection(field);
         }
+        double inBoundary = Math.min(unique, coverage.getArea());
         if (!excluded.isEmpty()) {
             coverage = coverage.difference(UnaryUnionOp.union(excluded));
         }
-        return squareMetres(coverage.getArea());
+        return breakdown(travelLength, gross, unique, inBoundary, Math.min(inBoundary, coverage.getArea()));
+    }
+
+    private CoverageBreakdown breakdown(double length, double gross, double unique, double inside, double effective) {
+        BigDecimal raw = squareMetres(gross), union = squareMetres(unique), field = squareMetres(inside);
+        BigDecimal result = squareMetres(effective);
+        // 先舍入面积阶段值再相减，使展示的扣减项能够精确对账。
+        return new CoverageBreakdown(BigDecimal.valueOf(length).setScale(3, RoundingMode.HALF_UP),
+                raw, union, field, raw.subtract(union), union.subtract(field), field.subtract(result), result,
+                result.multiply(new BigDecimal("0.0015")).setScale(4, RoundingMode.HALF_UP));
     }
 
     Geometry projectPolygon(org.postgis.Polygon polygon, Projection projection) {

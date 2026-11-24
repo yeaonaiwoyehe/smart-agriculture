@@ -38,13 +38,19 @@ public class BoundaryQueryService {
             return new CheckedPoint(plotId.toString(),position,position==Position.UNAVAILABLE?null:position==Position.INSIDE||position==Position.BOUNDARY);
         } catch(IllegalArgumentException invalid){throw new ServiceException(invalid.getMessage());}
     }
-    public ClippedTrack clip(Long plotId,List<Point> points,Actor actor) {
+    public record AccountingBoundary(org.postgis.Polygon boundary,List<org.postgis.Polygon> exclusions) { }
+    /** 与 B-09 共用权限、删除状态及插花地排除规则。 */
+    public AccountingBoundary accountingBoundary(Long plotId,Actor actor) {
         LandPlot plot=load(plotId,actor);List<org.postgis.Polygon> holes=new ArrayList<>();
         if("插花地".equals(plot.getLandType())) {
             var query=new LambdaQueryWrapper<LandPlotExclude>().eq(LandPlotExclude::getLandPlotId,plotId).eq(LandPlotExclude::getIsDeleted,0);
             for(LandPlotExclude exclusion:exclusions.selectList(query))holes.add(exclusion.getBoundary());
         }
-        try {return clipping.clip(points,plot.getBoundary(),holes);}
+        return new AccountingBoundary(plot.getBoundary(),Collections.unmodifiableList(holes));
+    }
+    public ClippedTrack clip(Long plotId,List<Point> points,Actor actor) {
+        var field=accountingBoundary(plotId,actor);
+        try {return clipping.clip(points,field.boundary(),field.exclusions());}
         catch(IllegalArgumentException invalid){throw new ServiceException(invalid.getMessage());}
     }
 }

@@ -73,7 +73,7 @@ public class SwaggerConfig {
     @Bean
     public GroupedOpenApi trajectoryApi() {
         return buildGroup("06-轨迹管理",
-                "/trajectoryInfo/**", "/effectiveTrajectory/**", "/originalTrajectory/**", "/trajectory/playback/**");
+                "/trajectoryInfo/**", "/effectiveTrajectory/**", "/originalTrajectory/**", "/trajectory/playback/**", "/trajectory/accounting/**");
     }
 
     @Bean
