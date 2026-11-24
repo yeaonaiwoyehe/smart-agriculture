@@ -65,9 +65,14 @@ git checkout develop
 **前端（CMS Web）**：
 
 ```bash
+<<<<<<< Updated upstream
 cd AgriNav-CMS-dev-*/Agri-CMS-ui
 # 复制开发环境模板，填入高德 Key（见下节）
 copy .env.development.example .env.development   # Mac 用 cp
+=======
+cd AgriNav-CMS-dev-*/Agri-CMS-ui-v3
+copy .env.development.example .env.development   # Mac 用 cp，填高德 Key
+>>>>>>> Stashed changes
 npm install
 npm run dev
 ```
