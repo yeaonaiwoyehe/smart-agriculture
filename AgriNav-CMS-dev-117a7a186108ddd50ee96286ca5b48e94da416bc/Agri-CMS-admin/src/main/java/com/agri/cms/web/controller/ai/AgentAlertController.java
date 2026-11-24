@@ -3,6 +3,8 @@ package com.agri.cms.web.controller.ai;
 import com.agri.cms.ai.agent.AgentAlert;
 import com.agri.cms.ai.agent.AlertService;
 import com.agri.cms.ai.agent.AlertSubmitResult;
+import com.agri.cms.ai.agent.AnomalyInsightResult;
+import com.agri.cms.ai.agent.AnomalyInsightService;
 import com.agri.cms.common.core.controller.BaseController;
 import com.agri.cms.common.core.domain.AjaxResult;
 import com.agri.cms.common.core.page.TableDataInfo;
@@ -35,9 +37,12 @@ import java.util.List;
 public class AgentAlertController extends BaseController {
 
     private final AlertService alertService;
+    private final AnomalyInsightService insightService;
 
-    public AgentAlertController(AlertService alertService) {
+    public AgentAlertController(AlertService alertService,
+                                AnomalyInsightService insightService) {
         this.alertService = alertService;
+        this.insightService = insightService;
     }
 
     @Operation(summary = "分页查询异常工单（管理员全部/机手本人）")
@@ -92,5 +97,13 @@ public class AgentAlertController extends BaseController {
             return error("未找到该工单。");
         }
         return success(alert);
+    }
+
+    @Operation(summary = "综合异常研判（MA-02，仅分析不修改）")
+    @PreAuthorize("@ss.hasRole('admin')")
+    @GetMapping("/insight")
+    public AjaxResult insight() {
+        AnomalyInsightResult result = insightService.analyze();
+        return AjaxResult.success(result);
     }
 }
