@@ -49,8 +49,8 @@ nbdist/
 ######################################################################
 # Node / 前端
 node_modules/
-Agri-CMS-ui/node_modules/
-Agri-CMS-ui/dist/
+Agri-CMS-ui-v3/node_modules/
+Agri-CMS-ui-v3/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
