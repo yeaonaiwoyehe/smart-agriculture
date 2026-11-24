@@ -37,7 +37,10 @@ const refreshPublicKey = async () => {
 // 添加页面刷新事件监听器
 window.addEventListener('load', refreshPublicKey)
 
-router.beforeEach(async (to, from, next) => {
+// 注意：守卫只用两个参数（to, from）并以 return 给出导航结果，不使用 next。
+// 旧写法是 async 却在内部用 .then() 调 next、没有 await，async 会提前 resolve，
+// vue-router 在 next 执行前就判定 "Invalid navigation guard"，导致初始导航永久挂起。
+router.beforeEach(async (to, from) => {
   NProgress.start()
 
   const hasToken = getToken()
@@ -50,45 +53,48 @@ router.beforeEach(async (to, from, next) => {
 
   if (hasToken) {
     to.meta.title && settingsStore.setTitle(to.meta.title)
-    /* has token*/
+    /* has token */
     if (to.path === '/login') {
-      next({ path: '/' })
       NProgress.done()
-    } else if (whiteList.indexOf(to.path) !== -1) {
-      next()
-    } else {
-      if (userStore.roles.length === 0) {
-        isRelogin.show = true
-        // 判断当前用户是否已拉取完user_info信息
-        userStore.getInfo().then(() => {
-          isRelogin.show = false
-          return permissionStore.generateRoutes().then(accessRoutes => {
-            // 根据roles权限生成可访问的路由表
-            accessRoutes.forEach(route => {
-              router.addRoute(route)
-            })
-            next({ ...to, replace: true }) // hack方法 确保路由已添加完成
-          })
-        }).catch(err => {
-          userStore.logout().then(() => {
-            ElMessage.error(err)
-            next({ path: '/' })
-          })
-        })
-      } else {
-        next()
-      }
+      return { path: '/' }
     }
-  } else {
-    // 没有token
-    if (whiteList.indexOf(to.path) !== -1 || isBindPhonePage) {
-      // 在免登录白名单，直接进入
-      next()
-    } else {
-      next(`/login?redirect=${encodeURIComponent(to.fullPath)}`) // 否则全部重定向到登录页
+    if (whiteList.indexOf(to.path) !== -1) {
+      return true
+    }
+    if (userStore.roles.length !== 0) {
+      return true
+    }
+    // 首次进入或刷新后角色为空：拉取用户信息并生成动态路由
+    try {
+      isRelogin.show = true
+      await userStore.getInfo()
+      isRelogin.show = false
+      const accessRoutes = await permissionStore.generateRoutes()
+      // 根据 roles 权限生成可访问的路由表，外链已在 generateRoutes 内由 internalRoutes 过滤
+      accessRoutes.forEach(route => {
+        router.addRoute(route)
+      })
+      // 确保动态路由添加完成后再进入目标地址
+      return { ...to, replace: true }
+    } catch (err) {
+      try {
+        await userStore.logout()
+      } catch (logoutErr) {
+        // 即使登出失败也继续跳转登录页
+      }
+      ElMessage.error(typeof err === 'string' ? err : (err && err.message) || String(err))
       NProgress.done()
+      return { path: '/' }
     }
   }
+
+  // 没有 token
+  if (whiteList.indexOf(to.path) !== -1 || isBindPhonePage) {
+    // 在免登录白名单，直接进入
+    return true
+  }
+  NProgress.done()
+  return `/login?redirect=${encodeURIComponent(to.fullPath)}` // 否则全部重定向到登录页
 })
 
 router.afterEach((to) => {

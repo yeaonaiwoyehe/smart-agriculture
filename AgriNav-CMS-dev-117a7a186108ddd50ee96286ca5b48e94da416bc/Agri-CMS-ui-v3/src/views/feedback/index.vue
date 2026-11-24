@@ -192,7 +192,7 @@
 <script setup>
 import { getCurrentInstance, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { listFeedback, getFeedback, getFeedbackTypes, checkFeedback } from '@/api/feedback/feedback'
+import { listFeedback, getFeedbackTypes, checkFeedback } from '@/api/feedback/feedback'
 
 defineOptions({
   name: 'Feedback'
