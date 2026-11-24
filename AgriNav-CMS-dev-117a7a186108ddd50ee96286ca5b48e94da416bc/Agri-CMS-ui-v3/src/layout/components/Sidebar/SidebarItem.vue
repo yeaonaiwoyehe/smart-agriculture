@@ -1,7 +1,7 @@
 <template>
   <div v-if="!item.hidden">
     <template
-      v-if="hasOneShowingChild(item.children,item) && (!onlyOneChild.children||onlyOneChild.noShowingChildren)&&!item.alwaysShow">
+      v-if="showSingleChild">
       <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path, onlyOneChild.query)">
         <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{'submenu-title-noDropdown':!isNest}">
           <item :icon="onlyOneChild.meta.icon||(item.meta&&item.meta.icon)"/>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
@@ -53,7 +53,13 @@ const props = defineProps({
   }
 })
 
-const onlyOneChild = ref(null)
+const showingChildren = computed(() => (props.item.children || []).filter(child => !child.hidden))
+const onlyOneChild = computed(() => showingChildren.value.length === 1
+  ? showingChildren.value[0]
+  : { ...props.item, path: '', noShowingChildren: true })
+const showSingleChild = computed(() => showingChildren.value.length <= 1
+  && (!onlyOneChild.value.children || onlyOneChild.value.noShowingChildren)
+  && !props.item.alwaysShow)
 
 /**
  * 等价于原 path-browserify 的 path.resolve（POSIX 语义）
@@ -76,35 +82,7 @@ function pathResolve(...paths) {
       parts.push(part)
     }
   })
-  return (isAbsolute ? '/' : '') + parts.join('/')
-}
-
-function hasOneShowingChild(children = [], parent) {
-  if (!children) {
-    children = []
-  }
-  const showingChildren = children.filter(item => {
-    if (item.hidden) {
-      return false
-    } else {
-      // Temp set(will be used if only has one showing child)
-      onlyOneChild.value = item
-      return true
-    }
-  })
-
-  // When there is only one child router, the child router is displayed by default
-  if (showingChildren.length === 1) {
-    return true
-  }
-
-  // Show parent if there are no child router to display
-  if (showingChildren.length === 0) {
-    onlyOneChild.value = { ...parent, path: '', noShowingChildren: true }
-    return true
-  }
-
-  return false
+  return '/' + parts.join('/')
 }
 
 function resolvePath(routePath, routeQuery) {

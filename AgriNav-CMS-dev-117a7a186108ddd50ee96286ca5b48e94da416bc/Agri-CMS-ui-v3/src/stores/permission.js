@@ -5,6 +5,7 @@ import { getRouters } from '@/api/menu'
 import Layout from '@/layout/index.vue'
 import ParentView from '@/components/ParentView/index.vue'
 import InnerLink from '@/layout/components/InnerLink/index.vue'
+import { internalRoutes } from '@/utils/internalRoutes'
 
 // 所有页面组件（用于后端路由字符串 -> 组件映射）
 const viewModules = import.meta.glob('../views/**/*.vue')
@@ -21,13 +22,12 @@ export const usePermissionStore = defineStore('permission', {
   actions: {
     // 生成路由
     generateRoutes() {
-      return new Promise(resolve => {
-        // 向后端请求路由数据
-        getRouters().then(res => {
+      // 直接返回请求链，加载或转换失败时向调用方传递错误。
+      return getRouters().then(res => {
           const sdata = JSON.parse(JSON.stringify(res.data))
           const rdata = JSON.parse(JSON.stringify(res.data))
           const sidebarRoutes = filterAsyncRouter(sdata)
-          const rewriteRoutes = filterAsyncRouter(rdata, false, true)
+          const rewriteRoutes = internalRoutes(filterAsyncRouter(rdata, false, true))
           const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
           rewriteRoutes.push({ path: '/:pathMatch(.*)*', redirect: '/404', hidden: true })
           // Vue Router 4 不再支持 addRoutes，逐个添加
@@ -39,8 +39,7 @@ export const usePermissionStore = defineStore('permission', {
           this.sidebarRouters = constantRoutes.concat(sidebarRoutes)
           this.defaultRoutes = sidebarRoutes
           this.topbarRouters = sidebarRoutes
-          resolve(rewriteRoutes)
-        })
+          return rewriteRoutes
       })
     },
     // 重置路由状态

@@ -168,6 +168,7 @@ function handleLogin() {
       loading.value = true
       login(loginForm.phoneNumber, loginForm.captcha).then(response => {
         setToken(response.token)
+        userStore.token = response.token
 
         // 初始化加密模块
         if (response.rsa_public_key) {
@@ -177,12 +178,12 @@ function handleLogin() {
             enableEncrypt()
 
             // 继续获取用户信息等操作
-            userStore.getInfo().then(() => {
-              permissionStore.generateRoutes().then(accessRoutes => {
+            return userStore.getInfo().then(() => {
+              return permissionStore.generateRoutes().then(accessRoutes => {
                 accessRoutes.forEach(accessRoute => {
                   router.addRoute(accessRoute)
                 })
-                router.push({ path: redirect.value || '/' }).then(() => {
+                return router.push({ path: redirect.value || '/' }).then(() => {
                   console.log('路由跳转成功,当前路由:', route)
                   ElMessage.success('登录成功')
                 }).catch(err => {

@@ -62,7 +62,7 @@ router.beforeEach(async (to, from, next) => {
         // 判断当前用户是否已拉取完user_info信息
         userStore.getInfo().then(() => {
           isRelogin.show = false
-          permissionStore.generateRoutes().then(accessRoutes => {
+          return permissionStore.generateRoutes().then(accessRoutes => {
             // 根据roles权限生成可访问的路由表
             accessRoutes.forEach(route => {
               router.addRoute(route)

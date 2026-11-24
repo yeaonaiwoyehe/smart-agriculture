@@ -70,6 +70,7 @@
           </el-row>
         </el-form>
 
+        <land-plot-group-panel ref="plotGroups" :selected-ids="ids" :plot-ids="visiblePlotIds" @filter="filterByGroup" @names="groupNames = $event" @changed="getList"/>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
             <el-button
@@ -117,6 +118,7 @@
             >导出
             </el-button>
           </el-col>
+          <el-col :span="1.5"><el-button type="primary" plain size="small" icon="Upload" aria-label="导入地块文件" v-hasPermi="['field:square:save']" @click="geoJsonImportVisible = true">导入地块文件</el-button></el-col>
           <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
         </el-row>
 
@@ -124,6 +126,12 @@
                   class="custom-table">
           <el-table-column type="selection" width="55" align="center"/>
           <el-table-column label="地块名称" align="center" prop="landName"/>
+          <el-table-column label="行政村 / 片区" align="center" min-width="160">
+            <template #default="scope">
+              <div>行政村：{{ groupNames[scope.row.id]?.VILLAGE || '未分组' }}</div>
+              <div class="region-label">片区：{{ groupNames[scope.row.id]?.REGION || '未分组' }}</div>
+            </template>
+          </el-table-column>
           <el-table-column label="地类类型" align="center" prop="landType">
             <template #default="scope">
               <el-tag type="primary">{{ scope.row.landType }}</el-tag>
@@ -247,72 +255,9 @@
       <span>{{ fullAddress }}</span>
     </el-dialog>
 
-    <!-- 添加更多详情对话框 -->
-    <el-dialog title="地块详情" v-model="detailsDialogVisible" width="80%">
-      <el-row :gutter="20" style="height: 600px;">
-        <el-col :span="12" style="height: 100%;">
-          <div id="detailBoundaryMap" style="width: 100%; height: 100%;"></div>
-        </el-col>
-        <el-col :span="12" style="height: 100%; display: flex; flex-direction: column;">
-          <el-descriptions :column="1" border class="details-description">
-            <el-descriptions-item label="地块名称">
-              <span class="detail-value bold">{{ detailsForm.landName }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="地块面积">
-              <span class="detail-value bold">{{ detailsForm.landArea }} 亩</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="拥有者姓名">
-              <span class="detail-value">{{ detailsForm.ownerName || '-' }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="拥有者电话">
-              <span class="detail-value">{{ detailsForm.ownerPhone || '-' }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="地块类型">
-              <el-tag type="primary">{{ detailsForm.landType }}</el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="删除标志">
-              <el-tag :type="detailsForm.isDeleted === 0 ? 'success' : 'danger'">
-                {{ detailsForm.isDeleted === 0 ? '未删除' : '已删除' }}
-              </el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="地块地址">
-              <span class="detail-value">{{ detailsForm.address }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="创建者">
-              <span class="detail-value">{{ detailsForm.createBy }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="创建时间">
-              <span class="detail-value">{{ parseTime(detailsForm.createTime) }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="更新者">
-              <span class="detail-value">{{ detailsForm.updateBy }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item label="更新时间">
-              <span class="detail-value">{{ parseTime(detailsForm.updateTime) }}</span>
-            </el-descriptions-item>
-          </el-descriptions>
-          <p>地块图片</p>
-          <div class="image-container">
-            <el-image
-              style="width: 100%; height: 150px;"
-              :src="detailsForm.image"
-              fit="cover"
-              :preview-src-list="[detailsForm.image]">
-              <template #error>
-                <div class="image-slot">
-                  <i class="el-icon-picture-outline"></i>
-                </div>
-              </template>
-            </el-image>
-          </div>
-        </el-col>
-      </el-row>
-    </el-dialog>
+    <geo-json-import-dialog v-model:visible="geoJsonImportVisible" @imported="getList"/>
+    <land-plot-detail-dialog v-model:visible="plotDetailVisible" :plot="selectedPlot"/>
 
-    <!-- 地块边界对话框 -->
-    <el-dialog title="地块边界" v-model="boundaryDialogVisible" width="80%">
-      <div id="boundaryMap" class="boundary-map"></div>
-    </el-dialog>
   </div>
 </template>
 
@@ -323,14 +268,22 @@ export default {
 </script>
 
 <script setup>
-import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { delLandPlot, addLandPlot, updateLandPlot, queryLandPlot, restoreLandPlot } from '@/api/field/square'
-import { listLandPlotExclude } from '@/api/field/exclude'
-import { loadAMap } from '@/utils/amap'
+import GeoJsonImportDialog from './components/GeoJsonImportDialog.vue'
+import LandPlotGroupPanel from './components/LandPlotGroupPanel.vue'
+import LandPlotDetailDialog from './components/LandPlotDetailDialog.vue'
 
 const { proxy } = getCurrentInstance()
 
+const geoJsonImportVisible = ref(false)
+const plotDetailVisible = ref(false)
+const selectedPlot = ref({})
+const plotGroups = ref(null)
+const groupNames = ref({})
+const visiblePlotIds = computed(() => landPlots.value.map(plot => String(plot.id)))
+let listRequest = 0
 const formRef = ref(null)
 const queryFormRef = ref(null)
 // 遮罩层
@@ -376,23 +329,16 @@ const rules = {
     { required: true, message: '地块面积不能为空', trigger: 'blur' }
   ]
 }
-const boundaryDialogVisible = ref(false)
 const imageDialogVisible = ref(false)
 const currentImage = ref('')
 const jumpPage = ref(null)
 const isLastPage = ref(false)
 const addressDialogVisible = ref(false)
 const fullAddress = ref('')
-const detailsDialogVisible = ref(false)
-const detailsForm = ref({})
-const selectedBoundary = ref(null)
-const selectedBoundaryArea = ref(null)
-const map = ref(null)
-const amap = ref(null)
-const excludeAreas = ref([]) // 存储无用区域数据
 
 /** 条件查询地块列表 */
 function getList() {
+  const request = ++listRequest
   loading.value = true
 
   // 处理日期范围
@@ -409,22 +355,16 @@ function getList() {
   if (params.beginArea === undefined) delete params.beginArea
   if (params.endArea === undefined) delete params.endArea
 
-  console.log('查询参数:', params) // 添加日志
 
   queryLandPlot(params).then(response => {
-    console.log('API 响应:', response) // 添加日志
+    if (request !== listRequest) return
     landPlots.value = response.data || []
     total.value = response.total || 0
     loading.value = false
 
-    console.log('获取到的数据条数:', landPlots.value.length) // 添加日志
-
-    if (landPlots.value.length === 0) {
-      ElMessage.warning('没有更多的地块了，查看本页之前的地块吧')
-    } else if (landPlots.value.length < queryParams.value.size) {
-      ElMessage.info('当前页为最后一页')
-    }
+    plotGroups.value?.refresh()
   }).catch(error => {
+    if (request !== listRequest) return
     console.error('条件查询地块列表失败:', error)
     proxy.$modal.msgError('条件查询地块列表失败')
     loading.value = false
@@ -471,6 +411,11 @@ function reset() {
 }
 
 /** 搜索按钮操作 */
+function filterByGroup(filter) {
+  queryParams.value = { ...queryParams.value, groupType: undefined, groupCode: undefined, ungrouped: undefined, ...filter, current: 1 }
+  getList()
+}
+
 function handleQuery() {
   queryParams.value.current = 1
   getList()
@@ -478,6 +423,7 @@ function handleQuery() {
 
 /** 重置按钮操作 */
 function resetQuery() {
+  plotGroups.value?.clearFilter()
   proxy.resetForm('queryFormRef')
   dateRange.value = []
   queryParams.value = {
@@ -580,105 +526,7 @@ function formatIsDeleted(row) {
   return row.isDeleted === 0 ? '未删除' : '已删除'
 }
 
-function showBoundary(row) {
-  selectedBoundary.value = row.boundary
-  selectedBoundaryArea.value = row.landArea
-
-  listLandPlotExclude(row.id).then(response => {
-    excludeAreas.value = response.data
-    boundaryDialogVisible.value = true
-    nextTick(() => {
-      initMap()
-    })
-  }).catch(error => {
-    console.error('获取无用区域数据失败:', error)
-    ElMessage.error('获取无用区域数据失败')
-    boundaryDialogVisible.value = true
-    nextTick(() => {
-      initMap()
-    })
-  })
-}
-
-function initMap() {
-  loadAMap(['AMap.Polygon']).then((AMap) => {
-    amap.value = AMap
-    map.value = new AMap.Map('boundaryMap', {
-      zoom: 14,
-      viewMode: '3D',
-      pitch: 0,  // 添加俯仰角度
-      mapStyle: 'amap://styles/normal',  // 使用正常地图样式
-      features: ['bg', 'road', 'building']  // 显示背景、道路和建筑物
-    })
-    drawBoundary()
-  }).catch(e => {
-    ElMessage.error('高德地图脚本加载失败')
-  })
-}
-
-function drawBoundary() {
-  if (!amap.value || !selectedBoundary.value) return
-
-  const coordinates = parseBoundary(selectedBoundary.value)
-  const excludePaths = excludeAreas.value.map(area => parseBoundary(area.boundary))
-
-  // 创建填充多边形 (主地块) - 包含"挖空"的无用区域
-  const fillPolygon = new amap.value.Polygon({
-    path: [coordinates, ...excludePaths],
-    strokeColor: '#3399FF',
-    strokeWeight: 2,
-    strokeOpacity: 1,
-    fillColor: '#C1FFC1',
-    fillOpacity: 0.4,
-    zIndex: 50
-  })
-
-  // 绘制无用区域边框
-  const excludePolygons = excludeAreas.value.map(area => {
-    const excludeCoords = parseBoundary(area.boundary)
-    return new amap.value.Polygon({
-      path: excludeCoords,
-      strokeColor: '#3399FF',
-      strokeWeight: 2,
-      strokeOpacity: 1,
-      fillColor: '#FFFFFF',
-      fillOpacity: 0,
-      zIndex: 51
-    })
-  })
-
-  // 添加图层到地图
-  map.value.add([fillPolygon, ...excludePolygons])
-
-  // 只添加主地块的面积标注
-  const bounds = fillPolygon.getBounds()
-  const center = bounds.getCenter()
-
-  // 创建主地块面积标记
-  let areaText = '面积未知'
-  if (selectedBoundary.value && selectedBoundaryArea.value !== 'undefined') {
-    const formattedArea = Number(selectedBoundaryArea.value).toFixed(3)
-    areaText = formattedArea + '亩'
-  }
-
-  const marker = new amap.value.Marker({
-    position: center,
-    content: `<div style="display: inline-flex; white-space: nowrap; font-weight: bold; font-size: 20px;">${areaText}</div>`,
-    offset: new amap.value.Pixel(-30, -30)
-  })
-
-  map.value.add(marker)
-  map.value.setFitView([fillPolygon, ...excludePolygons])
-}
-
-function parseBoundary(boundary) {
-  const coordsString = boundary.match(/\(\((.*?)\)\)/)[1]
-  return coordsString.split(',').map(pair => {
-    // WKT 每对为“经度 纬度”，高德 Polygon path 同样需要 [经度, 纬度]
-    const [lng, lat] = pair.trim().split(' ')
-    return [parseFloat(lng), parseFloat(lat)]
-  })
-}
+function showBoundary(row) { selectedPlot.value = { ...row }; plotDetailVisible.value = true }
 
 function openImageDialog(imageSrc) {
   currentImage.value = imageSrc
@@ -700,7 +548,7 @@ function handleCurrentChange(val) {
 }
 
 function truncateAddress(address) {
-  return address.length > 5 ? address.slice(0, 5) + '...' : address
+  return address && address.length > 5 ? address.slice(0, 5) + '...' : address || '未填写'
 }
 
 function showFullAddress(address) {
@@ -708,86 +556,8 @@ function showFullAddress(address) {
   addressDialogVisible.value = true
 }
 
-function showMoreDetails(row) {
-  detailsForm.value = { ...row }
-  detailsDialogVisible.value = true
-  nextTick(() => {
-    initDetailMap()
-  })
-}
+function showMoreDetails(row) { showBoundary(row) }
 
-function initDetailMap() {
-  loadAMap(['AMap.Polygon']).then((AMap) => {
-    const detailMap = new AMap.Map('detailBoundaryMap', {
-      zoom: 14,
-      viewMode: '3D'
-    })
-    drawDetailBoundary(detailMap, AMap)
-  }).catch(e => {
-    ElMessage.error('高德地图脚本加载失败')
-  })
-}
-
-function drawDetailBoundary(map, AMap) {
-  if (!detailsForm.value.boundary) return
-
-  const coordinates = parseBoundary(detailsForm.value.boundary)
-
-  // 获取无用区域数据
-  listLandPlotExclude(detailsForm.value.id).then(response => {
-    const excludeAreasData = response.data
-    const excludePaths = excludeAreasData.map(area => parseBoundary(area.boundary))
-
-    // 创建填充多边形 (主地块) - 包含"挖空"的无用区域
-    const polygon = new AMap.Polygon({
-      path: [coordinates, ...excludePaths],
-      strokeColor: '#3399FF',
-      strokeWeight: 2,
-      strokeOpacity: 1,
-      fillColor: '#C1FFC1',
-      fillOpacity: 0.4,
-      zIndex: 50
-    })
-
-    // 绘制无用区域边框
-    const excludePolygons = excludeAreasData.map(area => {
-      const excludeCoords = parseBoundary(area.boundary)
-      return new AMap.Polygon({
-        path: excludeCoords,
-        strokeColor: '#3399FF',
-        strokeWeight: 2,
-        strokeOpacity: 1,
-        fillColor: '#FFFFFF',
-        fillOpacity: 0,
-        zIndex: 51
-      })
-    })
-
-    // 添加图层到地图
-    map.add([polygon, ...excludePolygons])
-
-    // 添加面积标注
-    const bounds = polygon.getBounds()
-    const center = bounds.getCenter()
-
-    const formattedArea = Number(detailsForm.value.landArea).toFixed(3)
-    const areaText = formattedArea + '亩'
-
-    const marker = new AMap.Marker({
-      position: center,
-      content: `<div style="display: inline-flex; white-space: nowrap; font-weight: bold; font-size: 20px;">${areaText}</div>`,
-      offset: new AMap.Pixel(-30, -30)
-    })
-
-    map.add(marker)
-    map.setFitView([polygon, ...excludePolygons])
-  }).catch(error => {
-    console.error('获取无用区域数据失败:', error)
-    ElMessage.error('获取无用区域数据失败')
-  })
-}
-
-/** 恢复按钮操作 */
 function handleRestore(row) {
   ElMessageBox.confirm('确认恢复该地块吗？', '提示', {
     confirmButtonText: '确定',
@@ -809,15 +579,11 @@ onMounted(() => {
   getList()
 })
 
-onBeforeUnmount(() => {
-  if (map.value) {
-    map.value.destroy()
-    map.value = null
-  }
-})
+onBeforeUnmount(() => { listRequest++ })
 </script>
 
 <style scoped>
+.region-label { color: #74847c; font-size: 13px; margin-top: 4px; }
 .app-container {
   height: 100%;
 }

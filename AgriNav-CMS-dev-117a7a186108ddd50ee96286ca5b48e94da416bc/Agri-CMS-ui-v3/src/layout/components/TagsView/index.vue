@@ -1,6 +1,6 @@
 <template>
   <div id="tags-view-container" ref="tagsViewContainer" class="tags-view-container">
-    <scroll-pane ref="scrollPane" class="tags-view-wrapper" @scroll="handleScroll">
+    <scroll-pane ref="scrollPaneRef" class="tags-view-wrapper" @scroll="handleScroll">
       <router-link
         v-for="tag in visitedViews"
         ref="tag"
@@ -44,7 +44,7 @@ const settingsStore = useSettingsStore()
 const tagsViewStore = useTagsViewStore()
 
 const tagsViewContainer = ref(null)
-const scrollPane = ref(null)
+const scrollPaneRef = ref(null)
 const tag = ref([])
 
 const visible = ref(false)
@@ -96,7 +96,7 @@ function pathResolve(...paths) {
       parts.push(part)
     }
   })
-  return (isAbsolute ? '/' : '') + parts.join('/')
+  return '/' + parts.join('/')
 }
 
 function isActive(tagView) {
@@ -181,7 +181,7 @@ function moveToCurrentTag() {
       const tagView = visitedViews.value[index]
       if (!tagView) continue
       if (tagView.path === route.path) {
-        scrollPane.value && scrollPane.value.moveToTarget(tagList[index], tagList)
+        scrollPaneRef.value && scrollPaneRef.value.moveToTarget(tagList[index], tagList)
         // when query is different then update
         if (tagView.fullPath !== route.fullPath) {
           tagsViewStore.updateVisitedView(route)

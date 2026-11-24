@@ -1,8 +1,8 @@
 <template>
   <div :class="classObj" class="app-wrapper" :style="{'--current-color': theme}">
-    <div v-if="device==='mobile'&&sidebar.opened" class="drawer-bg" @click="handleClickOutside"/>
-    <sidebar v-if="!sidebar.hide" class="sidebar-container"/>
-    <div :class="{hasTagsView:needTagsView,sidebarHide:sidebar.hide}" class="main-container">
+    <div v-if="device==='mobile'&&sidebarState.opened" class="drawer-bg" @click="handleClickOutside"/>
+    <sidebar v-if="!sidebarState.hide" class="sidebar-container"/>
+    <div :class="{hasTagsView:needTagsView,sidebarHide:sidebarState.hide}" class="main-container">
       <div :class="{'fixed-header':fixedHeader}">
         <navbar/>
         <tags-view v-if="needTagsView"/>
@@ -29,15 +29,15 @@ const appStore = useAppStore()
 const settingsStore = useSettingsStore()
 
 const theme = computed(() => settingsStore.theme)
-const sidebar = computed(() => appStore.sidebar)
+const sidebarState = computed(() => appStore.sidebar)
 const device = computed(() => appStore.device)
 const needTagsView = computed(() => settingsStore.tagsView)
 const fixedHeader = computed(() => settingsStore.fixedHeader)
 
 const classObj = computed(() => ({
-  hideSidebar: !sidebar.value.opened,
-  openSidebar: sidebar.value.opened,
-  withoutAnimation: sidebar.value.withoutAnimation,
+  hideSidebar: !sidebarState.value.opened,
+  openSidebar: sidebarState.value.opened,
+  withoutAnimation: sidebarState.value.withoutAnimation,
   mobile: device.value === 'mobile'
 }))
 
