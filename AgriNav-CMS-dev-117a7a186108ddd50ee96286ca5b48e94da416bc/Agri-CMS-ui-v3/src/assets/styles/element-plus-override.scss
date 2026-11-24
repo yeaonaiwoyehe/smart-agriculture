@@ -1,0 +1,120 @@
+/**
+ * Element Plus 视觉对齐层
+ * 目标：让 Element Plus 的默认视觉尽量贴近原 Element UI（2.15）风格，
+ * 避免迁移后页面尺寸、间距、圆角、字体发生明显变化。
+ */
+
+:root {
+  /* 原项目主题色（element-variables.scss 中的 $--color-primary） */
+  --el-color-primary: #1890ff;
+  --el-color-primary-light-3: #46a6ff;
+  --el-color-primary-light-5: #74bcff;
+  --el-color-primary-light-7: #a3d3ff;
+  --el-color-primary-light-8: #bae0ff;
+  --el-color-primary-light-9: #e8f4ff;
+  --el-color-primary-dark-2: #1373cc;
+
+  --el-color-success: #13ce66;
+  --el-color-warning: #ffba00;
+  --el-color-danger: #ff4949;
+  --el-color-error: #ff4949;
+  --el-color-info: #909399;
+
+  /* 原 Element UI medium 尺寸：输入框/按钮高度 36px */
+  --el-component-size: 36px;
+  --el-component-size-large: 40px;
+  --el-component-size-small: 32px;
+
+  --el-font-size-base: 14px;
+  --el-border-radius-base: 4px;
+  --el-border-radius-small: 2px;
+  --el-text-color-primary: #303133;
+  --el-text-color-regular: #606266;
+  --el-text-color-secondary: #909399;
+  --el-border-color: #dcdfe6;
+  --el-border-color-light: #e4e7ed;
+  --el-border-color-lighter: #ebeef5;
+  --el-fill-color-blank: #ffffff;
+  --el-bg-color: #ffffff;
+
+  --el-dialog-border-radius: 4px;
+  --el-box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- 表格 ---------- */
+.el-table {
+  color: #606266;
+  font-size: 14px;
+}
+
+.el-table th.el-table__cell {
+  background-color: #f8f8f9;
+  color: #515a6e;
+  font-weight: 700;
+}
+
+.el-table td.el-table__cell,
+.el-table th.el-table__cell {
+  padding: 12px 0;
+}
+
+.el-table--border .el-table__cell {
+  border-right: 1px solid #ebeef5;
+}
+
+/* ---------- 表单 ---------- */
+.el-form-item {
+  margin-bottom: 22px;
+}
+
+.el-form-item__label {
+  font-weight: 700;
+  color: #606266;
+}
+
+/* ---------- 按钮 ---------- */
+.el-button {
+  font-weight: 400;
+}
+
+.el-button + .el-button {
+  margin-left: 10px;
+}
+
+/* ---------- 弹窗 ---------- */
+.el-dialog__header {
+  padding: 20px 20px 10px;
+}
+
+.el-dialog__body {
+  padding: 30px 20px;
+  color: #606266;
+  font-size: 14px;
+}
+
+.el-dialog__footer {
+  padding: 10px 20px 20px;
+}
+
+/* ---------- 分页 ---------- */
+.el-pagination {
+  font-weight: 400;
+  color: #606266;
+}
+
+/* ---------- 卡片 ---------- */
+.el-card {
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- 下拉 / 输入 ---------- */
+.el-input__inner {
+  border-radius: 4px;
+}
+
+/* ---------- 消息、通知层级与原项目一致 ---------- */
+.el-message {
+  min-width: 380px;
+}

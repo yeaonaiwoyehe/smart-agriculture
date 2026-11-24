@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $root      = Split-Path -Parent $PSScriptRoot
 $cmsDir    = Join-Path $root "AgriNav-CMS-dev-117a7a186108ddd50ee96286ca5b48e94da416bc"
 $gpsDir    = Join-Path $root "AgriNav-GPS-dev-ec449519968cd61472a454f6fe6889d89a43c8b3"
-$uiDir     = Join-Path $cmsDir "Agri-CMS-ui"
+$uiDir     = Join-Path $cmsDir "Agri-CMS-ui-v3"
 $node22npm = "C:\Users\Lenovo\dev\node-v22.23.5-win-x64\npm.cmd"
 
 Write-Host "==> [1/4] 打包 CMS 后端..."
@@ -20,8 +20,7 @@ mvn -f (Join-Path $gpsDir "pom.xml") clean package -DskipTests
 
 Write-Host "==> [3/4] 构建前端 dist..."
 Push-Location $uiDir
-$env:NODE_OPTIONS = "--openssl-legacy-provider"
-& $node22npm run build:prod
+& $node22npm run build
 Pop-Location
 
 Write-Host "==> [4/4] 归集产物到 deploy..."

@@ -7,6 +7,7 @@ import com.agri.cms.ai.model.ChatCompletionResponse;
 import com.agri.cms.ai.model.ChatMessage;
 import com.agri.cms.ai.model.ToolCall;
 import com.agri.cms.ai.model.ToolDefinition;
+import com.agri.cms.ai.prompt.PromptTemplateManager;
 import com.agri.cms.common.utils.SecurityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -35,12 +36,16 @@ public class ToolCallingService {
 
     private static final Logger log = LoggerFactory.getLogger(ToolCallingService.class);
 
+    /** 默认工具调度提示词：用户未显式提供系统提示词时加载，强化口语意图识别 */
+    private static final String DEFAULT_TOOL_PROMPT_PATH = "prompts/common/tool-orchestration.txt";
+
     private final LlmClient llmClient;
     private final ToolRegistry toolRegistry;
     private final ToolArgumentValidator argumentValidator;
     private final ConfirmationManager confirmationManager;
     private final AuditLogService auditLogService;
     private final ToolAccessControl accessControl;
+    private final PromptTemplateManager promptTemplateManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ToolCallingService(LlmClient llmClient,
@@ -48,13 +53,15 @@ public class ToolCallingService {
                               ToolArgumentValidator argumentValidator,
                               ConfirmationManager confirmationManager,
                               AuditLogService auditLogService,
-                              ToolAccessControl accessControl) {
+                              ToolAccessControl accessControl,
+                              PromptTemplateManager promptTemplateManager) {
         this.llmClient = llmClient;
         this.toolRegistry = toolRegistry;
         this.argumentValidator = argumentValidator;
         this.confirmationManager = confirmationManager;
         this.auditLogService = auditLogService;
         this.accessControl = accessControl;
+        this.promptTemplateManager = promptTemplateManager;
     }
 
     /**
@@ -63,8 +70,12 @@ public class ToolCallingService {
     public ToolConversation handle(String systemPrompt, String userMessage) {
         long startNanos = System.nanoTime();
         List<ChatMessage> messages = new ArrayList<>();
-        if (systemPrompt != null && !systemPrompt.isBlank()) {
-            messages.add(ChatMessage.system(systemPrompt));
+        // 未显式提供系统提示词时，加载默认工具调度提示词，让纯自然语言也能准确选工具
+        String effectivePrompt = (systemPrompt != null && !systemPrompt.isBlank())
+                ? systemPrompt
+                : promptTemplateManager.renderTemplate(DEFAULT_TOOL_PROMPT_PATH, Map.of());
+        if (effectivePrompt != null && !effectivePrompt.isBlank()) {
+            messages.add(ChatMessage.system(effectivePrompt));
         }
         messages.add(ChatMessage.user(userMessage));
 

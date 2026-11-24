@@ -4,6 +4,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import com.agri.cms.ai.client.LlmClient;
 import com.agri.cms.ai.intent.IntentRecognitionService;
 import com.agri.cms.ai.intent.IntentResult;
+import com.agri.cms.ai.knowledge.KnowledgeDocument;
+import com.agri.cms.ai.knowledge.KnowledgeQaService;
+import com.agri.cms.ai.knowledge.KnowledgeRetrievalService;
 import com.agri.cms.ai.prompt.AgentType;
 import com.agri.cms.ai.prompt.PromptTemplateManager;
 import com.agri.cms.ai.routing.QuestionRoutingService;
@@ -21,6 +24,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,17 +49,23 @@ public class LlmTestController extends BaseController {
     private final IntentRecognitionService intentRecognitionService;
     private final ToolCallingService toolCallingService;
     private final QuestionRoutingService questionRoutingService;
+    private final KnowledgeRetrievalService knowledgeRetrievalService;
+    private final KnowledgeQaService knowledgeQaService;
 
     public LlmTestController(LlmClient llmClient,
                              PromptTemplateManager promptTemplateManager,
                              IntentRecognitionService intentRecognitionService,
                              ToolCallingService toolCallingService,
-                             QuestionRoutingService questionRoutingService) {
+                             QuestionRoutingService questionRoutingService,
+                             KnowledgeRetrievalService knowledgeRetrievalService,
+                             KnowledgeQaService knowledgeQaService) {
         this.llmClient = llmClient;
         this.promptTemplateManager = promptTemplateManager;
         this.intentRecognitionService = intentRecognitionService;
         this.toolCallingService = toolCallingService;
         this.questionRoutingService = questionRoutingService;
+        this.knowledgeRetrievalService = knowledgeRetrievalService;
+        this.knowledgeQaService = knowledgeQaService;
     }
 
     /**
@@ -79,9 +89,9 @@ public class LlmTestController extends BaseController {
         Map<String, Object> variables = new HashMap<>();
         variables.put("current_date", LocalDate.now().format(DATE_FORMATTER));
         variables.put("user_name", resolveDisplayName());
-        // RAG 尚未建设（A-08），先给制度问答一个占位说明，避免提示词出现空引用
+        // A-18：制度口径问答接入 A-08 真实 RAG 检索，按问题动态填充条款上下文
         if (type == AgentType.MA_03) {
-            variables.put("retrieved_context", "（暂无可用的制度资料）");
+            variables.put("retrieved_context", buildRetrievedContext(message));
         }
 
         String systemPrompt = promptTemplateManager.getSystemPrompt(type, variables);
@@ -141,6 +151,22 @@ public class LlmTestController extends BaseController {
                             @RequestParam(required = false) Long conversationId) {
         RoutedAnswer answer = questionRoutingService.route(message, side, conversationId);
         return AjaxResult.success("操作成功", answer);
+    }
+
+    /**
+     * 按用户问题检索制度条款，组装成提示词所需的参考上下文。
+     * 无命中或异常时返回明确的"未覆盖"说明，由提示词约束模型不强行作答。
+     */
+    private String buildRetrievedContext(String question) {
+        try {
+            List<KnowledgeDocument> docs = knowledgeRetrievalService.retrieve(question);
+            if (docs.isEmpty()) {
+                return "（未检索到与该问题相关的制度条款，请按现有资料未覆盖处理）";
+            }
+            return knowledgeQaService.buildContext(docs);
+        } catch (Exception e) {
+            return "（制度资料检索失败，请按现有资料未覆盖处理）";
+        }
     }
 
     /**

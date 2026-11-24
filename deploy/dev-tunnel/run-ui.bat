@@ -1,7 +1,5 @@
 @echo off
-title AgriNav CMS UI - dev server
-rem Fix webpack 4 + Node 17+ "digital envelope routines unsupported" error
-set "NODE_OPTIONS=--openssl-legacy-provider"
+title AgriNav CMS UI (Vue3) - dev server
 
 rem Locate the CMS project folder, then the frontend folder inside it
 set "CMS_HOME="
@@ -11,9 +9,9 @@ if not defined CMS_HOME (
   pause
   exit /b 1
 )
-set "UI_HOME=%CMS_HOME%\Agri-CMS-ui"
+set "UI_HOME=%CMS_HOME%\Agri-CMS-ui-v3"
 if not exist "%UI_HOME%" (
-  echo [ERROR] Frontend folder Agri-CMS-ui was not found.
+  echo [ERROR] Frontend folder Agri-CMS-ui-v3 was not found.
   pause
   exit /b 1
 )
@@ -38,7 +36,7 @@ if not exist "node_modules" (
 )
 
 echo ============================================================
-echo  Starting frontend dev server (default port 80, auto-opens).
+echo  Starting frontend dev server (Vue3 + Vite, default port 81, auto-opens).
 echo  Make sure the CMS backend is running on port 8088.
 echo ============================================================
 call npm run dev
