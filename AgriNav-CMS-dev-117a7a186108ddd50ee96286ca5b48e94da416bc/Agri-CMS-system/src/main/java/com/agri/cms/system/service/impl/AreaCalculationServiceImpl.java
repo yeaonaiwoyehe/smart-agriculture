@@ -107,7 +107,7 @@ public class AreaCalculationServiceImpl {
         return squareMetres(coverage.getArea());
     }
 
-    private Geometry projectPolygon(org.postgis.Polygon polygon, Projection projection) {
+    Geometry projectPolygon(org.postgis.Polygon polygon, Projection projection) {
         if (polygon == null || (polygon.getSrid() != 0 && polygon.getSrid() != 4326)) {
             throw new IllegalArgumentException("地块边界必须使用 WGS84 / SRID 4326");
         }
@@ -171,7 +171,7 @@ public class AreaCalculationServiceImpl {
         return 2 * EARTH_RADIUS * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    private static class Projection {
+    static class Projection {
         private final double longitude;
         private final double sinLatitude;
         private final double cosLatitude;

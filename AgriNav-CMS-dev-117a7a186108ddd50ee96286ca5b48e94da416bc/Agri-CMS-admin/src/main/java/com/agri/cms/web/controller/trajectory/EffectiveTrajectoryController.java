@@ -7,6 +7,7 @@ import com.agri.cms.common.core.domain.AjaxResult;
 import com.agri.cms.common.core.domain.model.LoginUser;
 import com.agri.cms.common.core.page.TableDataInfo;
 import com.agri.cms.common.utils.StringUtils;
+import com.agri.cms.common.utils.SecurityUtils;
 import com.agri.cms.system.domain.EffectivePoint;
 import com.agri.cms.system.domain.vo.SortMessage;
 import com.agri.cms.system.domain.vo.Trajectory;
@@ -86,6 +87,9 @@ public class EffectiveTrajectoryController extends BaseController {
         if (StringUtils.isEmpty(sortMessage.getPhone())) {
             trajectories = trajectoryPointsService.queryByConditions(sortMessage, loginUser.getUsername(), pageNum, pageSize);
         } else {
+            if (!sortMessage.getPhone().equals(loginUser.getUsername()) && !SecurityUtils.isAdmin(getUserId()) && !SecurityUtils.hasRole("admin")) {
+                return AjaxResult.error(403,"无权查询其他终端的轨迹");
+            }
             trajectories = trajectoryPointsService.queryByConditions(sortMessage, sortMessage.getPhone(), pageNum, pageSize);
         }
 

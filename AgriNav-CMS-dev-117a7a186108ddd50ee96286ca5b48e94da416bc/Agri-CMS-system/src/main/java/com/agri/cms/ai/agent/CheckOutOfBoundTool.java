@@ -108,6 +108,8 @@ public class CheckOutOfBoundTool implements AgentTool {
             return ToolResult.fail("超界判断需要当前定位的经纬度，请先开启定位。");
         }
 
+        try {com.agri.cms.system.service.boundary.BoundaryCoordinates.validate(longitude,latitude);}
+        catch(IllegalArgumentException invalid){return ToolResult.fail(invalid.getMessage());}
         // 未指定地块时，取进行中作业单的地块
         if (plotId == null) {
             TrajectoryInfo active = workOrderService.findActiveWorkOrder(String.valueOf(userId));
@@ -118,11 +120,13 @@ public class CheckOutOfBoundTool implements AgentTool {
         }
 
         LandPlot plot = landPlotMapper.selectById(plotId);
-        if (plot == null) {
+        if (plot == null || plot.getIsDeleted()!=0) {
             return ToolResult.fail("未找到地块 " + plotId + "，请核对编号。");
         }
 
-        Integer inside = geoMapper.countPointInside(plotId, longitude, latitude);
+        Integer inside;
+        try {inside=geoMapper.countPointInside(plotId,longitude,latitude);}
+        catch(RuntimeException unavailable){return ToolResult.fail("地块边界暂时无法核对，请检查边界数据后重试。");}
         boolean inBound = inside != null && inside > 0;
 
         String content = inBound

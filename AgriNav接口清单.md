@@ -62,7 +62,7 @@
 | GET | /workingLandPlot | queryWorkingLandPlot |
 | POST | /workingLandPlot/workingTrajectory | queryWorkingTrajectoryOfLandPlot |
 
-### 04-地块管理（30 个接口）
+### 04-地块管理（32 个接口）
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -80,6 +80,8 @@
 | GET | /landPlot/area | 返回总体面积 |
 | GET | /landPlot/areaByAddress | 根据地址返回该地址内地块的面积之和 |
 | GET | /landPlot/byCoordinate | 根据经纬度查询地块信息 |
+| GET | /landPlot/boundary/check | B-09：点在界内／边界／界外／排除区判断，边界不可用时明确返回未知 |
+| POST | /landPlot/boundary/clip | B-09：只读轨迹线段裁剪与米制长度，详见 database/B09边界裁剪接口说明.md |
 | GET | /landPlot/groups | 团队分组字典及本人有效地块的分组统计 |
 | POST | /landPlot/groups | 创建行政村或片区字典项，相同编号不得使用不同名称 |
 | PUT | /landPlot/groups/assignment | 整批归组，groupCode为null时移出该类分组；只允许修改本人有效地块 |
@@ -112,7 +114,7 @@
 | GET | /fieldWork/listUnique | 查询所有唯一的工作类型 |
 | POST | /fieldWork/updateWork | 修改工作类型 |
 
-### 06-轨迹管理（18 个接口）
+### 06-轨迹管理（19 个接口）
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -134,6 +136,7 @@
 | POST | /trajectoryInfo | 上传轨迹信息 |
 | GET | /trajectoryInfo/create | 生成轨迹id |
 | GET | /trajectoryInfo/picture | getTrajectoryPictures |
+| GET | /trajectory/playback | B-08：分别查询原始或已归档有效轨迹，按作业单或终端时间段回放；详见 database/B08轨迹回放接口说明.md |
 
 ### 07-作业调度（9 个接口）
 

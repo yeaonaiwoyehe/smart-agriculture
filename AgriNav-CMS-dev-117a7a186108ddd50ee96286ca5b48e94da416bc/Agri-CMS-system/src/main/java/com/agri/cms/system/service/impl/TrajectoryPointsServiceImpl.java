@@ -124,7 +124,8 @@ public class TrajectoryPointsServiceImpl extends ServiceImpl<TrajectoryPointsMap
         // 创建查询条件
         LambdaQueryWrapper<TrajectoryInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TrajectoryInfo::getPhoneNumber, phoneNumber);
-        wrapper.eq(TrajectoryInfo::getStatus, Constants.NOT_DELETED);
+        // status 是作业状态：0进行中、1已完成、2已删除；历史空状态也可查看。
+        wrapper.and(state -> state.isNull(TrajectoryInfo::getStatus).or().ne(TrajectoryInfo::getStatus, 2));
         //根据创建时间倒序排序
         wrapper.orderByDesc(TrajectoryInfo::getCreatedTime);
 
@@ -238,7 +239,7 @@ public class TrajectoryPointsServiceImpl extends ServiceImpl<TrajectoryPointsMap
         // 创建查询条件
         LambdaQueryWrapper<TrajectoryInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TrajectoryInfo::getPhoneNumber, phoneNumber);
-        wrapper.eq(TrajectoryInfo::getStatus, Constants.NOT_DELETED);
+        wrapper.and(state -> state.isNull(TrajectoryInfo::getStatus).or().ne(TrajectoryInfo::getStatus, 2));
         wrapper.orderByDesc(TrajectoryInfo::getCreatedTime);
 
         // 根据sortMessage应用额外的条件

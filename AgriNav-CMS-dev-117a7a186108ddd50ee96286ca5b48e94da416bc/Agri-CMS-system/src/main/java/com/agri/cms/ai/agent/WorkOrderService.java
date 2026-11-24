@@ -81,6 +81,8 @@ public class WorkOrderService {
     public WorkOrderResult startWork(Long plotId, Long workTypeId, Integer width,
                                      Double longitude, Double latitude,
                                      String userId, String userName) {
+        String invalidPosition=validatePosition(longitude,latitude);
+        if(invalidPosition!=null)return fail(null,invalidPosition);
         if (plotId == null) {
             return fail(null, "开始作业需要指定地块，请告诉我在哪块地作业。");
         }
@@ -150,6 +152,8 @@ public class WorkOrderService {
      * @return 作业单结果
      */
     public WorkOrderResult endWork(String workOrderId, Double longitude, Double latitude, String userId) {
+        String invalidPosition=validatePosition(longitude,latitude);
+        if(invalidPosition!=null)return fail(workOrderId,invalidPosition);
         if (workOrderId == null || workOrderId.isBlank()) {
             return fail(null, "结束作业需要提供作业单号。若您只有一个进行中的作业，也可以直接告诉我地块。");
         }
@@ -272,7 +276,12 @@ public class WorkOrderService {
         if (plotId == null || longitude == null || latitude == null) {
             return null;
         }
-        Integer inside = geoMapper.countPointInside(plotId, longitude, latitude);
+        Integer inside;
+        try {inside=geoMapper.countPointInside(plotId,longitude,latitude);}
+        catch(RuntimeException unavailable){
+            log.warn("作业单定位边界校验暂不可用，plotId={}",plotId,unavailable);
+            return "提醒：地块边界暂时无法核对，请检查边界数据；本次未确认定位是否在界内。";
+        }
         if (inside != null && inside > 0) {
             return null;
         }
@@ -281,8 +290,15 @@ public class WorkOrderService {
     }
 
     /**
-     * 生成业务作业单号：WO-yyyyMMdd-6位大写随机。
+     * 定位可全部省略；提供时须同时给出有效的经纬度。
      */
+    private String validatePosition(Double longitude,Double latitude) {
+        if(longitude==null&&latitude==null)return null;
+        try {com.agri.cms.system.service.boundary.BoundaryCoordinates.validate(longitude,latitude);return null;}
+        catch(IllegalArgumentException invalid){return invalid.getMessage();}
+    }
+
+    /** 生成业务作业单号：WO-yyyyMMdd-6位大写随机。 */
     private String nextWorkOrderNo() {
         String date = LocalDate.now().format(DATE_FMT);
         String random = UUID.randomUUID().toString().replace("-", "")
