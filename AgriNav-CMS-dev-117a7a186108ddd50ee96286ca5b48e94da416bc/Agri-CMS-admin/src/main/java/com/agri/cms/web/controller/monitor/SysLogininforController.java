@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.monitor;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import com.agri.cms.system.service.ISysLogininforService;
  */
 @RestController
 @RequestMapping("/monitor/logininfor")
+@Tag(name = "登录日志")
 public class SysLogininforController extends BaseController {
     @Autowired
     private ISysLogininforService logininforService;

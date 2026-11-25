@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.analysis;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 import com.agri.cms.common.core.domain.AjaxResult;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/analysis/trajectory")
+@Tag(name = "轨迹分析")
 public class TrajectoryAnalysisController {
 
     @Resource

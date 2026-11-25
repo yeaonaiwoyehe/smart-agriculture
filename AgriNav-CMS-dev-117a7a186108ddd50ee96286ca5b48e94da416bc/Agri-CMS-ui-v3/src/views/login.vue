@@ -139,7 +139,6 @@ function startCountdown() {
   }, 1000)
 }
 
-// 真实调用后端 GET /captcha，不再伪造“验证码已发送”。
 async function sendCode() {
   if (!/^1[3-9]\d{9}$/.test(form.phone)) {
     ElMessage.warning('请先输入正确的手机号')
@@ -148,7 +147,6 @@ async function sendCode() {
   try {
     const res = await getCaptcha(form.phone)
     startCountdown()
-    // 后端演示模式会返回 mockCode；真实短信模式下没有该字段。
     if (res?.mockCode !== undefined && res?.mockCode !== null) {
       ElMessage.success(`演示验证码：${res.mockCode}`)
     } else {
@@ -160,40 +158,27 @@ async function sendCode() {
 }
 
 async function onSubmit() {
-  console.debug('[AUTH-TRACE] login.vue:onSubmit enter (before validate)')
   try {
     await formRef.value.validate()
   } catch {
-    console.debug('[AUTH-TRACE] login.vue:onSubmit validate FAILED -> return')
     return
   }
-  console.debug('[AUTH-TRACE] login.vue:onSubmit validate OK')
   loading.value = true
   try {
-    // 1) 真实登录并保存顶层 token
-    console.debug('[AUTH-TRACE] login.vue: BEFORE userStore.login')
     await userStore.login(form.phone, form.code)
-    console.debug('[AUTH-TRACE] login.vue: AFTER userStore.login')
-    // 2) 与刷新恢复共用同一初始化入口：getInfo → getRouters → 标记认证成功
-    //    force=true：新 Token 必须重新验证，忽略旧会话残留的 loaded 状态。
-    console.debug('[AUTH-TRACE] login.vue: BEFORE initializeAuthState (force=true)')
     await initializeAuthState({ force: true })
-    console.debug('[AUTH-TRACE] login.vue: AFTER initializeAuthState')
 
     ElMessage.success('登录成功，欢迎回来')
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
     router.push(redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard')
   } catch (err) {
-    console.debug('[AUTH-TRACE] login.vue: CATCH (login chain failed)')
     console.error('[login] 登录链路失败', err)
     ElMessage.error(authErrorMessage(err, '登录失败，请稍后重试'))
-    // 任何一步失败都不保留“半登录”状态，也不回退 Mock 用户。
     await userStore.fedLogout()
     permissionStore.resetRoutes()
     appStore.resetAuth()
   } finally {
     loading.value = false
-    console.debug('[AUTH-TRACE] login.vue: FINALLY (loading=false)')
   }
 }
 
@@ -215,8 +200,7 @@ onBeforeUnmount(() => {
 .login-bg {
   position: absolute;
   inset: 0;
-  background:
-    url('/images/login-bg.jpg') center/cover no-repeat;
+  background: url('/images/login-bg.jpg') center/cover no-repeat;
 }
 
 .login-overlay {

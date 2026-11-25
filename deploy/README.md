@@ -48,9 +48,9 @@ powershell -ExecutionPolicy Bypass -File deploy\build-all.ps1
 该脚本自动完成：打包两个后端 → 构建前端 → 把 JAR、dist 归集到 deploy。
 
 手动方式与脚本内部一致，关键注意点：
-- 前端构建前需有 `Agri-CMS-ui\.env.production.local`（gitignored），写入真实高德 key：
-  `VUE_APP_AMAP_KEY` 与 `VUE_APP_AMAP_SECURITY_CODE`；
-- 前端用便携 Node22 并设置 `NODE_OPTIONS=--openssl-legacy-provider`，执行 `npm run build:prod`。
+- 前端构建前需有 `Agri-CMS-ui-v3\.env.production.local`（gitignored），写入真实高德 key：
+  `VITE_APP_AMAP_KEY` 与 `VITE_APP_AMAP_SECURITY_CODE`；
+- 前端用便携 Node22，执行 `npm run build`（Vite）。
 
 构建完成后，`deploy/` 内关键产物：
 - `cms/app.jar`、`gps/app.jar`

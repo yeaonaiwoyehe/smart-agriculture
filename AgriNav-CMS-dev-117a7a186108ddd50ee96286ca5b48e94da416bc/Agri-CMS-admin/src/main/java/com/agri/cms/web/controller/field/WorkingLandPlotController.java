@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.field;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.agri.cms.common.constant.Constants;
 import com.agri.cms.common.core.domain.AjaxResult;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/workingLandPlot")
+@Tag(name = "作业地块关联")
 public class WorkingLandPlotController {
     @Resource
     private WorkingLandPlotService workingLandPlotService;

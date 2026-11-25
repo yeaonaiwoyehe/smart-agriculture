@@ -305,6 +305,7 @@ public class LandPlotServiceImpl extends ServiceImpl<LandPlotMapper, LandPlot> i
         plotQueryWrapper.like(StringUtils.isNotBlank(landPlotQueryDTO.getLandName()), LandPlot::getLandName, landPlotQueryDTO.getLandName());
         plotQueryWrapper.like(StringUtils.isNotBlank(landPlotQueryDTO.getAddress()), LandPlot::getAddress, landPlotQueryDTO.getAddress());
         plotQueryWrapper.like(StringUtils.isNotBlank(landPlotQueryDTO.getMeasurementMethod()), LandPlot::getMeasurementMethod, landPlotQueryDTO.getMeasurementMethod());
+        com.agri.cms.system.service.grouping.PlotGroupFilter.apply(plotQueryWrapper,landPlotQueryDTO);
 
         // 时间比较逻辑,分开分别判断
         // 开始时间判断
@@ -332,7 +333,8 @@ public class LandPlotServiceImpl extends ServiceImpl<LandPlotMapper, LandPlot> i
         }
 
         // 获取当前登录用户ID，只有明确传入isCurrent=false时才查询所有,否则就根据创建人或者拥有者查询
-        plotQueryWrapper.eq(landPlotQueryDTO.isCurrent(), LandPlot::getCreateBy, SecurityUtils.getUserId().toString());
+        plotQueryWrapper.eq(landPlotQueryDTO.isCurrent() || landPlotQueryDTO.getGroupType()!=null,
+                LandPlot::getCreateBy, SecurityUtils.getUserId().toString());
         // 降序
         plotQueryWrapper.orderByDesc(LandPlot::getCreateTime);
 

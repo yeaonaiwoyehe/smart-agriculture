@@ -6,6 +6,7 @@ import com.agri.cms.system.domain.vo.Point;
 import com.agri.cms.system.domain.vo.SortMessage;
 import com.agri.cms.system.domain.vo.Trajectory;
 import com.agri.cms.system.service.IOriginalTrajectoryService;
+import com.agri.cms.common.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,10 @@ public class OriginalTrajectoryController extends BaseController {
             return AjaxResult.warn("结束时间为空");
         }
 
+        if (!phone.equals(getUsername()) && !SecurityUtils.isAdmin(getUserId()) && !SecurityUtils.hasRole("admin")) {
+            return AjaxResult.error(403,"无权查询其他终端的轨迹");
+        }
+        if(startTime.isAfter(endTime))return AjaxResult.error("开始时间不能晚于结束时间");
         List<Point> points = originalTrajectoryService.queryOriginalPointByPhoneAndTime(phone, startTime, endTime);
 
 

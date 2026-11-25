@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.Static;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.agri.cms.common.constant.CacheConstants;
 import com.agri.cms.common.core.controller.BaseController;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/static/user")
+@Tag(name = "用户统计")
 public class UserStaticController extends BaseController {
 
 

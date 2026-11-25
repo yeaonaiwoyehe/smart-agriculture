@@ -29,6 +29,12 @@
             <artifactId>spring-web</artifactId>
         </dependency>
 
+        <!-- OpenAPI 注解：各模块统一使用 @Tag/@Operation 描述接口（A-21） -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>
+
         <!-- spring security 安全认证 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

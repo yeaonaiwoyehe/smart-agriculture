@@ -1,0 +1,18 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "plotCode": "DEVB-DEMO-001",
+        "landName": "dev-b导入测试田",
+        "address": "演示片区/演示村",
+        "landType": "普通地"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[114.000,38.000],[114.001,38.000],[114.001,38.001],[114.000,38.001],[114.000,38.000]]]
+      }
+    }
+  ]
+}

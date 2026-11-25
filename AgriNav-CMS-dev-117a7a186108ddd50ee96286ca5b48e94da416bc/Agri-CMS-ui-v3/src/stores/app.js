@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import Cookies from 'js-cookie' // 保留同事的 Cookies 引入
+
 import { users } from '@/mock/platform'
 import { useUserStore } from '@/stores/user'
 import { usePermissionStore } from '@/stores/permission'
@@ -38,6 +40,7 @@ function mapBackendRole(roles) {
 
 export const useAppStore = defineStore('app', {
   state: () => ({
+    // --- 你的新 UI 状态 ---
     loggedIn: false,
     role: 'operator',
     userInfo: null,
@@ -47,7 +50,16 @@ export const useAppStore = defineStore('app', {
     searchOpen: false,
     assistantOpen: false,
     assistantAgent: 'MA-05',
-    navBadges: { workorders: 3, dispatch: 4, system: 1 }
+    navBadges: { workorders: 3, dispatch: 4, system: 1 },
+
+    // --- 兼容同事的旧框架基础状态 ---
+    device: 'desktop',
+    size: Cookies.get('size') || 'default',
+    sidebar: {
+      opened: Cookies.get('sidebarStatus') ? !!+Cookies.get('sidebarStatus') : true,
+      withoutAnimation: false,
+      hide: false
+    }
   }),
   getters: {
     roleMeta: (s) => {
@@ -63,6 +75,7 @@ export const useAppStore = defineStore('app', {
     districtScope: (s) => (s.role === 'leader' ? '河东片区' : '全公司')
   },
   actions: {
+    // --- 你的新 UI Actions ---
     applyUserInfo(user, roles, departments) {
       this.userInfo = user || null
       this.departmentNames = Array.isArray(departments) ? departments : []
@@ -107,6 +120,29 @@ export const useAppStore = defineStore('app', {
     openAssistant(agent = 'MA-05') {
       this.assistantAgent = agent
       this.assistantOpen = true
+    },
+
+    // --- 兼容同事的旧框架基础 Actions ---
+    toggleSideBar() {
+      if (this.sidebar.hide) return false
+      this.sidebar.opened = !this.sidebar.opened
+      this.sidebar.withoutAnimation = false
+      Cookies.set('sidebarStatus', this.sidebar.opened ? 1 : 0)
+    },
+    closeSideBar(withoutAnimation) {
+      Cookies.set('sidebarStatus', 0)
+      this.sidebar.opened = false
+      this.sidebar.withoutAnimation = withoutAnimation
+    },
+    toggleDevice(device) {
+      this.device = device
+    },
+    setSize(size) {
+      this.size = size
+      Cookies.set('size', size)
+    },
+    toggleSideBarHide(status) {
+      this.sidebar.hide = status
     }
   }
 })

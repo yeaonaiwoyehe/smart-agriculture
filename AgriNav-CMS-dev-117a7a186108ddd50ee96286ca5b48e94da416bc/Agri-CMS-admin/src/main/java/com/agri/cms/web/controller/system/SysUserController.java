@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.agri.cms.common.annotation.Log;
 import com.agri.cms.common.constant.Constants;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/system/user")
+@Tag(name = "用户管理")
 public class SysUserController extends BaseController {
     @Autowired
     private ISysUserService userService;

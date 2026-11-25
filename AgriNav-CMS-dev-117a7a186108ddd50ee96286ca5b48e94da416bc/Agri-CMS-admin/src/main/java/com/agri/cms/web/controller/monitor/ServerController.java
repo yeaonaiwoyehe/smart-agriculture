@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.monitor;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import com.agri.cms.framework.web.domain.Server;
  */
 @RestController
 @RequestMapping("/monitor/server")
+@Tag(name = "服务器监控")
 public class ServerController {
     @PreAuthorize("@ss.hasPermi('monitor:server:list')")
     @GetMapping()

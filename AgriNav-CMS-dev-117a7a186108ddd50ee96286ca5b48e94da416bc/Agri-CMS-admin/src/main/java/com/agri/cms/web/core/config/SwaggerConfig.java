@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -13,182 +14,131 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Swagger2的接口配置
+ * OpenAPI / springdoc 接口文档配置（A-21）。
  *
- * @author ruoyi
+ * 按业务域分组，覆盖全部控制器；统一使用 Bearer Token 鉴权。
+ * 访问地址：/swagger-ui.html（在线文档）与 /v3/api-docs（OpenAPI JSON）。
+ *
+ * @author agrinav
  */
 @Configuration
 public class SwaggerConfig {
-    /**
-     * 系统基础配置
-     */
+
     @Autowired
     private GlobalConfig globalConfig;
 
     /**
-     * 自定义的 OpenAPI 对象
+     * 自定义 OpenAPI 元数据与鉴权方案。
      */
     @Bean
     public OpenAPI customOpenApi() {
-        return new OpenAPI().components(new Components()
-                        // 设置认证的请求头
-                        .addSecuritySchemes("apikey", securityScheme()))
+        return new OpenAPI()
+                .components(new Components().addSecuritySchemes("apikey", securityScheme()))
                 .addSecurityItem(new SecurityRequirement().addList("apikey"))
                 .info(getApiInfo());
     }
 
+    // ------------------------------------------------------------------ 分组
+
     @Bean
-    public GroupedOpenApi publicApi() {
-        return GroupedOpenApi.builder()
-                .group("登录注册验证")
-                .pathsToMatch("/login", "/captcha", "/getInfo", "/loginWithoutSecret", "/signOut/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
-    }
-    @Bean
-    public GroupedOpenApi feedbackApi() {
-        return GroupedOpenApi.builder()
-                .group("用户反馈API")
-                .pathsToMatch("/system/feedback/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi authApi() {
+        return buildGroup("01-认证与登录",
+                "/login", "/loginQR", "/captcha", "/getInfo", "/getRouters",
+                "/loginWithoutSecret", "/loginOAuth", "/loginWechatMobile",
+                "/signOut/**", "/render");
     }
 
     @Bean
-    public GroupedOpenApi agriculturalMachineryTypeApi() {
-        return GroupedOpenApi.builder()
-                .group("农机类型")
-                .pathsToMatch("/agriculturalMachineryType/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi agriculturalMachineryApi() {
-        return GroupedOpenApi.builder()
-                .group("农机找活")
-                .pathsToMatch("/agriculturalMachinery/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi machineryApi() {
+        return buildGroup("02-农机管理",
+                "/agriculturalMachinery/**", "/agriculturalMachineryType/**");
     }
 
     @Bean
     public GroupedOpenApi farmWorkApi() {
-        return GroupedOpenApi.builder()
-                .group("寻找农机")
-                .pathsToMatch("/farmWork/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+        return buildGroup("03-农活招工", "/farmWork/**", "/workingLandPlot/**");
     }
 
+    @Bean
+    public GroupedOpenApi landPlotApi() {
+        return buildGroup("04-地块管理",
+                "/landPlot/**", "/landPlotExclude/**", "/landAddress/**");
+    }
 
     @Bean
     public GroupedOpenApi fieldWorkApi() {
-        return GroupedOpenApi.builder()
-                .group("田地工作类型相关API")
-                .pathsToMatch("/fieldWork/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+        return buildGroup("05-作业类型与作物", "/fieldWork/**", "/crop/**");
     }
 
     @Bean
-    public GroupedOpenApi cropApi() {
-        return GroupedOpenApi.builder()
-                .group("作物相关API")
-                .pathsToMatch("/crop/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi trajectoryApi() {
+        return buildGroup("06-轨迹管理",
+                "/trajectoryInfo/**", "/effectiveTrajectory/**", "/originalTrajectory/**", "/trajectory/playback/**", "/trajectory/accounting/**");
     }
 
     @Bean
-    public GroupedOpenApi ProfileApi() {
-        return GroupedOpenApi.builder()
-                .group("我的管理")
-                .pathsToMatch("/system/user/profile/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi dispatchApi() {
+        return buildGroup("07-作业调度", "/dispatch/**");
     }
 
     @Bean
-    public GroupedOpenApi fieldApi() {
-        return GroupedOpenApi.builder()
-                .group("地块管理")
-                .pathsToMatch("/landPlot/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi closureApi() {
+        return buildGroup("08-内部结算",
+                "/settlement/**", "/reviewRequest/**", "/pricingRule/**");
     }
 
     @Bean
-    public GroupedOpenApi landAddressApi() {
-        return GroupedOpenApi.builder()
-                .group("田块详细地址相关API")
-                .pathsToMatch("/landAddress/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi agentApi() {
+        return buildGroup("09-智能体", "/llm/**", "/agent/**");
     }
 
     @Bean
-    public GroupedOpenApi trajectoryInfoApi() {
-        return GroupedOpenApi.builder()
-                .group("轨迹信息API")
-                .pathsToMatch("/trajectoryInfo/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi systemApi() {
+        return buildGroup("10-系统管理", "/system/**", "/permission/**");
     }
 
     @Bean
-    public GroupedOpenApi effectiveTrajectoryApi() {
-        return GroupedOpenApi.builder()
-                .group("有效轨迹API")
-                .pathsToMatch("/effectiveTrajectory/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
-                .build();
+    public GroupedOpenApi monitorApi() {
+        return buildGroup("11-监控运维", "/monitor/**");
     }
 
     @Bean
-    public GroupedOpenApi originalTrajectoryApi() {
+    public GroupedOpenApi analysisApi() {
+        return buildGroup("12-统计分析", "/analysis/**", "/static/**", "/screen/**");
+    }
+
+    @Bean
+    public GroupedOpenApi commonApi() {
+        return buildGroup("13-通用与测试", "/common/**", "/version/**", "/test/**");
+    }
+
+    // ------------------------------------------------------------------ 基础组件
+
+    private GroupedOpenApi buildGroup(String group, String... paths) {
         return GroupedOpenApi.builder()
-                .group("原始轨迹API")
-                .pathsToMatch("/originalTrajectory/**")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(getApiInfo()))
+                .group(group)
+                .pathsToMatch(paths)
+                .addOpenApiCustomizer(openApi -> openApi.info(getApiInfo()))
                 .build();
     }
 
-
-    @Bean
-    public SecurityScheme securityScheme() {
+    private SecurityScheme securityScheme() {
         return new SecurityScheme()
                 .type(SecurityScheme.Type.APIKEY)
                 .name("Authorization")
                 .in(SecurityScheme.In.HEADER)
-                .scheme("Bearer");
+                .scheme("Bearer")
+                .bearerFormat("JWT");
     }
 
-    /**
-     * 添加摘要信息
-     */
-    public Info getApiInfo() {
+    private Info getApiInfo() {
         return new Info()
-                // 设置标题
-                .title("标题：若依管理系统_接口文档")
-                // 描述
-                .description("描述：用于管理集团旗下公司的人员信息,具体包括XXX,XXX模块...")
-                // 作者信息
-                .contact(new Contact().name(globalConfig.getName()))
-                // 版本
-                .version("版本号:" + globalConfig.getVersion());
+                .title("田界智航 AgriNav 农机作业管控平台 · 接口文档")
+                .description("农机作业调度、轨迹管控、面积核算与内部结算的统一后端接口清单，"
+                        + "作为 Web 前端（C）与 Android（D）的对接契约。在线文档支持按业务分组浏览，"
+                        + "需先登录获取 Token，点击右上角 Authorize 填入 Bearer Token 后调试。")
+                .contact(new Contact().name("AgriNav 项目组"))
+                .license(new License().name("AgriNav"))
+                .version("v" + globalConfig.getVersion());
     }
 }

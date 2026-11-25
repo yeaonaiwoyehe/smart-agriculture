@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ import com.agri.cms.system.service.ISysConfigService;
  */
 @RestController
 @RequestMapping("/system/config")
+@Tag(name = "参数配置")
 public class SysConfigController extends BaseController {
     @Autowired
     private ISysConfigService configService;

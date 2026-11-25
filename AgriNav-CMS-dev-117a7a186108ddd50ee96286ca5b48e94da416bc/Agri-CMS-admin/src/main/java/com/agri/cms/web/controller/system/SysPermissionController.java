@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.system;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.agri.cms.common.constant.Constants;
 import com.agri.cms.common.core.domain.AjaxResult;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/permission")
+@Tag(name = "APP权限管理")
 public class SysPermissionController {
 
     @Resource

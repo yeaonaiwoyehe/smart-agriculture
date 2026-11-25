@@ -90,10 +90,10 @@ public class SettlementServiceImpl implements SettlementService {
             throw new IllegalStateException("该机手在该周期已存在结算单，请勿重复生成");
         }
 
-        // 取周期内该机手的正常作业单（status=0）
+        // 取周期内该机手已完成的作业单（A-12 状态语义：status=1 已完成，只有完成态才能结算）
         LambdaQueryWrapper<TrajectoryInfo> tw = new LambdaQueryWrapper<>();
         tw.eq(TrajectoryInfo::getPhoneNumber, phoneNumber)
-                .eq(TrajectoryInfo::getStatus, (short) 0)
+                .eq(TrajectoryInfo::getStatus, (short) 1)
                 .ge(TrajectoryInfo::getStartTime, periodStart.atStartOfDay())
                 .le(TrajectoryInfo::getStartTime, periodEnd.atTime(23, 59, 59))
                 .orderByAsc(TrajectoryInfo::getStartTime);

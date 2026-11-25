@@ -1,0 +1,95 @@
+{
+  "pages": [
+    {
+      "path": "pages/login/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/home/index",
+      "style": { "navigationStyle": "custom", "enablePullDownRefresh": false }
+    },
+    {
+      "path": "pages/task/index",
+      "style": { "navigationStyle": "custom", "enablePullDownRefresh": false }
+    },
+    {
+      "path": "pages/task/detail",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/work/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/work/detail",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/agent/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/agent/history",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/mine/profile",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/mine/machinery",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/mine/security",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/mine/settings",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/mine/help",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/settlement/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/settlement/detail",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/exception/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/exception/detail",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/message/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/message/detail",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/map/index",
+      "style": { "navigationStyle": "custom", "disableScroll": true }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "田野通",
+    "navigationBarBackgroundColor": "#0e3b2e",
+    "backgroundColor": "#eff2e6",
+    "backgroundColorContent": "#eff2e6"
+  }
+}

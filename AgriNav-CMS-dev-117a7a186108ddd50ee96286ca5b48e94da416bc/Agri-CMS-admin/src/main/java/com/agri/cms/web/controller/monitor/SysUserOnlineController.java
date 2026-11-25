@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.monitor;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +32,7 @@ import com.agri.cms.system.service.ISysUserOnlineService;
  */
 @RestController
 @RequestMapping("/monitor/online")
+@Tag(name = "在线用户")
 public class SysUserOnlineController extends BaseController {
     @Autowired
     private ISysUserOnlineService userOnlineService;

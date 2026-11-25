@@ -1,4 +1,5 @@
 package com.agri.cms.web.controller.common;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ import com.agri.cms.framework.config.ServerConfig;
  */
 @RestController
 @RequestMapping("/common")
+@Tag(name = "通用文件处理")
 public class CommonController {
     private static final Logger log = LoggerFactory.getLogger(CommonController.class);
 
