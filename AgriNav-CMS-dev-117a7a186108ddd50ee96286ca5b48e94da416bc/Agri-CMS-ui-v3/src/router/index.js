@@ -1,186 +1,180 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import MainLayout from '@/layouts/MainLayout.vue'
 
-/* Layout */
-import Layout from '@/layout/index.vue'
+// 侧边栏展示结构保持不变；实际可访问性由后端 /getRouters 派生的权限决定。
+export const menuGroups = [
+  {
+    label: '运营总览',
+    items: [{ key: 'dashboard', title: '智能运营驾驶舱', path: '/dashboard', icon: 'Odometer' }]
+  },
+  {
+    label: '业务管理',
+    items: [
+      { key: 'lands', title: '地块管理', path: '/lands', icon: 'MapLocation' },
+      { key: 'machines', title: '农机与农机手', path: '/machines', icon: 'Van' },
+      { key: 'farmwork', title: '农田作业管理', path: '/farmwork', icon: 'Document' },
+      { key: 'dispatch', title: '作业调度管理', path: '/dispatch', icon: 'Promotion' },
+      { key: 'monitor', title: '实时作业监控', path: '/monitor', icon: 'Aim' },
+      { key: 'workorders', title: '轨迹与面积核算', path: '/workorders', icon: 'Tickets' },
+      { key: 'settlement', title: '内部结算管理', path: '/settlement', icon: 'Wallet' },
+      { key: 'reports', title: '统计报表', path: '/reports', icon: 'TrendCharts' }
+    ]
+  },
+  {
+    label: 'AI 智能体',
+    items: [
+      { key: 'workbench', title: 'Agent 工作台', path: '/agent/workbench', icon: 'ChatDotRound' },
+      { key: 'agentManage', title: 'Agent 管理', path: '/agent/manage', icon: 'Cpu' },
+      { key: 'agentTools', title: '工具管理', path: '/agent/tools', icon: 'Tools' },
+      { key: 'agentWorkflow', title: '工作流编排', path: '/agent/workflow', icon: 'Share' },
+      { key: 'agentKnowledge', title: '知识库管理', path: '/agent/knowledge', icon: 'Collection' },
+      { key: 'agentMonitor', title: '运行监控', path: '/agent/monitor', icon: 'Monitor' }
+    ]
+  },
+  {
+    label: '系统管理',
+    items: [{ key: 'system', title: '权限与审计', path: '/system', icon: 'Lock' }]
+  }
+]
 
-/**
- * Note: 路由配置项
- *
- * hidden: true                     // 当设置 true 的时候该路由不会再侧边栏出现 如401，login等页面
- * alwaysShow: true                 // 当你一个路由下面的 children 声明的路由大于1个时，自动会变成嵌套的模式
- * redirect: noRedirect             // 当设置 noRedirect 的时候该路由在面包屑导航中不可被点击
- * name:'router-name'               // 设定路由的名字，一定要填写不然使用<keep-alive>时会出现各种问题
- * query: '{"id": 1, "name": "ry"}' // 访问路由的默认传递参数
- * roles: ['admin', 'common']       // 访问路由的角色权限
- * permissions: ['a:a:a', 'b:b:b']  // 访问路由的菜单权限
- * meta : {
- *   noCache: true                  // 如果设置为true，则不会被 <keep-alive> 缓存
- *   title: 'title'                 // 设置该路由在侧边栏和面包屑中展示的名字
- *   icon: 'svg-name'               // 设置该路由的图标
- *   breadcrumb: false              // 如果设置为false，则不会在breadcrumb面包屑中显示
- *   activeMenu: '/system/user'     // 当路由设置了该属性，则会高亮相对应的侧边栏
- * }
- */
-
-// 公共路由
+// 始终可用：登录页 + 布局壳 + 首页。这样登录成功后一定有可跳转的落点。
 export const constantRoutes = [
   {
-    path: '/redirect',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: '/redirect/:path(.*)',
-        component: () => import('@/views/redirect/index.vue')
-      }
-    ]
-  },
-  {
     path: '/login',
+    name: 'login',
     component: () => import('@/views/login.vue'),
-    hidden: true
+    meta: { title: '登录' }
   },
   {
-    path: '/register',
-    component: () => import('@/views/register.vue'),
-    hidden: true
-  },
-  {
-    path: '/404',
-    component: () => import('@/views/error/404.vue'),
-    hidden: true
-  },
-  {
-    path: '/401',
-    component: () => import('@/views/error/401.vue'),
-    hidden: true
-  },
-  {
-    path: '',
-    component: Layout,
-    redirect: 'index',
+    path: '/',
+    name: 'RootLayout',
+    component: MainLayout,
+    redirect: '/login',
+    meta: { requiresAuth: true },
     children: [
       {
-        path: 'index',
-        component: () => import('@/views/index.vue'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
+        path: 'dashboard',
+        name: 'dashboard',
+        component: () => import('@/views/dashboard/Dashboard.vue'),
+        meta: { title: '数据总览', code: 'MP-00', group: '运营总览', menuKey: 'dashboard' }
       }
     ]
-  },
-  {
-    path: '/user',
-    component: Layout,
-    hidden: true,
-    redirect: 'noredirect',
-    children: [
-      {
-        path: 'profile',
-        component: () => import('@/views/system/user/profile/index.vue'),
-        name: 'Profile',
-        meta: { title: '个人中心', icon: 'user' }
-      }
-    ]
-  },
-  {
-    path: '/full-screen-heatmap',
-    name: 'FullScreenHeatmap',
-    component: () => import('@/views/field/heatmap/FullScreenHeatmap.vue')
-  },
-  {
-    path: '/test/encrypt',
-    component: () => import('@/views/test/encrypt-test.vue'),
-    hidden: true
-  },
-  {
-    path: '/bind-phone',
-    component: () => import('@/views/bind-phone.vue'),
-    hidden: true,
-    meta: {
-      title: '绑定手机号',
-      noAuth: true // 标记该路由不需要权限验证
-    }
   }
 ]
 
-// 动态路由，基于用户权限动态去加载
-export const dynamicRoutes = [
+// 业务路由由 permission store 根据后端 /getRouters 动态 addRoute。
+// 组件与路径完全沿用现有定义，不改动页面文件与 UI。
+export const businessRoutes = [
   {
-    path: '/system/user-auth',
-    component: Layout,
-    hidden: true,
-    permissions: ['system:user:edit'],
-    children: [
-      {
-        path: 'role/:userId(\\d+)',
-        component: () => import('@/views/system/user/authRole.vue'),
-        name: 'AuthRole',
-        meta: { title: '分配角色', activeMenu: '/system/user' }
-      }
-    ]
+    path: 'lands',
+    name: 'lands',
+    component: () => import('@/views/land/LandList.vue'),
+    meta: { title: '地块管理', code: 'MP-01', group: '业务管理', menuKey: 'lands' }
   },
   {
-    path: '/system/role-auth',
-    component: Layout,
-    hidden: true,
-    permissions: ['system:role:edit'],
-    children: [
-      {
-        path: 'user/:roleId(\\d+)',
-        component: () => import('@/views/system/role/authUser.vue'),
-        name: 'AuthUser',
-        meta: { title: '分配用户', activeMenu: '/system/role' }
-      }
-    ]
+    path: 'machines',
+    name: 'machines',
+    component: () => import('@/views/machine/MachineList.vue'),
+    meta: { title: '农机与农机手', code: 'MP-02', group: '业务管理', menuKey: 'machines' }
   },
   {
-    path: '/system/dict-data',
-    component: Layout,
-    hidden: true,
-    permissions: ['system:dict:list'],
-    children: [
-      {
-        path: 'index/:dictId(\\d+)',
-        component: () => import('@/views/system/dict/data.vue'),
-        name: 'Data',
-        meta: { title: '字典数据', activeMenu: '/system/dict' }
-      }
-    ]
+    path: 'farmwork',
+    name: 'farmwork',
+    component: () => import('@/views/farmWork/FarmWorkList.vue'),
+    meta: { title: '农田作业管理', code: 'MP-05A', group: '业务管理', menuKey: 'farmwork' }
   },
   {
-    path: '/monitor/job-log',
-    component: Layout,
-    hidden: true,
-    permissions: ['monitor:job:list'],
-    children: [
-      {
-        path: 'index/:jobId(\\d+)',
-        component: () => import('@/views/monitor/job/log.vue'),
-        name: 'JobLog',
-        meta: { title: '调度日志', activeMenu: '/monitor/job' }
-      }
-    ]
+    path: 'dispatch',
+    name: 'dispatch',
+    component: () => import('@/views/dispatch/DispatchBoard.vue'),
+    meta: { title: '作业调度管理', code: 'MP-03', group: '业务管理', menuKey: 'dispatch' }
   },
   {
-    path: '/tool/gen-edit',
-    component: Layout,
-    hidden: true,
-    permissions: ['tool:gen:edit'],
-    children: [
-      {
-        path: 'index/:tableId(\\d+)',
-        component: () => import('@/views/tool/gen/editTable.vue'),
-        name: 'GenEdit',
-        meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
-      }
-    ]
+    path: 'monitor',
+    name: 'monitor',
+    component: () => import('@/views/monitor/Monitor.vue'),
+    meta: { title: '实时作业监控', code: 'MP-03', group: '业务管理', menuKey: 'monitor' }
+  },
+  {
+    path: 'workorders',
+    name: 'workorders',
+    component: () => import('@/views/workorder/WorkorderList.vue'),
+    meta: { title: '轨迹与面积核算', code: 'MP-03', group: '业务管理', menuKey: 'workorders' }
+  },
+  {
+    path: 'settlement',
+    name: 'settlement',
+    component: () => import('@/views/settlement/Settlement.vue'),
+    meta: { title: '内部结算管理', code: 'MP-04', group: '业务管理', menuKey: 'settlement' }
+  },
+  {
+    path: 'reports',
+    name: 'reports',
+    component: () => import('@/views/report/Report.vue'),
+    meta: { title: '统计报表', code: 'MP-05', group: '业务管理', menuKey: 'reports' }
+  },
+  {
+    path: 'agent/workbench',
+    name: 'agent-workbench',
+    component: () => import('@/views/agent/Workbench.vue'),
+    meta: { title: 'Agent 工作台', code: 'AI-CENTER', group: 'AI 智能体', menuKey: 'workbench' }
+  },
+  {
+    path: 'agent/manage',
+    name: 'agent-manage',
+    component: () => import('@/views/agent/AgentManage.vue'),
+    meta: { title: 'Agent 管理', code: 'AI-CENTER', group: 'AI 智能体', menuKey: 'agentManage' }
+  },
+  {
+    path: 'agent/tools',
+    name: 'agent-tools',
+    component: () => import('@/views/agent/ToolManage.vue'),
+    meta: { title: '工具管理', code: 'AI-CENTER', group: 'AI 智能体', menuKey: 'agentTools' }
+  },
+  {
+    path: 'agent/workflow',
+    name: 'agent-workflow',
+    component: () => import('@/views/agent/WorkflowDesigner.vue'),
+    meta: { title: '工作流编排', code: 'AI-CENTER', group: 'AI 智能体', menuKey: 'agentWorkflow' }
+  },
+  {
+    path: 'agent/knowledge',
+    name: 'agent-knowledge',
+    component: () => import('@/views/agent/KnowledgeBase.vue'),
+    meta: { title: '知识库管理', code: 'AI-CENTER', group: 'AI 智能体', menuKey: 'agentKnowledge' }
+  },
+  {
+    path: 'agent/monitor',
+    name: 'agent-monitor',
+    component: () => import('@/views/agent/AgentMonitor.vue'),
+    meta: { title: 'Agent 运行监控', code: 'AI-CENTER', group: 'AI 智能体', menuKey: 'agentMonitor' }
+  },
+  {
+    path: 'system',
+    name: 'system',
+    component: () => import('@/views/system/SystemManage.vue'),
+    meta: { title: '权限与审计', code: 'MP-06', group: '系统管理', menuKey: 'system' }
   }
 ]
+
+// 兜底路由必须最后添加，否则会遮蔽动态注册的业务路由。
+export const notFoundRoute = {
+  path: ':pathMatch(.*)*',
+  name: 'not-found',
+  component: () => import('@/views/NotFound.vue'),
+  meta: { title: '页面不存在' }
+}
 
 const router = createRouter({
-  history: createWebHistory(),
-  scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
+  history: createWebHashHistory(),
+  routes: constantRoutes,
+  scrollBehavior: () => ({ top: 0 })
+})
+
+router.afterEach((to) => {
+  document.title = to.meta?.title
+    ? `${to.meta.title} · 田界智航`
+    : '田界智航 · 农机作业管控智能管理平台'
 })
 
 export default router

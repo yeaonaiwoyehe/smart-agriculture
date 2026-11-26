@@ -1,132 +1,116 @@
 import { defineStore } from 'pinia'
-import auth from '@/plugins/auth'
-import router, { constantRoutes, dynamicRoutes } from '@/router'
+import router, { businessRoutes, notFoundRoute } from '@/router'
 import { getRouters } from '@/api/menu'
-import Layout from '@/layout/index.vue'
-import ParentView from '@/components/ParentView/index.vue'
-import InnerLink from '@/layout/components/InnerLink/index.vue'
-import { internalRoutes } from '@/utils/internalRoutes'
+import { useUserStore } from '@/stores/user'
 
-// 所有页面组件（用于后端路由字符串 -> 组件映射）
-const viewModules = import.meta.glob('../views/**/*.vue')
+// 后端 sys_menu 里仍保留老若依菜单（system/xxx、monitor/xxx、tool/xxx），
+// 与新版页面不是一一对应。这里只把“可明确识别”的菜单映射为新版 menuKey，
+// 不做猜测式全量替换；管理员则保留全部新版页面入口。
+const SYSTEM_MENU_PATTERN = /system\/|monitor\/|tool\/|系统管理|系统监控|系统工具|用户管理|角色管理|菜单管理|部门管理|岗位管理|字典管理|参数设置|通知公告|日志管理|在线用户|定时任务|服务监控|数据监控/
+
+const ROUTE_ALIASES = {
+  lands: ['/lands', 'landplot', '地块'],
+  machines: ['/machines', 'agriculturalmachinery', '农机'],
+  // 农田作业管理（农户发布作业需求）：只匹配农田作业自身语义，
+  // 刻意不含「作业」这种宽泛词，避免与作业调度/作业单/轨迹核算混淆。
+  farmwork: ['/farmwork', 'farmwork', 'farm-work', '农田作业'],
+  dispatch: ['/dispatch', '作业调度', '派单'],
+  monitor: ['/monitor', 'realtime', '实时监控'],
+  workorders: ['/workorders', 'workorder', 'effectivetrajectory', '作业单', '轨迹'],
+  settlement: ['/settlement', '结算'],
+  reports: ['/reports', 'report', '报表', '统计'],
+  workbench: ['/agent/workbench', 'agent-workbench', '工作台'],
+  agentManage: ['/agent/manage', 'agent-manage', 'agent管理'],
+  agentTools: ['/agent/tools', '工具管理'],
+  agentWorkflow: ['/agent/workflow', '工作流'],
+  agentKnowledge: ['/agent/knowledge', '知识库'],
+  agentMonitor: ['/agent/monitor', 'agent监控']
+}
+
+function collectAllowedMenuKeys(routers) {
+  const keys = new Set()
+  const walk = (list) => {
+    ;(list || []).forEach((item) => {
+      const haystack = [item.path, item.name, item.component, item.meta?.title, item.meta?.path]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+
+      // 老若依系统类菜单统一归到新版“权限与审计”，避免误开实时监控等业务页。
+      if (SYSTEM_MENU_PATTERN.test(haystack)) keys.add('system')
+      else {
+        Object.entries(ROUTE_ALIASES).forEach(([key, aliases]) => {
+          if (aliases.some((alias) => haystack.includes(alias.toLowerCase()))) keys.add(key)
+        })
+      }
+
+      if (Array.isArray(item.children)) walk(item.children)
+    })
+  }
+  walk(routers)
+  return Array.from(keys)
+}
+
+// 管理员判定集中在此处，避免多处重复判断。
+// 业务规则保持不变：admin 角色或通配权限仍使用全部 businessRoutes。
+export function isAdminUser() {
+  const userStore = useUserStore()
+  return userStore.roles.includes('admin') || userStore.permissions.includes('*:*:*')
+}
 
 export const usePermissionStore = defineStore('permission', {
   state: () => ({
-    routes: [],
-    addRoutes: [],
-    defaultRoutes: [],
-    topbarRouters: [],
-    sidebarRouters: []
+    backendRouters: [],
+    allowedMenuKeys: [],
+    addedRouteNames: [],
+    loaded: false
   }),
-
   actions: {
-    // 生成路由
-    generateRoutes() {
-      // 直接返回请求链，加载或转换失败时向调用方传递错误。
-      return getRouters().then(res => {
-          const sdata = JSON.parse(JSON.stringify(res.data))
-          const rdata = JSON.parse(JSON.stringify(res.data))
-          const sidebarRoutes = filterAsyncRouter(sdata)
-          const rewriteRoutes = internalRoutes(filterAsyncRouter(rdata, false, true))
-          const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
-          rewriteRoutes.push({ path: '/:pathMatch(.*)*', redirect: '/404', hidden: true })
-          // Vue Router 4 不再支持 addRoutes，逐个添加
-          asyncRoutes.forEach(route => {
-            router.addRoute(route)
-          })
-          this.addRoutes = rewriteRoutes
-          this.routes = constantRoutes.concat(rewriteRoutes)
-          this.sidebarRouters = constantRoutes.concat(sidebarRoutes)
-          this.defaultRoutes = sidebarRoutes
-          this.topbarRouters = sidebarRoutes
-          return rewriteRoutes
-      })
+    async generateRoutes() {
+      console.debug('[AUTH-TRACE] permissionStore.generateRoutes: ENTER', 'loadedBefore=', this.loaded)
+      // 先把已加载标志置回 false：重试或强制刷新时，即使中途失败也不会残留“已就绪”状态。
+      this.loaded = false
+      // 第一阶段登录/权限链路必须真实请求，禁止 Mock 回退。
+      console.debug('[AUTH-TRACE] generateRoutes: BEFORE getRouters')
+      const res = await getRouters()
+      console.debug('[AUTH-TRACE] generateRoutes: AFTER getRouters', 'hasRes=', !!res, 'dataIsArray=', Array.isArray(res?.data), 'dataLen=', Array.isArray(res?.data) ? res.data.length : -1)
+      const backendRouters = Array.isArray(res?.data) ? res.data : []
+      const isAdmin = isAdminUser()
+      console.debug('[AUTH-TRACE] generateRoutes: isAdmin=', isAdmin)
+
+      const allowedMenuKeys = isAdmin
+        ? businessRoutes.map((route) => route.meta.menuKey)
+        : collectAllowedMenuKeys(backendRouters)
+
+      const routesToAdd = isAdmin
+        ? businessRoutes
+        : businessRoutes.filter((route) => allowedMenuKeys.includes(route.meta.menuKey))
+
+      this.addToRouter(routesToAdd)
+      this.backendRouters = backendRouters
+      this.allowedMenuKeys = allowedMenuKeys
+      this.loaded = true
+      console.debug('[AUTH-TRACE] generateRoutes: DONE routesRegistered', 'loaded=', this.loaded, 'routesToAddLen=', routesToAdd.length, 'addedRouteNamesLen=', this.addedRouteNames.length)
+      return routesToAdd
     },
-    // 重置路由状态
+
+    addToRouter(routes) {
+      routes.forEach((route) => {
+        if (!router.hasRoute(route.name)) router.addRoute('RootLayout', route)
+        if (!this.addedRouteNames.includes(route.name)) this.addedRouteNames.push(route.name)
+      })
+      if (!router.hasRoute(notFoundRoute.name)) router.addRoute('RootLayout', notFoundRoute)
+      if (!this.addedRouteNames.includes(notFoundRoute.name)) this.addedRouteNames.push(notFoundRoute.name)
+    },
+
     resetRoutes() {
-      this.routes = []
-      this.addRoutes = []
-      this.defaultRoutes = []
-      this.topbarRouters = []
-      this.sidebarRouters = []
+      this.addedRouteNames.forEach((name) => {
+        if (router.hasRoute(name)) router.removeRoute(name)
+      })
+      this.addedRouteNames = []
+      this.backendRouters = []
+      this.allowedMenuKeys = []
+      this.loaded = false
     }
   }
 })
-
-// 遍历后台传来的路由字符串，转换为组件对象
-function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
-  return asyncRouterMap.filter(route => {
-    if (type && route.children) {
-      route.children = filterChildren(route.children)
-    }
-    if (route.component) {
-      // Layout ParentView 组件特殊处理
-      if (route.component === 'Layout') {
-        route.component = Layout
-      } else if (route.component === 'ParentView') {
-        route.component = ParentView
-      } else if (route.component === 'InnerLink') {
-        route.component = InnerLink
-      } else {
-        route.component = loadView(route.component)
-      }
-    }
-    if (route.children != null && route.children && route.children.length) {
-      route.children = filterAsyncRouter(route.children, route, type)
-    } else {
-      delete route['children']
-      delete route['redirect']
-    }
-    return true
-  })
-}
-
-function filterChildren(childrenMap, lastRouter = false) {
-  var children = []
-  childrenMap.forEach((el, index) => {
-    if (el.children && el.children.length) {
-      if (el.component === 'ParentView' && !lastRouter) {
-        el.children.forEach(c => {
-          c.path = el.path + '/' + c.path
-          if (c.children && c.children.length) {
-            children = children.concat(filterChildren(c.children, c))
-            return
-          }
-          children.push(c)
-        })
-        return
-      }
-    }
-    if (lastRouter) {
-      el.path = lastRouter.path + '/' + el.path
-      if (el.children && el.children.length) {
-        children = children.concat(filterChildren(el.children, el))
-        return
-      }
-    }
-    children = children.concat(el)
-  })
-  return children
-}
-
-// 动态路由遍历，验证是否具备权限
-export function filterDynamicRoutes(routes) {
-  const res = []
-  routes.forEach(route => {
-    if (route.permissions) {
-      if (auth.hasPermiOr(route.permissions)) {
-        res.push(route)
-      }
-    } else if (route.roles) {
-      if (auth.hasRoleOr(route.roles)) {
-        res.push(route)
-      }
-    }
-  })
-  return res
-}
-
-export const loadView = (view) => {
-  const path = `../views/${view}.vue`
-  return viewModules[path] || (() => import('@/views/error/404.vue'))
-}

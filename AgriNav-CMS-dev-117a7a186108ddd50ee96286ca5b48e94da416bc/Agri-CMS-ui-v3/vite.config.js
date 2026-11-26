@@ -6,14 +6,17 @@ import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiBase = (env.VITE_API_BASE || '/dev-api').trim()
-  
-  // 你的代理逻辑：只有相对路径才需要代理；填了完整 URL 时前端直连云服务器，无需代理
+  const apiBase = (env.VITE_APP_BASE_API || '/dev-api').trim()
+  const apiTarget = (env.VITE_APP_API_TARGET || 'http://82.156.224.217').trim()
+
+  // 相对前缀（如 /prod-api）走本地代理；完整 URL 则前端直连，无需代理。
+  // 云端 Nginx 本身以 /prod-api 作为路径前缀，因此不能 strip 该前缀，
+  // 否则会转发到 http://82.156.224.217/login 导致 404。
   const proxy = apiBase.startsWith('http')
     ? {}
     : {
         [apiBase]: {
-          target: env.VITE_API_TARGET || 'http://localhost:8088',
+          target: apiTarget,
           changeOrigin: true,
           rewrite: (path) => path
         }

@@ -14,24 +14,30 @@
     </div>
 
     <div class="grid cols-4 mt-3">
-      <StatCard label="本期结算单数" :value="summary.count" unit="份" icon="Tickets" foot="结算单来自后端 Settlement 表" />
-      <StatCard label="已生成金额" :value="money(summary.generated)" unit="元" icon="Warning" tone="amber" foot="后端 status=0 已生成" />
-      <StatCard label="已确认金额" :value="money(summary.confirmed)" unit="元" icon="DataLine" tone="blue" foot="后端 status=1 已确认" />
-      <StatCard label="已付款金额" :value="money(summary.paid)" unit="元" icon="CircleCheck" tone="green" foot="后端 status=2 已付款（不等于实际到账）" />
+      <StatCard label="结算单总数" :value="summary.count ?? '—'" unit="份" icon="Tickets" foot="筛选条件下的后端 total" />
+      <StatCard label="当前页已生成金额" :value="money(summary.generated)" unit="元" icon="Warning" tone="amber" :foot="pageFoot" />
+      <StatCard label="当前页已确认金额" :value="money(summary.confirmed)" unit="元" icon="DataLine" tone="blue" :foot="pageFoot" />
+      <StatCard label="当前页已付款金额" :value="money(summary.paid)" unit="元" icon="CircleCheck" tone="green" :foot="pageFoot" />
     </div>
 
     <el-tabs v-model="tab" class="mt-3">
       <el-tab-pane label="结算单" name="list">
+        <el-alert v-if="listError" :type="listError.kind === 'forbidden' ? 'warning' : 'error'"
+          :closable="false" show-icon :title="listError.message" style="margin-bottom: 10px">
+          <el-button v-if="listError.kind !== 'forbidden'" size="small" @click="loadList">重新加载</el-button>
+        </el-alert>
         <div class="filter-bar">
-          <el-select v-model="filters.status" style="width: 120px" option-key="value" option-label="label" option-props="{ label: 'label', value: 'value' }">
+          <el-select v-model="filters.status" style="width: 120px" @change="applyFilter">
             <el-option v-for="s in statusOptions" :key="s.value" :label="s.label" :value="s.value" />
           </el-select>
-          <el-input v-model="filters.keyword" placeholder="结算单号 / 机手手机号" clearable style="width: 210px" :prefix-icon="Search" />
-          <span class="filter-hint grow">后端金额 = Σ(有效作业面积 × 单价)，不含扣减；后端暂无扣减字段</span>
+          <el-input v-model="filters.keyword" placeholder="结算单号 / 机手手机号" clearable style="width: 210px"
+            :prefix-icon="Search" @keyup.enter="applyFilter" />
+          <el-button type="primary" @click="applyFilter">查询</el-button>
           <el-button @click="resetFilters">重置筛选</el-button>
+          <span class="filter-hint grow">后端金额 = Σ(有效作业面积 × 单价)，不含扣减；后端暂无扣减字段</span>
         </div>
         <PanelCard flush>
-          <el-table :data="pagedStatements" size="small" style="width: 100%">
+          <el-table :data="statements" size="small" style="width: 100%">
             <el-table-column label="结算单号" min-width="148"><template #default="{ row }"><span class="table-link mono" @click="openDetail(row)">{{ row.id }}</span></template></el-table-column>
             <el-table-column label="机手手机号" min-width="110"><template #default="{ row }"><span class="cell-main">{{ row.phoneNumber || row.operatorName }}</span></template></el-table-column>
             <el-table-column label="周期" min-width="140"><template #default="{ row }"><div>{{ row.period }}</div></template></el-table-column>
@@ -46,17 +52,25 @@
               </template>
             </el-table-column>
           </el-table>
-          <div class="panel-pager"><el-pagination v-model:current-page="listPage" :page-size="6" :total="filteredStatements.length" layout="total, prev, pager, next" small /></div>
+          <div v-if="total !== null" class="panel-pager">
+            <el-pagination v-model:current-page="listPage" v-model:page-size="pageSize"
+              :page-sizes="[10, 20, 50]" :total="total" layout="total, sizes, prev, pager, next" small
+              @current-change="loadList" @size-change="onListSize" />
+          </div>
         </PanelCard>
       </el-tab-pane>
 
       <el-tab-pane label="单价规则" name="price">
+        <el-alert v-if="rulesError" :type="rulesError.kind === 'forbidden' ? 'warning' : 'error'"
+          :closable="false" show-icon :title="rulesError.message" style="margin-bottom: 10px">
+          <el-button v-if="rulesError.kind !== 'forbidden'" size="small" @click="loadRules">重新加载</el-button>
+        </el-alert>
         <div class="flex between center" style="margin-bottom: 10px">
           <span class="hint">单价变更需二次确认，保存后写入审计日志</span>
           <el-button type="primary" plain :icon="Plus" @click="openAddRule">新增规则</el-button>
         </div>
         <PanelCard flush>
-          <el-table :data="pagedRules" size="small" style="width: 100%">
+          <el-table :data="rules" size="small" style="width: 100%">
             <el-table-column prop="name" label="规则名称" min-width="150"><template #default="{ row }"><span class="cell-main">{{ row.name }}</span></template></el-table-column>
             <el-table-column prop="type" label="作业类型" width="100" />
             <el-table-column prop="grade" label="地块等级" width="100" />
@@ -65,16 +79,22 @@
             <el-table-column label="状态" width="88" align="center"><template #default="{ row }"><StatusTag :status="row.status" /></template></el-table-column>
             <el-table-column label="操作" width="80"><template #default="{ row }"><el-button link type="primary" size="small" @click="openEditRule(row)">编辑</el-button></template></el-table-column>
           </el-table>
-          <div class="panel-pager"><el-pagination v-model:current-page="rulePage" :page-size="6" :total="rules.length" layout="total, prev, pager, next" small /></div>
+          <div v-if="rulesTotal !== null" class="panel-pager">
+            <el-pagination v-model:current-page="rulePage" v-model:page-size="ruleSize"
+              :page-sizes="[10, 20, 50]" :total="rulesTotal" layout="total, sizes, prev, pager, next" small
+              @current-change="loadRules" @size-change="onRuleSize" />
+          </div>
         </PanelCard>
       </el-tab-pane>
 
       <el-tab-pane label="扣减规则" name="deduct">
         <div class="hint-line" style="margin-bottom: 12px">
           <el-icon :size="13"><Document /></el-icon>
-          <span>扣减规则直接关联制度条款，结算单中的扣减项可逐条回溯到条款原文。</span>
+          <span>后端暂无扣减规则表与接口；本页不使用模拟扣减记录，扣减规则待接入。</span>
         </div>
-        <div class="grid cols-2">
+        <el-alert v-if="rulesError" :type="rulesError.kind === 'forbidden' ? 'warning' : 'error'"
+          :closable="false" show-icon :title="rulesError.message" />
+        <div v-else-if="deductions.length" class="grid cols-2">
           <div v-for="d in deductions" :key="d.id" class="card deduct-card">
             <div class="flex between center"><span class="strong">{{ d.name }}</span><span class="tag violet no-dot">{{ d.id }}</span></div>
             <p class="hint mt-2">{{ d.desc }}</p>
@@ -82,11 +102,12 @@
             <div class="deduct-source"><el-icon :size="12"><Document /></el-icon>{{ d.source }}</div>
           </div>
         </div>
+        <el-empty v-else description="后端暂无扣减规则接口，扣减规则待接入" />
       </el-tab-pane>
 
       <el-tab-pane label="结算周期" name="cycle">
         <PanelCard title="结算周期配置" sub="配置项变更需二次确认；Agent 仅解释制度口径">
-          <el-form label-width="96px" style="max-width: 620px">
+          <el-form label-width="96px" style="max-width: 620px" disabled>
             <el-form-item label="结算周期">
               <el-radio-group v-model="cycle.type"><el-radio-button value="自然月">自然月</el-radio-button><el-radio-button value="半月">半月</el-radio-button></el-radio-group>
             </el-form-item>
@@ -104,7 +125,7 @@
             </el-form-item>
           </el-form>
           <div class="hint-line"><el-icon :size="13"><Lock /></el-icon><span>依据《合作农机作业结算管理办法》V2.1 第 6 条：次月 5 日前出具结算单，7 个工作日内完成付款。</span></div>
-          <el-button type="primary" class="mt-3" @click="saveCycle">保存周期配置</el-button>
+          <el-button type="primary" class="mt-3" disabled>保存周期配置（后端未接入）</el-button>
         </PanelCard>
       </el-tab-pane>
     </el-tabs>
@@ -145,6 +166,11 @@
     </el-dialog>
 
     <el-drawer v-model="detailOpen" size="720px" :with-header="false">
+      <el-alert v-if="detailError" :type="detailError.kind === 'forbidden' ? 'warning' : 'error'"
+        :closable="false" show-icon :title="detailError.message" />
+      <div v-else-if="detailLoading" class="empty" style="padding: 24px; text-align: center; color: var(--text-3)">
+        正在加载结算单详情…
+      </div>
       <div v-if="detail">
         <div class="detail-head">
           <div><div class="detail-title">{{ detail.id }}</div><div class="detail-sub">{{ detail.phoneNumber }} · {{ detail.periodStart }} ~ {{ detail.periodEnd }}</div></div>
@@ -165,7 +191,9 @@
           <el-table-column label="金额" width="96" align="right"><template #default="{ row }"><span class="num">{{ money(row.amount) }}</span></template></el-table-column>
           <el-table-column label="时间" min-width="130"><template #default="{ row }"><span class="hint" style="font-size: 11px">{{ row.createTime || '—' }}</span></template></el-table-column>
         </el-table>
-        <div v-if="!detailItems.length" class="empty" style="padding: 20px; text-align: center; color: var(--text-3); font-size: 12.5px">
+        <el-alert v-if="itemsError" :type="itemsError.kind === 'forbidden' ? 'warning' : 'error'"
+          :closable="false" show-icon :title="'结算明细加载失败：' + itemsError.message" style="margin-top: 8px" />
+        <div v-if="!detailItems.length && !itemsError" class="empty" style="padding: 20px; text-align: center; color: var(--text-3); font-size: 12.5px">
           当前结算单无明细记录。后端可能尚未生成本次 SettlementItem，或轨迹已被删除。
         </div>
         <div class="formula">
@@ -200,13 +228,20 @@ import StatusTag from '@/components/StatusTag.vue'
 import AgentSidePanel from '@/components/AgentSidePanel.vue'
 
 const loading = ref(false)
+const listError = ref(null)
+const rulesError = ref(null)
 const tab = ref('list')
 const statements = ref([])
+const total = ref(null)
 const rules = ref([])
+const rulesTotal = ref(null)
 const deductions = ref([])
 const detail = ref(null)
 const detailItems = ref([])
 const detailOpen = ref(false)
+const detailLoading = ref(false)
+const detailError = ref(null)
+const itemsError = ref(null)
 const aiOpen = ref(false)
 const genOpen = ref(false)
 const genLoading = ref(false)
@@ -231,7 +266,9 @@ const periodTypeOptions = [
   { label: '季度', value: 2 }
 ]
 const listPage = ref(1)
+const pageSize = ref(10)
 const rulePage = ref(1)
+const ruleSize = ref(10)
 const money = (n) => {
   if (n === null || n === undefined || n === '') return '—'
   const num = Number(n)
@@ -245,24 +282,10 @@ const summary = computed(() => {
   const sum = (statusRaw) => list
     .filter((s) => s.statusRaw === statusRaw)
     .reduce((a, b) => a + (Number.isFinite(Number(b.amount)) ? Number(b.amount) : 0), 0)
-  return {
-    count: list.length,
-    generated: sum(0),
-    confirmed: sum(1),
-    paid: sum(2),
-    totalAmount: list.reduce((a, b) => a + (Number.isFinite(Number(b.amount)) ? Number(b.amount) : 0), 0)
-  }
+  // 计数使用后端 total（筛选条件下全量）；金额仅统计当前页
+  return { count: total.value, generated: sum(0), confirmed: sum(1), paid: sum(2) }
 })
-const filteredStatements = computed(() => {
-  const k = filters.keyword.trim()
-  return statements.value.filter((s) => {
-    if (filters.status !== '' && s.statusRaw !== null && s.statusRaw !== filters.status) return false
-    if (filters.period !== undefined && filters.period !== '全部' && s.period !== filters.period) return false
-    return !k || s.id.includes(k) || s.phoneNumber.includes(k) || s.operatorName.includes(k)
-  })
-})
-const pagedStatements = computed(() => filteredStatements.value.slice((listPage.value - 1) * 6, listPage.value * 6))
-const pagedRules = computed(() => rules.value.slice((rulePage.value - 1) * 6, rulePage.value * 6))
+const pageFoot = computed(() => (statements.value.length ? `仅当前页 ${statements.value.length} 条` : '当前页暂无记录'))
 /** 后端 status: 0 已生成 / 1 已确认 / 2 已付款 → 步骤 active index */
 const stepActive = computed(() => {
   const raw = detail.value?.statusRaw
@@ -271,37 +294,103 @@ const stepActive = computed(() => {
   if (raw === 0) return 1
   return 0
 })
+function toError(err) {
+  if (err?.status === 403 || err?.code === 403) {
+    return { kind: 'forbidden', message: '当前账号没有访问该模块的权限。' }
+  }
+  if (err?.raw || /连接异常/.test(err?.message || '')) {
+    return { kind: 'network', message: '网络或服务异常，请稍后重试。' }
+  }
+  return { kind: 'error', message: err?.payload?.msg || err?.message || '加载失败，请稍后重试。' }
+}
+
+function keywordQuery() {
+  const keyword = filters.keyword.trim()
+  if (!keyword) return {}
+  // 后端 settlementNo 为 LIKE 查询、phoneNumber 为等值查询；手机号型关键字走手机号
+  return /^1\d{10}$/.test(keyword) ? { phoneNumber: keyword } : { settlementNo: keyword }
+}
+
 const loadList = async () => {
-  loading.value = true
-  try { statements.value = await listStatements({ status: filters.status, keyword: filters.keyword }) }
-  finally { loading.value = false }
+  try {
+    const res = await listStatements({
+      pageNum: listPage.value,
+      pageSize: pageSize.value,
+      status: filters.status,
+      ...keywordQuery()
+    })
+    statements.value = res.list
+    total.value = res.total
+    listError.value = null
+  } catch (err) {
+    statements.value = []
+    total.value = null
+    listError.value = toError(err)
+  }
+}
+const loadRules = async () => {
+  try {
+    const res = await listPriceRules({ pageNum: rulePage.value, pageSize: ruleSize.value })
+    rules.value = res.rules
+    rulesTotal.value = res.total
+    deductions.value = res.deductions
+    rulesError.value = null
+  } catch (err) {
+    rules.value = []
+    rulesTotal.value = null
+    deductions.value = []
+    rulesError.value = toError(err)
+  }
 }
 async function load() {
   loading.value = true
-  try {
-    const [list, price] = await Promise.all([loadList(), listPriceRules()])
-    statements.value = list
-    rules.value = price.rules || []
-    deductions.value = price.deductions || []
-  } finally {
-    loading.value = false
-  }
+  await Promise.all([loadList(), loadRules()])
+  loading.value = false
 }
 onMounted(load)
 
+function applyFilter() {
+  listPage.value = 1
+  loadList()
+}
+function onListSize() {
+  listPage.value = 1
+  loadList()
+}
+function onRuleSize() {
+  rulePage.value = 1
+  loadRules()
+}
 function resetFilters() {
   filters.status = ''
   filters.period = undefined
   filters.keyword = ''
   listPage.value = 1
+  loadList()
 }
 async function openDetail(row) {
   // 后端详情接口 GET /settlement/{id} 接收 Long 主键（字符串序列化）
   const id = row.raw?.id ?? row.id
-  detail.value = await getStatement(id, statements.value)
-  // 结算明细独立接口 GET /settlement/items/{id}
-  detailItems.value = await getStatementItems(id).catch(() => [])
   detailOpen.value = true
+  detailLoading.value = true
+  detailError.value = null
+  itemsError.value = null
+  detail.value = null
+  detailItems.value = []
+  try {
+    detail.value = await getStatement(id, statements.value)
+    if (!detail.value) detailError.value = { kind: 'error', message: '未找到该结算单详情。' }
+  } catch (err) {
+    detailError.value = toError(err)
+  }
+  try {
+    // 结算明细独立接口 GET /settlement/items/{id}；失败与空数据分开处理
+    detailItems.value = await getStatementItems(id)
+  } catch (err) {
+    itemsError.value = toError(err)
+  } finally {
+    detailLoading.value = false
+  }
 }
 async function reviewStatement(row) {
   try { await ElMessageBox.confirm(`确认结算单 ${row.id} 进入「已确认」状态？后端记录变更时间和操作人。`, '结算确认', { type: 'warning', confirmButtonText: '确认变更' }) } catch { return }
@@ -368,7 +457,7 @@ async function savePrice() {
     const res = await updatePriceRule({ id: priceEdit.id, price: Number(priceEdit.price), workType: Number(priceEdit.workType), grade: priceEdit.grade, minArea: Number(priceEdit.minArea || 0), maxArea: priceEdit.maxArea == null ? null : Number(priceEdit.maxArea), status: priceEdit.status })
     ElMessage.success(res.message)
     priceOpen.value = false
-    await listPriceRules().then((p) => { rules.value = p.rules || [] })
+    await loadRules()
   } catch (error) {
     ElMessage.error('单价规则更新失败：' + (error?.payload?.msg || error?.message || '未知错误'))
   }
@@ -383,11 +472,6 @@ async function saveNewRule() {
   ElMessage.info('后端已提供 POST /pricingRule 新增接口，本轮未启用新增按钮的真实提交。请由 S10 补接。')
   addOpen.value = false
 }
-async function saveCycle() {
-  // 后端无结算周期配置表和 API；当前页面的 cycle 表单为纯前端展示
-  ElMessage.warning('后端暂无结算周期配置接口。结算周期由 SettlementServiceImpl.generate(periodType/Start/End) 参数决定，无需全局配置。')
-}
-
 function downloadCsv(rows, filename) {
   const csv = '\uFEFF' + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n')
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
@@ -400,10 +484,10 @@ function downloadCsv(rows, filename) {
 function exportCsv() {
   const rows = [
     ['结算单号', '机手手机号', '周期', '作业面积(亩)', '结算金额(元)', '状态'],
-    ...filteredStatements.value.map((s) => [s.id, s.phoneNumber || s.operatorName, s.period, s.area !== null && s.area !== undefined ? s.area : '', s.amount !== null && s.amount !== undefined ? s.amount : '', statusLabel(s.statusRaw)])
+    ...statements.value.map((s) => [s.id, s.phoneNumber || s.operatorName, s.period, s.area !== null && s.area !== undefined ? s.area : '', s.amount !== null && s.amount !== undefined ? s.amount : '', statusLabel(s.statusRaw)])
   ]
-  downloadCsv(rows, `结算单_${new Date().toISOString().slice(0, 10)}.csv`)
-  ElMessage.success(`已导出 ${rows.length - 1} 条结算记录`)
+  downloadCsv(rows, `结算单_当前页_${new Date().toISOString().slice(0, 10)}.csv`)
+  ElMessage.success(`已导出当前页 ${rows.length - 1} 条结算记录`)
 }
 </script>
 

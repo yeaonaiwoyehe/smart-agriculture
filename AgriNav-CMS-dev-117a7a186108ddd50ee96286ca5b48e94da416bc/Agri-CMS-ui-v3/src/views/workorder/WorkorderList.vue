@@ -8,7 +8,7 @@
     </PageHeader>
 
     <div class="grid cols-4">
-      <StatCard label="作业单总数" :value="stats.total" unit="单" icon="Tickets" :foot="`覆盖 ${displayDistrictCount} 个片区`" />
+      <StatCard label="有效轨迹总数" :value="stats.total" unit="条" icon="Tickets" :foot="`来自有效轨迹接口，非作业单 · ${displayDistrictCount} 个片区`" />
       <StatCard label="未终审轨迹" :value="stats.pending" unit="单" icon="DataLine" tone="amber" foot="无终审结果的有效轨迹数" />
       <StatCard label="待队长初核" :value="stats.review" unit="单" icon="View" tone="blue" foot="含待初核与已通过初核的复核申请" />
       <StatCard label="已驳回复核" :value="stats.abnormal" unit="单" icon="Warning" tone="red" foot="含初核驳回与终审驳回" />

@@ -1,343 +1,698 @@
 <template>
-  <div class="page" v-loading="loading">
+  <div class="page">
     <PageHeader title="权限与审计" code="MP-06" group="系统管理"
-      desc="用户身份与数据范围由后端校验 · 全链路留痕，越权请求在接口层直接拦截并生成告警。">
-      <template #actions><el-button :icon="Refresh" @click="load">刷新</el-button></template>
+      desc="用户身份与数据范围由后端校验 · 全链路留痕，越权请求在接口层直接拦截。">
+      <template #actions>
+        <el-button :icon="Refresh" :loading="currentLoading" @click="reloadCurrent">刷新</el-button>
+      </template>
     </PageHeader>
 
-    <div v-for="a in highAlarms" :key="a.id" class="alarm-bar">
-      <span class="alarm-ico"><el-icon :size="16"><WarningFilled /></el-icon></span>
-      <div class="alarm-main">
-        <div class="alarm-title"><span class="tag red no-dot">高</span>{{ a.title }}</div>
-        <div class="alarm-detail">{{ a.detail }}</div>
-      </div>
-      <span class="mono hint alarm-time">{{ a.at }}</span>
-      <StatusTag :status="a.status" />
-      <el-button type="danger" plain size="small" @click="handleAlarm(a)">处理</el-button>
-    </div>
-
-    <div class="grid cols-3 mt-2">
-      <div v-for="a in normalAlarms" :key="a.id" class="card alarm-card">
-        <div class="flex between center"><span class="tag" :class="levelTone(a.level)">{{ a.level }}风险</span><StatusTag :status="a.status" /></div>
-        <div class="alarm-card-title">{{ a.title }}</div>
-        <div class="alarm-card-desc">{{ a.detail }}</div>
-        <div class="alarm-card-foot"><span class="mono hint">{{ a.at }}</span><el-button link type="primary" size="small" @click="handleAlarm(a)">处理</el-button></div>
-      </div>
-    </div>
+    <el-alert class="mt-2" type="info" :closable="false" show-icon
+      title="系统运行告警接口待接入"
+      description="后端暂未提供系统运行告警数据契约，本区域不再使用模拟数据。" />
 
     <el-tabs v-model="tab" class="mt-3">
+      <!-- ==================== 用户管理 ==================== -->
       <el-tab-pane label="用户管理" name="users">
         <div class="filter-bar">
-          <el-input v-model="uKey" placeholder="姓名 / 手机号" clearable style="width: 190px" :prefix-icon="Search" />
-          <el-select v-model="uRole" style="width: 150px"><el-option label="全部角色" value="全部" /><el-option v-for="r in roles" :key="r.id" :label="r.name" :value="r.code" /></el-select>
-          <span class="filter-hint grow">数据范围由角色决定，停用后立即失效</span>
-          <el-button type="primary" :icon="Plus" @click="openUser">新增用户</el-button>
+          <el-input v-model="userFilters.userName" placeholder="用户账号" clearable style="width: 170px"
+            :prefix-icon="Search" @keyup.enter="apply('users')" />
+          <el-input v-model="userFilters.phonenumber" placeholder="手机号" clearable style="width: 160px"
+            @keyup.enter="apply('users')" />
+          <el-select v-model="userFilters.status" style="width: 120px" @change="apply('users')">
+            <el-option label="全部状态" value="" />
+            <el-option label="正常" value="0" />
+            <el-option label="停用" value="1" />
+          </el-select>
+          <el-button type="primary" @click="apply('users')">查询</el-button>
+          <el-button @click="resetUsers">重置</el-button>
+          <span class="filter-hint grow">数据范围由角色决定；本页暂不开放用户写操作</span>
         </div>
-        <PanelCard flush>
-          <el-table :data="pagedUsers" size="small" style="width: 100%">
-            <el-table-column label="姓名" min-width="118"><template #default="{ row }"><div class="cell-main">{{ row.name }}</div><div class="cell-sub mono">{{ row.id }}</div></template></el-table-column>
-            <el-table-column prop="phone" label="手机号" min-width="126"><template #default="{ row }"><span class="mono">{{ row.phone }}</span></template></el-table-column>
-            <el-table-column label="角色" min-width="118"><template #default="{ row }"><span class="tag" :class="roleTone(row.role)">{{ row.roleName }}</span></template></el-table-column>
-            <el-table-column prop="district" label="数据范围" min-width="98" />
-            <el-table-column label="状态" width="86" align="center"><template #default="{ row }"><el-switch :model-value="row.status === '启用'" @change="toggleStatus(row)" /></template></el-table-column>
-            <el-table-column prop="lastLogin" label="最后登录" min-width="130"><template #default="{ row }"><span class="mono">{{ row.lastLogin }}</span></template></el-table-column>
-            <el-table-column label="操作" width="94"><template #default="{ row }"><el-button link type="primary" size="small" @click="resetPwd(row)">重置密码</el-button></template></el-table-column>
-          </el-table>
-          <div class="panel-pager"><el-pagination v-model:current-page="uPage" :page-size="5" :total="filteredUsers.length" layout="total, prev, pager, next" small /></div>
-        </PanelCard>
-      </el-tab-pane>
 
-      <el-tab-pane label="角色权限" name="roles">
-        <div class="grid cols-4">
-          <div v-for="r in roles" :key="r.id" class="card role-box">
-            <div class="flex between center"><span class="strong">{{ r.name }}</span><span class="tag blue no-dot">{{ r.code }}</span></div>
-            <div class="role-row"><span class="hint">数据范围</span><b>{{ r.scope }}</b></div>
-            <div class="role-row"><span class="hint">用户数</span><b>{{ r.users }} 人</b></div>
-            <div class="role-perms mt-2">
-              <span v-for="p in r.perms.slice(0, 4)" :key="p" class="tag no-dot gray">{{ p }}</span>
-              <span v-if="r.perms.length > 4" class="tag no-dot outline">+{{ r.perms.length - 4 }}</span>
-            </div>
-            <el-button size="small" type="primary" plain class="role-btn" @click="openRole(r)">配置权限</el-button>
+        <div v-if="state.users.error" class="state-block">
+          <el-alert :type="alertType(state.users.error)" :closable="false" show-icon :title="state.users.error.message" />
+          <el-button v-if="state.users.error.kind !== 'forbidden'" size="small" @click="loadUsers">重新加载</el-button>
+        </div>
+        <PanelCard v-else flush>
+          <div v-loading="state.users.loading">
+            <el-table v-if="state.users.list.length" :data="state.users.list" size="small" style="width: 100%">
+              <el-table-column prop="userName" label="用户账号" min-width="120" />
+              <el-table-column prop="nickName" label="昵称" min-width="100" />
+              <el-table-column label="手机号" min-width="126">
+                <template #default="{ row }"><span class="mono">{{ row.phone || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="email" label="邮箱" min-width="150" show-overflow-tooltip />
+              <el-table-column prop="deptName" label="部门" min-width="110">
+                <template #default="{ row }">{{ row.deptName || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="状态" width="90" align="center">
+                <template #default="{ row }"><StatusTag :status="row.statusLabel" /></template>
+              </el-table-column>
+              <el-table-column label="最后登录" min-width="140">
+                <template #default="{ row }"><span class="mono">{{ row.loginDate || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column label="登录IP" min-width="120">
+                <template #default="{ row }"><span class="mono">{{ row.loginIp || '—' }}</span></template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else-if="!state.users.loading" description="暂无数据" />
           </div>
-        </div>
-        <PanelCard title="权限矩阵" sub="模块 × 角色 · 由角色权限项自动推导" class="mt-3" flush>
-          <el-table :data="MATRIX" size="small" style="width: 100%">
-            <el-table-column prop="module" label="模块" min-width="150" />
-            <el-table-column v-for="r in roles" :key="r.id" :label="r.name" min-width="102" align="center">
-              <template #default="{ row }"><span :class="hasPerm(r, row.keys) ? 'chk' : 'dash'">{{ hasPerm(r, row.keys) ? '✓' : '—' }}</span></template>
-            </el-table-column>
-          </el-table>
+          <div v-if="state.users.total !== null" class="panel-pager">
+            <el-pagination v-model:current-page="state.users.page" v-model:page-size="state.users.size"
+              :page-sizes="[10, 20, 50]" :total="state.users.total"
+              layout="total, sizes, prev, pager, next" small
+              @current-change="loadUsers" @size-change="onSize('users')" />
+          </div>
         </PanelCard>
       </el-tab-pane>
 
+      <!-- ==================== 角色权限 ==================== -->
+      <el-tab-pane label="角色权限" name="roles">
+        <div class="filter-bar">
+          <el-input v-model="roleFilters.roleName" placeholder="角色名称" clearable style="width: 170px"
+            :prefix-icon="Search" @keyup.enter="apply('roles')" />
+          <el-input v-model="roleFilters.roleKey" placeholder="角色权限字符" clearable style="width: 170px"
+            @keyup.enter="apply('roles')" />
+          <el-select v-model="roleFilters.status" style="width: 120px" @change="apply('roles')">
+            <el-option label="全部状态" value="" />
+            <el-option label="正常" value="0" />
+            <el-option label="停用" value="1" />
+          </el-select>
+          <el-button type="primary" @click="apply('roles')">查询</el-button>
+          <el-button @click="resetRoles">重置</el-button>
+          <span class="filter-hint grow">角色保存与数据范围调整本阶段暂未开放</span>
+        </div>
+
+        <div v-if="state.roles.error" class="state-block">
+          <el-alert :type="alertType(state.roles.error)" :closable="false" show-icon :title="state.roles.error.message" />
+          <el-button v-if="state.roles.error.kind !== 'forbidden'" size="small" @click="loadRoles">重新加载</el-button>
+        </div>
+        <PanelCard v-else flush>
+          <div v-loading="state.roles.loading">
+            <el-table v-if="state.roles.list.length" :data="state.roles.list" size="small" style="width: 100%">
+              <el-table-column prop="roleName" label="角色名称" min-width="140" />
+              <el-table-column prop="roleKey" label="权限字符" min-width="140">
+                <template #default="{ row }"><span class="mono">{{ row.roleKey || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="roleSort" label="排序" width="80" align="center">
+                <template #default="{ row }">{{ row.roleSort ?? '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="dataScopeLabel" label="数据范围" min-width="130" />
+              <el-table-column label="状态" width="90" align="center">
+                <template #default="{ row }"><StatusTag :status="row.statusLabel" /></template>
+              </el-table-column>
+              <el-table-column label="操作" width="110">
+                <template #default="{ row }">
+                  <el-button link type="primary" size="small" @click="selectRole(row)">查看权限</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else-if="!state.roles.loading" description="暂无数据" />
+          </div>
+          <div v-if="state.roles.total !== null" class="panel-pager">
+            <el-pagination v-model:current-page="state.roles.page" v-model:page-size="state.roles.size"
+              :page-sizes="[10, 20, 50]" :total="state.roles.total"
+              layout="total, sizes, prev, pager, next" small
+              @current-change="loadRoles" @size-change="onSize('roles')" />
+          </div>
+        </PanelCard>
+
+        <PanelCard class="mt-3" :title="selectedRole ? `权限矩阵 · ${selectedRole.roleName}` : '权限矩阵'"
+          sub="基于真实菜单树与角色已选菜单推导，仅作只读展示" flush>
+          <div v-if="!selectedRole" class="pad-tip">请在角色列表中选择一个角色查看其菜单权限。</div>
+          <div v-else-if="roleMenuError" class="state-block pad-tip">
+            <el-alert :type="alertType(roleMenuError)" :closable="false" show-icon :title="roleMenuError.message" />
+            <el-button v-if="roleMenuError.kind !== 'forbidden'" size="small" @click="selectRole(selectedRole)">重新加载</el-button>
+          </div>
+          <div v-else v-loading="roleMenuLoading || menuLoading" class="matrix-wrap">
+            <el-alert v-if="menuError" type="error" :closable="false" show-icon :title="menuError.message" />
+            <el-table v-else-if="menuTree.length" :data="menuTree" size="small" style="width: 100%">
+              <el-table-column prop="label" label="模块 / 菜单" min-width="240" />
+              <el-table-column label="是否授权" width="120" align="center">
+                <template #default="{ row }">
+                  <span :class="isGranted(row) ? 'chk' : 'dash'">{{ isGranted(row) ? '✓' : '—' }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else-if="!roleMenuLoading && !menuLoading" description="菜单树为空" />
+          </div>
+        </PanelCard>
+      </el-tab-pane>
+
+      <!-- ==================== 登录日志 ==================== -->
       <el-tab-pane label="登录日志" name="login">
         <div class="filter-bar">
-          <el-select v-model="lResult" style="width: 120px"><el-option label="全部结果" value="全部" /><el-option label="成功" value="成功" /><el-option label="失败" value="失败" /></el-select>
-          <el-input v-model="lKey" placeholder="用户 / IP" clearable style="width: 200px" :prefix-icon="Search" />
-          <span class="filter-hint grow">失败登录已写入风控记录</span>
+          <el-input v-model="loginFilters.userName" placeholder="用户账号" clearable style="width: 160px"
+            :prefix-icon="Search" @keyup.enter="apply('login')" />
+          <el-input v-model="loginFilters.ipaddr" placeholder="登录 IP" clearable style="width: 150px"
+            @keyup.enter="apply('login')" />
+          <el-select v-model="loginFilters.status" style="width: 120px" @change="apply('login')">
+            <el-option label="全部结果" value="" />
+            <el-option label="成功" value="0" />
+            <el-option label="失败" value="1" />
+          </el-select>
+          <el-date-picker v-model="loginFilters.dateRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss"
+            start-placeholder="开始时间" end-placeholder="结束时间" style="width: 340px" />
+          <el-button type="primary" @click="apply('login')">查询</el-button>
+          <el-button @click="resetLogin">重置</el-button>
         </div>
-        <PanelCard flush>
-          <el-table :data="pagedLogin" size="small" style="width: 100%">
-            <el-table-column prop="at" label="时间" min-width="132"><template #default="{ row }"><span class="mono">{{ row.at }}</span></template></el-table-column>
-            <el-table-column label="用户" min-width="94"><template #default="{ row }"><div class="cell-main">{{ row.user }}</div><div class="cell-sub">{{ roleLabel(row.role) }}</div></template></el-table-column>
-            <el-table-column prop="ip" label="IP" min-width="112"><template #default="{ row }"><span class="mono">{{ row.ip }}</span></template></el-table-column>
-            <el-table-column prop="ua" label="登录方式" min-width="140" />
-            <el-table-column prop="location" label="地点" min-width="106" />
-            <el-table-column label="结果" width="82" align="center"><template #default="{ row }"><StatusTag :status="row.result" /></template></el-table-column>
-          </el-table>
-          <div class="panel-pager"><el-pagination v-model:current-page="lPage" :page-size="5" :total="filteredLogin.length" layout="total, prev, pager, next" small /></div>
+
+        <div v-if="state.login.error" class="state-block">
+          <el-alert :type="alertType(state.login.error)" :closable="false" show-icon :title="state.login.error.message" />
+          <el-button v-if="state.login.error.kind !== 'forbidden'" size="small" @click="loadLogin">重新加载</el-button>
+        </div>
+        <PanelCard v-else flush>
+          <div v-loading="state.login.loading">
+            <el-table v-if="state.login.list.length" :data="state.login.list" size="small" style="width: 100%">
+              <el-table-column label="登录时间" min-width="140">
+                <template #default="{ row }"><span class="mono">{{ row.loginTime || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="userName" label="用户账号" min-width="110" />
+              <el-table-column label="IP" min-width="112">
+                <template #default="{ row }"><span class="mono">{{ row.ip || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="location" label="登录地点" min-width="120">
+                <template #default="{ row }">{{ row.location || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="browserInfo" label="浏览器 / 系统" min-width="150">
+                <template #default="{ row }">{{ row.browserInfo || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="结果" width="86" align="center">
+                <template #default="{ row }"><StatusTag :status="row.result" /></template>
+              </el-table-column>
+              <el-table-column prop="message" label="消息" min-width="150" show-overflow-tooltip>
+                <template #default="{ row }">{{ row.message || '—' }}</template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else-if="!state.login.loading" description="暂无数据" />
+          </div>
+          <div v-if="state.login.total !== null" class="panel-pager">
+            <el-pagination v-model:current-page="state.login.page" v-model:page-size="state.login.size"
+              :page-sizes="[10, 20, 50]" :total="state.login.total"
+              layout="total, sizes, prev, pager, next" small
+              @current-change="loadLogin" @size-change="onSize('login')" />
+          </div>
         </PanelCard>
       </el-tab-pane>
 
-      <el-tab-pane label="操作日志" name="operation">
+      <!-- ==================== 操作日志 ==================== -->
+      <el-tab-pane label="操作日志" name="oper">
         <div class="filter-bar">
-          <el-select v-model="opModule" style="width: 150px"><el-option label="全部模块" value="全部" /><el-option v-for="m in opModules" :key="m" :label="m" :value="m" /></el-select>
-          <span class="filter-hint grow">所有写操作均记录操作人、IP 与业务详情</span>
+          <el-input v-model="operFilters.title" placeholder="操作模块" clearable style="width: 150px"
+            :prefix-icon="Search" @keyup.enter="apply('oper')" />
+          <el-input v-model="operFilters.operName" placeholder="操作人" clearable style="width: 130px"
+            @keyup.enter="apply('oper')" />
+          <el-select v-model="operFilters.businessType" style="width: 130px" @change="apply('oper')">
+            <el-option label="全部类型" value="" />
+            <el-option v-for="t in BUSINESS_TYPES" :key="t.value" :label="t.label" :value="t.value" />
+          </el-select>
+          <el-select v-model="operFilters.status" style="width: 120px" @change="apply('oper')">
+            <el-option label="全部状态" value="" />
+            <el-option label="正常" value="0" />
+            <el-option label="异常" value="1" />
+          </el-select>
+          <el-date-picker v-model="operFilters.dateRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss"
+            start-placeholder="开始时间" end-placeholder="结束时间" style="width: 340px" />
+          <el-button type="primary" @click="apply('oper')">查询</el-button>
+          <el-button @click="resetOper">重置</el-button>
         </div>
-        <PanelCard flush>
-          <el-table :data="pagedOps" size="small" style="width: 100%">
-            <el-table-column prop="at" label="时间" min-width="132"><template #default="{ row }"><span class="mono">{{ row.at }}</span></template></el-table-column>
-            <el-table-column prop="user" label="操作人" width="86" />
-            <el-table-column prop="action" label="操作" min-width="118"><template #default="{ row }"><span class="cell-main">{{ row.action }}</span></template></el-table-column>
-            <el-table-column label="模块" width="110"><template #default="{ row }"><span class="tag no-dot">{{ row.module }}</span></template></el-table-column>
-            <el-table-column prop="detail" label="详情" min-width="230" show-overflow-tooltip />
-            <el-table-column label="结果" width="82" align="center"><template #default="{ row }"><StatusTag :status="row.result" /></template></el-table-column>
-          </el-table>
-          <div class="panel-pager"><el-pagination v-model:current-page="oPage" :page-size="5" :total="filteredOps.length" layout="total, prev, pager, next" small /></div>
+
+        <div v-if="state.oper.error" class="state-block">
+          <el-alert :type="alertType(state.oper.error)" :closable="false" show-icon :title="state.oper.error.message" />
+          <el-button v-if="state.oper.error.kind !== 'forbidden'" size="small" @click="loadOper">重新加载</el-button>
+        </div>
+        <PanelCard v-else flush>
+          <div v-loading="state.oper.loading">
+            <el-table v-if="state.oper.list.length" :data="state.oper.list" size="small" style="width: 100%">
+              <el-table-column label="操作时间" min-width="140">
+                <template #default="{ row }"><span class="mono">{{ row.operTime || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="title" label="操作模块" min-width="120" />
+              <el-table-column prop="operator" label="操作人" min-width="100">
+                <template #default="{ row }">{{ row.operator || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="businessTypeLabel" label="操作类型" width="100" />
+              <el-table-column label="IP" min-width="112">
+                <template #default="{ row }"><span class="mono">{{ row.ip || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="location" label="操作地点" min-width="120">
+                <template #default="{ row }">{{ row.location || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="状态" width="86" align="center">
+                <template #default="{ row }"><StatusTag :status="row.statusLabel" /></template>
+              </el-table-column>
+              <el-table-column label="耗时" width="90" align="right">
+                <template #default="{ row }"><span class="mono">{{ msText(row.costTime) }}</span></template>
+              </el-table-column>
+              <el-table-column label="操作" width="80">
+                <template #default="{ row }">
+                  <el-button link type="primary" size="small" @click="openOperDetail(row)">详情</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else-if="!state.oper.loading" description="暂无数据" />
+          </div>
+          <div v-if="state.oper.total !== null" class="panel-pager">
+            <el-pagination v-model:current-page="state.oper.page" v-model:page-size="state.oper.size"
+              :page-sizes="[10, 20, 50]" :total="state.oper.total"
+              layout="total, sizes, prev, pager, next" small
+              @current-change="loadOper" @size-change="onSize('oper')" />
+          </div>
         </PanelCard>
       </el-tab-pane>
 
-      <el-tab-pane label="审计记录" name="audit">
-        <div class="filter-bar">
-          <el-input v-model="auKey" placeholder="对象 / 动作 / 原因" clearable style="width: 220px" :prefix-icon="Search" />
-          <span class="filter-hint grow">审计记录不可编辑，仅可查询与导出</span>
+      <!-- ==================== 权限审计（只读快照） ==================== -->
+      <el-tab-pane label="权限审计" name="audit">
+        <div v-if="!isAdmin" class="state-block">
+          <el-alert type="warning" :closable="false" show-icon title="当前账号没有访问该模块的权限。" />
         </div>
-        <PanelCard flush>
-          <el-table :data="pagedAudit" size="small" style="width: 100%">
-            <el-table-column prop="at" label="时间" min-width="132"><template #default="{ row }"><span class="mono">{{ row.at }}</span></template></el-table-column>
-            <el-table-column prop="target" label="对象" min-width="150"><template #default="{ row }"><span class="cell-main">{{ row.target }}</span></template></el-table-column>
-            <el-table-column prop="action" label="动作" width="108" />
-            <el-table-column prop="user" label="操作人" width="82" />
-            <el-table-column label="变更前 → 变更后" min-width="196">
-              <template #default="{ row }"><span class="before">{{ row.before }}</span><el-icon :size="11" class="arrow"><Right /></el-icon><span class="after">{{ row.after }}</span></template>
-            </el-table-column>
-            <el-table-column prop="reason" label="原因" min-width="196" show-overflow-tooltip />
-          </el-table>
-          <div class="panel-pager"><el-pagination v-model:current-page="aPage" :page-size="5" :total="filteredAudit.length" layout="total, prev, pager, next" small /></div>
-        </PanelCard>
+        <template v-else>
+          <div v-if="state.audit.error" class="state-block">
+            <el-alert :type="alertType(state.audit.error)" :closable="false" show-icon :title="state.audit.error.message" />
+            <el-button v-if="state.audit.error.kind !== 'forbidden'" size="small" @click="loadAudit">重新加载</el-button>
+          </div>
+          <div v-else v-loading="state.audit.loading">
+            <template v-if="state.audit.snapshot">
+              <div class="grid cols-4">
+                <div class="card stat"><div class="stat-label">用户总数</div><div class="stat-value">{{ numText(state.audit.snapshot.summary?.userCount) }}</div></div>
+                <div class="card stat"><div class="stat-label">角色总数</div><div class="stat-value">{{ numText(state.audit.snapshot.summary?.roleCount) }}</div></div>
+                <div class="card stat"><div class="stat-label">无有效角色用户</div><div class="stat-value">{{ numText(state.audit.snapshot.summary?.usersWithoutRole) }}</div></div>
+                <div class="card stat"><div class="stat-label">越权告警数</div><div class="stat-value">{{ numText(state.audit.snapshot.summary?.violationCount) }}</div></div>
+              </div>
+
+              <PanelCard class="mt-3" title="用户权限分配" sub="只读 · 来自 /permission/audit" flush>
+                <el-table v-if="state.audit.snapshot.userPermissions.length" :data="state.audit.snapshot.userPermissions" size="small" style="width: 100%">
+                  <el-table-column prop="userName" label="用户账号" min-width="110" />
+                  <el-table-column prop="nickName" label="昵称" min-width="100" />
+                  <el-table-column prop="roleName" label="角色" min-width="130">
+                    <template #default="{ row }">{{ row.roleName || '—' }}</template>
+                  </el-table-column>
+                  <el-table-column prop="roleKey" label="权限字符" min-width="120">
+                    <template #default="{ row }"><span class="mono">{{ row.roleKey || '—' }}</span></template>
+                  </el-table-column>
+                  <el-table-column prop="dataScopeLabel" label="数据范围" min-width="130" />
+                  <el-table-column label="角色有效" width="90" align="center">
+                    <template #default="{ row }">{{ row.validRole ? '是' : '否' }}</template>
+                  </el-table-column>
+                  <el-table-column prop="risk" label="风险说明" min-width="200" show-overflow-tooltip />
+                </el-table>
+                <el-empty v-else description="暂无数据" />
+              </PanelCard>
+
+              <PanelCard class="mt-3" title="角色概况" sub="只读 · 角色与实际用户数" flush>
+                <el-table v-if="state.audit.snapshot.roles.length" :data="state.audit.snapshot.roles" size="small" style="width: 100%">
+                  <el-table-column prop="roleName" label="角色名称" min-width="140" />
+                  <el-table-column prop="roleKey" label="权限字符" min-width="140">
+                    <template #default="{ row }"><span class="mono">{{ row.roleKey || '—' }}</span></template>
+                  </el-table-column>
+                  <el-table-column prop="dataScopeLabel" label="数据范围" min-width="140" />
+                  <el-table-column prop="userCount" label="用户数" width="90" align="right">
+                    <template #default="{ row }"><span class="mono">{{ numText(row.userCount) }}</span></template>
+                  </el-table-column>
+                </el-table>
+                <el-empty v-else description="暂无数据" />
+              </PanelCard>
+
+              <PanelCard class="mt-3" title="越权告警" sub="只读 · 来自智能体审计记录中的权限拒绝" flush>
+                <el-table v-if="state.audit.snapshot.violations.length" :data="state.audit.snapshot.violations" size="small" style="width: 100%">
+                  <el-table-column label="时间" min-width="140">
+                    <template #default="{ row }"><span class="mono">{{ row.createTime || '—' }}</span></template>
+                  </el-table-column>
+                  <el-table-column prop="userName" label="用户账号" min-width="110">
+                    <template #default="{ row }">{{ row.userName || row.userId || '—' }}</template>
+                  </el-table-column>
+                  <el-table-column prop="toolName" label="工具" min-width="120">
+                    <template #default="{ row }">{{ row.toolName || '—' }}</template>
+                  </el-table-column>
+                  <el-table-column label="状态" width="110" align="center">
+                    <template #default="{ row }"><StatusTag :status="row.statusLabel" /></template>
+                  </el-table-column>
+                  <el-table-column prop="detail" label="详情" min-width="240" show-overflow-tooltip />
+                </el-table>
+                <el-empty v-else description="暂无越权告警" />
+              </PanelCard>
+
+              <PanelCard class="mt-3" title="风险提示">
+                <ul v-if="state.audit.snapshot.risks.length" class="risk-list">
+                  <li v-for="(risk, i) in state.audit.snapshot.risks" :key="i">{{ risk }}</li>
+                </ul>
+                <div v-else class="pad-tip">暂无风险提示。</div>
+              </PanelCard>
+            </template>
+            <el-empty v-else-if="!state.audit.loading" description="暂无数据" />
+          </div>
+        </template>
       </el-tab-pane>
 
+      <!-- ==================== Agent 调用日志 ==================== -->
       <el-tab-pane label="Agent 调用日志" name="agent">
         <div class="filter-bar">
-          <el-select v-model="aAgent" style="width: 136px"><el-option label="全部 Agent" value="全部" /><el-option v-for="a in agentOptions" :key="a" :label="a" :value="a" /></el-select>
-          <el-select v-model="aResult" style="width: 120px"><el-option label="全部结果" value="全部" /><el-option label="成功" value="成功" /><el-option label="失败" value="失败" /></el-select>
-          <span class="filter-hint grow">Agent 仅读取业务数据，写操作须人工审批</span>
+          <el-input v-model="agentFilters.userName" placeholder="用户账号" clearable style="width: 150px"
+            :prefix-icon="Search" @keyup.enter="apply('agent')" />
+          <el-input v-model="agentFilters.intent" placeholder="意图" clearable style="width: 130px"
+            @keyup.enter="apply('agent')" />
+          <el-select v-model="agentFilters.status" style="width: 140px" @change="apply('agent')">
+            <el-option label="全部状态" value="" />
+            <el-option label="已回复" value="REPLY" />
+            <el-option label="待确认" value="NEED_CONFIRM" />
+            <el-option label="待补充参数" value="NEED_PARAMS" />
+            <el-option label="失败" value="FAILED" />
+          </el-select>
+          <el-select v-model="agentFilters.side" style="width: 120px" @change="apply('agent')">
+            <el-option label="全部端" value="" />
+            <el-option label="农机端" value="ag" />
+            <el-option label="管理端" value="ma" />
+          </el-select>
+          <el-date-picker v-model="agentFilters.dateRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss"
+            start-placeholder="开始时间" end-placeholder="结束时间" style="width: 330px" />
+          <el-button type="primary" @click="apply('agent')">查询</el-button>
+          <el-button @click="resetAgent">重置</el-button>
         </div>
-        <PanelCard flush>
-          <el-table :data="pagedAgent" size="small" style="width: 100%">
-            <el-table-column prop="at" label="时间" min-width="132"><template #default="{ row }"><span class="mono">{{ row.at }}</span></template></el-table-column>
-            <el-table-column label="Agent" width="82"><template #default="{ row }"><span class="tag violet no-dot">{{ row.agent }}</span></template></el-table-column>
-            <el-table-column prop="user" label="用户" width="72" />
-            <el-table-column prop="question" label="问题" min-width="188" show-overflow-tooltip />
-            <el-table-column label="结果" width="80" align="center"><template #default="{ row }"><StatusTag :status="row.result" /></template></el-table-column>
-            <el-table-column label="耗时" width="76" align="right"><template #default="{ row }"><span class="num">{{ (row.ms / 1000).toFixed(1) }}s</span></template></el-table-column>
-            <el-table-column label="Token" width="76" align="right"><template #default="{ row }"><span class="num">{{ row.tokens }}</span></template></el-table-column>
-            <el-table-column label="工具" width="62" align="right"><template #default="{ row }"><span class="num">{{ row.toolCalls }}</span></template></el-table-column>
-            <el-table-column label="错误信息" min-width="160" show-overflow-tooltip><template #default="{ row }"><span class="hint" style="font-size: 11px">{{ row.error || '—' }}</span></template></el-table-column>
-          </el-table>
-          <div class="panel-pager"><el-pagination v-model:current-page="gPage" :page-size="6" :total="filteredAgent.length" layout="total, prev, pager, next" small /></div>
+
+        <div v-if="state.agent.error" class="state-block">
+          <el-alert :type="alertType(state.agent.error)" :closable="false" show-icon :title="state.agent.error.message" />
+          <el-button v-if="state.agent.error.kind !== 'forbidden'" size="small" @click="loadAgent">重新加载</el-button>
+        </div>
+        <PanelCard v-else flush>
+          <div v-loading="state.agent.loading">
+            <el-table v-if="state.agent.list.length" :data="state.agent.list" size="small" style="width: 100%">
+              <el-table-column label="时间" min-width="140">
+                <template #default="{ row }"><span class="mono">{{ row.createTime || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="user" label="用户" min-width="100" />
+              <el-table-column label="端" width="86" align="center">
+                <template #default="{ row }">{{ sideText(row.side) }}</template>
+              </el-table-column>
+              <el-table-column prop="intent" label="意图" min-width="110">
+                <template #default="{ row }">{{ row.intent || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="question" label="用户问题" min-width="200" show-overflow-tooltip />
+              <el-table-column label="工具" min-width="120">
+                <template #default="{ row }">{{ row.toolName || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="状态" width="110" align="center">
+                <template #default="{ row }"><StatusTag :status="row.statusLabel" /></template>
+              </el-table-column>
+              <el-table-column label="耗时" width="90" align="right">
+                <template #default="{ row }"><span class="mono">{{ msText(row.costMs) }}</span></template>
+              </el-table-column>
+              <el-table-column label="回执号" min-width="120">
+                <template #default="{ row }"><span class="mono">{{ row.receiptNo || '—' }}</span></template>
+              </el-table-column>
+              <el-table-column prop="reply" label="回复" min-width="200" show-overflow-tooltip>
+                <template #default="{ row }">{{ row.reply || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="error" label="错误信息" min-width="180" show-overflow-tooltip>
+                <template #default="{ row }">{{ row.error || '—' }}</template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else-if="!state.agent.loading" description="暂无数据" />
+          </div>
+          <div v-if="state.agent.total !== null" class="panel-pager">
+            <el-pagination v-model:current-page="state.agent.page" v-model:page-size="state.agent.size"
+              :page-sizes="[10, 20, 50]" :total="state.agent.total"
+              layout="total, sizes, prev, pager, next" small
+              @current-change="loadAgent" @size-change="onSize('agent')" />
+          </div>
         </PanelCard>
       </el-tab-pane>
     </el-tabs>
 
-    <el-dialog v-model="userOpen" title="新增用户" width="460px" :close-on-click-modal="false">
-      <el-form label-width="76px">
-        <el-form-item label="姓名"><el-input v-model="newUser.name" placeholder="请输入真实姓名" /></el-form-item>
-        <el-form-item label="手机号"><el-input v-model="newUser.phone" placeholder="11 位手机号" maxlength="11" /></el-form-item>
-        <el-form-item label="角色"><el-select v-model="newUser.role" style="width: 100%"><el-option v-for="r in roles" :key="r.id" :label="r.name" :value="r.code" /></el-select></el-form-item>
-        <el-form-item label="片区"><el-select v-model="newUser.district" style="width: 100%"><el-option v-for="d in districts" :key="d" :label="d" :value="d" /></el-select></el-form-item>
-      </el-form>
-      <div class="hint-line"><el-icon :size="13"><Lock /></el-icon><span>初始密码通过短信下发，首次登录必须修改；数据范围随角色自动收敛。</span></div>
-      <template #footer><el-button @click="userOpen = false">取消</el-button><el-button type="primary" @click="saveUser">保存用户</el-button></template>
-    </el-dialog>
-
-    <el-drawer v-model="roleOpen" size="480px" :title="`配置权限 · ${roleEdit.name}`">
-      <div class="drawer-label">数据范围</div>
-      <el-radio-group v-model="roleEdit.scope" class="mt-2"><el-radio value="全公司">全公司</el-radio><el-radio value="本片区">本片区</el-radio><el-radio value="本人">本人</el-radio></el-radio-group>
-      <div class="divider" />
-      <div class="drawer-label">功能权限</div>
-      <el-checkbox-group v-model="roleEdit.perms" class="perm-grid mt-2"><el-checkbox v-for="p in permOptions" :key="p" :value="p">{{ p }}</el-checkbox></el-checkbox-group>
-      <div class="hint-line mt-3"><el-icon :size="13"><Lock /></el-icon><span>权限变更保存后立即生效，并写入审计记录；越权访问仍由接口层兜底拦截。</span></div>
-      <template #footer><el-button @click="roleOpen = false">取消</el-button><el-button type="primary" @click="saveRole">保存权限</el-button></template>
+    <el-drawer v-model="operDetailOpen" size="420px" title="操作日志详情">
+      <template v-if="operDetail">
+        <div class="detail-row"><span class="detail-label">操作模块</span><span>{{ operDetail.title || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">操作类型</span><span>{{ operDetail.businessTypeLabel || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">操作人</span><span>{{ operDetail.operator || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">操作时间</span><span class="mono">{{ operDetail.operTime || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">IP / 地点</span><span class="mono">{{ operDetail.ip || '—' }} · {{ operDetail.location || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">状态</span><StatusTag :status="operDetail.statusLabel" /></div>
+        <div class="detail-row"><span class="detail-label">耗时</span><span class="mono">{{ msText(operDetail.costTime) }}</span></div>
+        <div class="detail-row"><span class="detail-label">请求地址</span><span class="mono break">{{ operDetail.operUrl || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">错误信息</span><span class="break">{{ operDetail.errorMsg || '—' }}</span></div>
+        <div class="hint-line mt-3">请求参数可能含敏感信息，本页不展示 operParam。</div>
+      </template>
+      <el-empty v-else description="暂无数据" />
     </el-drawer>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Lock, Plus, Refresh, Search, WarningFilled } from '@element-plus/icons-vue'
-import { getAgentMonitor, getSystemData } from '@/services/api'
+import { Refresh, Search } from '@element-plus/icons-vue'
+import { isAdminUser } from '@/stores/permission'
+import {
+  listSysUsers, listSysRoles, listLoginLogs, listOperationLogs,
+  getPermissionAuditSnapshot, listAgentAuditLogs
+} from '@/services/api'
+import { roleMenuTreeselect, treeselect } from '@/api/system/menu'
 import PageHeader from '@/components/PageHeader.vue'
 import PanelCard from '@/components/PanelCard.vue'
 import StatusTag from '@/components/StatusTag.vue'
 
-const loading = ref(false)
-const tab = ref('users')
-const users = ref([])
-const roles = ref([])
-const loginLogs = ref([])
-const operationLogs = ref([])
-const auditLogs = ref([])
-const alarms = ref([])
-const agentLogs = ref([])
-const uKey = ref('')
-const uRole = ref('全部')
-const lResult = ref('全部')
-const lKey = ref('')
-const opModule = ref('全部')
-const aAgent = ref('全部')
-const aResult = ref('全部')
-const auKey = ref('')
-const uPage = ref(1)
-const lPage = ref(1)
-const oPage = ref(1)
-const aPage = ref(1)
-const gPage = ref(1)
-const userOpen = ref(false)
-const roleOpen = ref(false)
-const newUser = reactive({ name: '', phone: '', role: 'leader', district: '河东片区' })
-const roleEdit = reactive({ id: '', name: '', scope: '全公司', perms: [] })
-const districts = ['全公司', '河东片区', '河西片区', '南滩片区', '北塬片区']
-const MATRIX = [
-  { module: '地块管理', keys: ['地块'] },
-  { module: '作业调度', keys: ['派单'] },
-  { module: '轨迹与核算', keys: ['轨迹', '面积'] },
-  { module: '内部结算', keys: ['结算'] },
-  { module: '统计报表', keys: ['报表'] },
-  { module: 'Agent 中心', keys: ['Agent'] },
-  { module: '系统与审计', keys: ['审计'] }
+const BUSINESS_TYPES = [
+  { value: 0, label: '其他' },
+  { value: 1, label: '新增' },
+  { value: 2, label: '修改' },
+  { value: 3, label: '删除' },
+  { value: 4, label: '授权' },
+  { value: 5, label: '导出' },
+  { value: 6, label: '导入' },
+  { value: 7, label: '强退' },
+  { value: 8, label: '生成代码' },
+  { value: 9, label: '清空数据' }
 ]
 
-const highAlarms = computed(() => alarms.value.filter((a) => a.level === '高'))
-const normalAlarms = computed(() => alarms.value.filter((a) => a.level !== '高'))
-const opModules = computed(() => [...new Set(operationLogs.value.map((l) => l.module))])
-const agentOptions = computed(() => [...new Set(agentLogs.value.map((l) => l.agent))])
-const permOptions = computed(() => [...new Set(roles.value.flatMap((r) => r.perms))])
-const filteredUsers = computed(() => {
-  const k = uKey.value.trim()
-  return users.value.filter((u) => (uRole.value === '全部' || u.role === uRole.value) && (!k || u.name.includes(k) || u.phone.includes(k)))
-})
-const filteredLogin = computed(() => {
-  const k = lKey.value.trim()
-  return loginLogs.value.filter((l) => (lResult.value === '全部' || l.result === lResult.value) && (!k || l.user.includes(k) || l.ip.includes(k)))
-})
-const filteredOps = computed(() => (opModule.value === '全部' ? operationLogs.value : operationLogs.value.filter((l) => l.module === opModule.value)))
-const filteredAgent = computed(() => agentLogs.value.filter((l) => (aAgent.value === '全部' || l.agent === aAgent.value) && (aResult.value === '全部' || l.result === aResult.value)))
-const pagedUsers = computed(() => filteredUsers.value.slice((uPage.value - 1) * 5, uPage.value * 5))
-const pagedLogin = computed(() => filteredLogin.value.slice((lPage.value - 1) * 5, lPage.value * 5))
-const pagedOps = computed(() => filteredOps.value.slice((oPage.value - 1) * 5, oPage.value * 5))
-const filteredAudit = computed(() => {
-  const k = auKey.value.trim()
-  return k ? auditLogs.value.filter((l) => l.target.includes(k) || l.action.includes(k) || l.reason.includes(k) || l.user.includes(k)) : auditLogs.value
-})
-const pagedAudit = computed(() => filteredAudit.value.slice((aPage.value - 1) * 5, aPage.value * 5))
-const pagedAgent = computed(() => filteredAgent.value.slice((gPage.value - 1) * 6, gPage.value * 6))
+const tab = ref('users')
+const isAdmin = computed(() => isAdminUser())
 
-watch([uKey, uRole], () => (uPage.value = 1))
-watch([lResult, lKey], () => (lPage.value = 1))
-watch(opModule, () => (oPage.value = 1))
-watch(auKey, () => (aPage.value = 1))
-watch([aAgent, aResult], () => (gPage.value = 1))
+const listState = () => ({ loading: false, error: null, list: [], total: null, page: 1, size: 10 })
+const state = reactive({
+  users: listState(),
+  roles: listState(),
+  login: listState(),
+  oper: listState(),
+  agent: listState(),
+  audit: { loading: false, error: null, snapshot: null }
+})
 
-const levelTone = (level) => ({ 高: 'red', 中: 'amber', 低: 'gray' }[level] || 'gray')
-const roleTone = (code) => ({ admin: 'green', leader: 'blue', finance: 'violet', operator: 'gray' }[code] || 'gray')
-const roleLabel = (code) => roles.value.find((r) => r.code === code)?.name || code
-const hasPerm = (role, keys) => keys.some((k) => role.perms.some((p) => p.includes(k)))
+const userFilters = reactive({ userName: '', phonenumber: '', status: '' })
+const roleFilters = reactive({ roleName: '', roleKey: '', status: '' })
+const loginFilters = reactive({ userName: '', ipaddr: '', status: '', dateRange: [] })
+const operFilters = reactive({ title: '', operName: '', businessType: '', status: '', dateRange: [] })
+const agentFilters = reactive({ userName: '', intent: '', status: '', side: '', dateRange: [] })
 
-async function load() {
-  loading.value = true
+const operDetailOpen = ref(false)
+const operDetail = ref(null)
+
+/* ---------------- 菜单树与权限矩阵 ---------------- */
+const menuTree = ref([])
+const menuLoading = ref(false)
+const menuError = ref(null)
+const selectedRole = ref(null)
+const checkedKeys = ref([])
+const roleMenuLoading = ref(false)
+const roleMenuError = ref(null)
+
+const checkedKeySet = computed(() => new Set((checkedKeys.value || []).map((k) => String(k))))
+function isGranted(node) {
+  if (!node) return false
+  if (checkedKeySet.value.has(String(node.id))) return true
+  return Array.isArray(node.children) && node.children.some(isGranted)
+}
+
+/* ---------------- 通用工具 ---------------- */
+function toError(err) {
+  if (err?.status === 403 || err?.code === 403) {
+    return { kind: 'forbidden', message: '当前账号没有访问该模块的权限。' }
+  }
+  if (err?.raw || /连接异常/.test(err?.message || '')) {
+    return { kind: 'network', message: '网络或服务异常，加载失败，请稍后重试。' }
+  }
+  return { kind: 'error', message: err?.payload?.msg || err?.message || '加载失败，请稍后重试。' }
+}
+function alertType(error) {
+  if (error.kind === 'forbidden') return 'warning'
+  if (error.kind === 'network') return 'error'
+  return 'error'
+}
+function numText(value) {
+  return value === null || value === undefined || value === '' ? '—' : String(value)
+}
+function msText(value) {
+  return value === null || value === undefined || value === '' ? '—' : `${value} ms`
+}
+function sideText(side) {
+  return { ag: '农机端', ma: '管理端' }[side] || side || '—'
+}
+
+/** 筛选条件统一转查询参：只带后端契约字段，日期区间转为 beginTime/endTime。 */
+function queryOf(filters, st) {
+  const { dateRange, ...rest } = filters
+  const query = { ...rest, pageNum: st.page, pageSize: st.size }
+  if (Array.isArray(dateRange) && dateRange.length === 2) {
+    query.beginTime = dateRange[0]
+    query.endTime = dateRange[1]
+  }
+  return query
+}
+
+async function runList(key, fetcher) {
+  const st = state[key]
+  st.loading = true
+  st.error = null
   try {
-    const [sys, monitor] = await Promise.all([getSystemData(), getAgentMonitor()])
-    users.value = sys.users
-    roles.value = sys.roles
-    loginLogs.value = sys.loginLogs
-    operationLogs.value = sys.operationLogs
-    auditLogs.value = sys.auditLogs
-    alarms.value = sys.alarms
-    agentLogs.value = monitor.logs
+    const { list, total } = await fetcher()
+    st.list = Array.isArray(list) ? list : []
+    st.total = total
+  } catch (err) {
+    st.list = []
+    st.total = null
+    st.error = toError(err)
   } finally {
-    loading.value = false
+    st.loading = false
   }
 }
-onMounted(load)
 
-async function handleAlarm(a) {
-  try { await ElMessageBox.confirm(`确认将告警「${a.title}」标记为已处理？处理动作将写入审计日志。`, '处理告警', { type: 'warning', confirmButtonText: '确认处理' }) } catch { return }
-  a.status = '已处理'
-  ElMessage.success('告警已处理，已记录审计日志')
+/* ---------------- 列表加载 ---------------- */
+function loadUsers() { return runList('users', () => listSysUsers(queryOf(userFilters, state.users))) }
+function loadRoles() { return runList('roles', () => listSysRoles(queryOf(roleFilters, state.roles))) }
+function loadLogin() { return runList('login', () => listLoginLogs(queryOf(loginFilters, state.login))) }
+function loadOper() { return runList('oper', () => listOperationLogs(queryOf(operFilters, state.oper))) }
+function loadAgent() { return runList('agent', () => listAgentAuditLogs(queryOf(agentFilters, state.agent))) }
+
+async function loadAudit() {
+  const st = state.audit
+  st.loading = true
+  st.error = null
+  st.snapshot = null
+  // 管理员门禁：登录信息未加载或非管理员时不发送请求（isAdminUser 未加载时为 false）。
+  if (!isAdminUser()) {
+    st.error = { kind: 'forbidden', message: '当前账号没有访问该模块的权限。' }
+    st.loading = false
+    return
+  }
+  try {
+    st.snapshot = await getPermissionAuditSnapshot()
+  } catch (err) {
+    st.error = toError(err)
+  } finally {
+    st.loading = false
+  }
 }
-async function toggleStatus(row) {
-  const next = row.status === '启用' ? '停用' : '启用'
-  try { await ElMessageBox.confirm(`确认将账号「${row.name}」${next}？${next === '停用' ? '停用后该用户将立即失去访问权限。' : ''}`, '状态变更', { type: 'warning', confirmButtonText: `确认${next}` }) } catch { return }
-  row.status = next
-  ElMessage.success(`账号「${row.name}」已${next}`)
+
+async function loadMenuTree() {
+  if (menuTree.value.length) return
+  menuLoading.value = true
+  menuError.value = null
+  try {
+    const res = await treeselect()
+    menuTree.value = Array.isArray(res?.data) ? res.data : []
+  } catch (err) {
+    menuError.value = toError(err)
+  } finally {
+    menuLoading.value = false
+  }
 }
-async function resetPwd(row) {
-  try { await ElMessageBox.confirm(`确认重置「${row.name}」的登录密码？新密码将通过短信下发。`, '重置密码', { type: 'warning' }) } catch { return }
-  ElMessage.success('密码已重置，短信已发送（演示环境）')
+
+async function selectRole(role) {
+  if (!role) return
+  selectedRole.value = role
+  checkedKeys.value = []
+  roleMenuError.value = null
+  roleMenuLoading.value = true
+  try {
+    const res = await roleMenuTreeselect(role.id)
+    const checked = res?.checkedKeys ?? res?.data?.checkedKeys
+    checkedKeys.value = Array.isArray(checked) ? checked : []
+  } catch (err) {
+    roleMenuError.value = toError(err)
+  } finally {
+    roleMenuLoading.value = false
+  }
 }
-function openUser() {
-  Object.assign(newUser, { name: '', phone: '', role: 'leader', district: '河东片区' })
-  userOpen.value = true
+
+/* ---------------- 按需加载 ---------------- */
+const loaders = {
+  users: loadUsers,
+  roles: loadRoles,
+  login: loadLogin,
+  oper: loadOper,
+  audit: loadAudit,
+  agent: loadAgent
 }
-function saveUser() {
-  if (!newUser.name.trim()) return ElMessage.warning('请输入姓名')
-  if (!/^1\d{10}$/.test(newUser.phone)) return ElMessage.warning('请输入正确的 11 位手机号')
-  const role = roles.value.find((r) => r.code === newUser.role)
-  users.value.unshift({
-    id: `U${String(users.value.length + 1).padStart(3, '0')}`, name: newUser.name.trim(), phone: newUser.phone,
-    role: newUser.role, roleName: role?.name || '未分配', district: newUser.district,
-    status: '启用', lastLogin: '—', avatar: newUser.name.trim().slice(0, 1)
-  })
-  ElMessage.success('用户已创建，初始密码已通过短信下发')
-  userOpen.value = false
+const loaded = reactive({ users: false, roles: false, login: false, oper: false, audit: false, agent: false })
+
+function ensure(key) {
+  if (loaded[key]) return
+  loaded[key] = true
+  if (key === 'roles') loadMenuTree()
+  loaders[key]()
 }
-function openRole(r) {
-  Object.assign(roleEdit, { id: r.id, name: r.name, scope: { 结算范围: '全公司', 仅本人: '本人' }[r.scope] || r.scope, perms: [...r.perms] })
-  roleOpen.value = true
+watch(tab, (value) => ensure(value))
+onMounted(() => ensure('users'))
+
+/* ---------------- 查询 / 分页 / 重置 ---------------- */
+function apply(key) {
+  state[key].page = 1
+  loaders[key]()
 }
-async function saveRole() {
-  if (!roleEdit.perms.length) return ElMessage.warning('请至少保留一项功能权限')
-  try { await ElMessageBox.confirm(`确认保存「${roleEdit.name}」的权限配置？变更将立即生效并写入审计日志。`, '保存角色权限', { type: 'warning', confirmButtonText: '确认保存' }) } catch { return }
-  const target = roles.value.find((r) => r.id === roleEdit.id)
-  if (target) { target.perms = [...roleEdit.perms]; target.scope = roleEdit.scope }
-  ElMessage.success('角色权限已保存，已记录审计日志')
-  roleOpen.value = false
+function onSize(key) {
+  state[key].page = 1
+  loaders[key]()
+}
+function resetUsers() {
+  Object.assign(userFilters, { userName: '', phonenumber: '', status: '' })
+  apply('users')
+}
+function resetRoles() {
+  Object.assign(roleFilters, { roleName: '', roleKey: '', status: '' })
+  apply('roles')
+}
+function resetLogin() {
+  Object.assign(loginFilters, { userName: '', ipaddr: '', status: '', dateRange: [] })
+  apply('login')
+}
+function resetOper() {
+  Object.assign(operFilters, { title: '', operName: '', businessType: '', status: '', dateRange: [] })
+  apply('oper')
+}
+function resetAgent() {
+  Object.assign(agentFilters, { userName: '', intent: '', status: '', side: '', dateRange: [] })
+  apply('agent')
+}
+
+/* ---------------- 顶部刷新 ---------------- */
+const currentLoading = computed(() => {
+  if (tab.value === 'audit') return state.audit.loading
+  return state[tab.value]?.loading || false
+})
+function reloadCurrent() {
+  loaders[tab.value]()
+}
+
+/* ---------------- 操作日志详情 ---------------- */
+function openOperDetail(row) {
+  operDetail.value = row
+  operDetailOpen.value = true
 }
 </script>
 
 <style scoped>
-.alarm-bar { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: var(--radius-md); background: #fff6f6; border: 1px solid #f4cccc; }
-.alarm-ico { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: var(--red-100); color: var(--red-600); flex: none; }
-.alarm-main { flex: 1; min-width: 0; }
-.alarm-title { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 650; color: var(--text-1); }
-.alarm-detail { margin-top: 2px; font-size: 11.5px; color: var(--text-2); }
-.alarm-time { font-size: 10.5px; flex: none; }
-.alarm-card { padding: 13px 14px; }
-.alarm-card-title { margin-top: 9px; font-size: 12.5px; font-weight: 650; }
-.alarm-card-desc { margin-top: 3px; font-size: 11.5px; color: var(--text-2); line-height: 1.55; min-height: 36px; }
-.alarm-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--border); font-size: 10.5px; }
-.role-box { padding: 14px; }
-.role-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 12px; }
-.role-perms { display: flex; flex-wrap: wrap; gap: 5px; min-height: 52px; align-content: flex-start; }
-.role-btn { width: 100%; margin-top: 8px; }
-.panel-pager { padding: 4px 14px 10px; }
+.filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.filter-hint { font-size: 11.5px; color: var(--text-3); }
+.grow { flex: 1; }
+.state-block { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin: 8px 0; }
+.pad-tip { padding: 14px 16px; font-size: 12.5px; color: var(--text-2); }
+.matrix-wrap { min-height: 80px; }
+.panel-pager { padding: 6px 14px 10px; display: flex; justify-content: flex-end; }
 .chk { color: var(--brand-600); font-weight: 700; }
 .dash { color: var(--text-3); }
-.drawer-label { font-size: 12px; font-weight: 650; }
-.perm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 10px; }
-.before { color: var(--text-2); }
-.after { color: var(--brand-700); font-weight: 650; }
-.arrow { color: var(--text-3); margin: 0 5px; }
+.stat { padding: 12px 14px; }
+.stat-label { font-size: 11.5px; color: var(--text-2); }
+.stat-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.risk-list { margin: 0; padding-left: 18px; font-size: 12.5px; line-height: 1.8; color: var(--text-2); }
+.detail-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+.detail-label { flex: none; width: 88px; color: var(--text-2); }
+.break { word-break: break-all; }
+.mono { font-variant-numeric: tabular-nums; }
 </style>

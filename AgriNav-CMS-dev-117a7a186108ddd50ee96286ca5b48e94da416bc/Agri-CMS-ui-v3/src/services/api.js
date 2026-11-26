@@ -5,21 +5,32 @@
  * 模拟数据（AI 智能体 / 工具 / 工作流 / 知识库 / 审计）-> 保留 mock
  *
  * 所有函数的名称、参数、返回结构都与原版保持一致，页面无需任何改动。
- * 开关：VITE_USE_REAL_API=true 走真实接口；失败时按 VITE_FALLBACK_MOCK 回退 mock。
+ * 开关：VITE_APP_USE_REAL_API=true 走真实接口；失败时按 VITE_APP_FALLBACK_MOCK 回退 mock。
  */
 import { useAppStore } from '@/stores/app'
+import { useUserStore } from '@/stores/user'
+import { isAdminUser } from '@/stores/permission'
+import dispatchApi from '@/api/07-dispatch'
+import { listUser as listUserApi } from '@/api/system/user'
+import { listRole as listRoleApi } from '@/api/system/role'
+import { list as listLogininforApi } from '@/api/monitor/logininfor'
+import { list as listOperlogApi } from '@/api/monitor/operlog'
+import { getPermissionAudit } from '@/api/system/permissionAudit'
+import { getAgentAuditList, getAgentAuditById } from '@/api/09-agent'
 import * as db from '@/mock'
 import * as remote from './remote'
 import {
   landFromBackend, machineFromBackend, workorderFromBackend,
   statementFromBackend, priceRuleFromBackend, farmWorkTaskFromBackend,
   settlementItemFromBackend,
-  reviewRequestFromBackend,
-  rowsOf, pageOf, toStringId, toStringIdList, toLongIdList, trajectoryPointsFromBackend
+  reviewRequestFromBackend, workDispatchFromBackend, optionalNum,
+  rowsOf, pageOf, toStringId, toStringIdList, toLongIdList, trajectoryPointsFromBackend,
+  sysUserFromBackend, sysRoleFromBackend, loginLogFromBackend,
+  operationLogFromBackend, permissionAuditFromBackend, agentAuditLogFromBackend
 } from '@/utils/adapter'
 
-const USE_REAL = String(import.meta.env.VITE_USE_REAL_API ?? 'true') !== 'false'
-const FALLBACK = String(import.meta.env.VITE_FALLBACK_MOCK ?? 'true') !== 'false'
+const USE_REAL = String(import.meta.env.VITE_APP_USE_REAL_API ?? 'true') !== 'false'
+const FALLBACK = String(import.meta.env.VITE_APP_FALLBACK_MOCK ?? 'false') !== 'false'
 
 const wait = (ms = 260) => new Promise((r) => setTimeout(r, ms))
 const clone = (v) => JSON.parse(JSON.stringify(v))
@@ -50,134 +61,110 @@ async function via(realFn, mockFn) {
 const matchText = (v, k) => String(v ?? '').includes(k)
 
 /* ================= 驾驶舱 ================= */
+
+/** Dashboard 模块异常 -> 可展示状态；保留原始原因，不回退 mock。 */
+function dashboardError(err) {
+  if (err?.status === 403 || err?.code === 403) {
+    return { kind: 'forbidden', message: '当前账号没有访问该功能的权限。' }
+  }
+  if (err?.raw || /连接异常/.test(err?.message || '')) {
+    return { kind: 'network', message: '网络或服务异常，请稍后重试。' }
+  }
+  return { kind: 'error', message: err?.payload?.msg || err?.message || '加载失败，请稍后重试。' }
+}
+
+/** 单模块请求隔离：一个模块失败不影响其他模块，但不吞掉错误原因。 */
+async function dashboardCall(fn) {
+  try {
+    return { value: await fn(), error: null }
+  } catch (err) {
+    return { value: null, error: dashboardError(err) }
+  }
+}
+
+function dashboardNumber(value) {
+  if (value === null || value === undefined || value === '') return null
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+/**
+ * 驾驶舱真实数据（S11.2-a）
+ * 仅接入已有真实接口，全部移除 mock 打底与演示角色过滤：
+ *   - 地块：GET /landPlot（后端仅返回当前账号创建的地块）
+ *   - 农机：POST /agriculturalMachinery/list（管理员全量，其他账号本人）
+ *   - 热力：GET /landPlot/heatmap
+ *   - 地块总面积：GET /screen/getLandPlotsTotalArea
+ *   - 作业完成率：GET /screen/getFinishedFarmWorkPercentage
+ *   - 用户活跃率：GET /screen/getActiveUserPercentage
+ * 各模块独立返回 { value/list, error }，页面据此展示 loading/空/403/错误。
+ */
 export async function getDashboard() {
-  const mockFn = async () => {
-    await wait()
-    const tasks = byDistrict(clone(db.tasks))
-    const machines = byDistrict(clone(db.machines))
-    const online = machines.filter((m) => m.online).length
-    return {
-      stats: {
-        ...db.org.stats,
-        todayTasks: tasks.length * 3 + 6,
-        doneTasks: tasks.filter((t) => t.status === '已完成').length * 3 + 18,
-        pendingTasks: tasks.filter((t) => ['待派单', '待接单', '待执行'].includes(t.status)).length * 2 + 3,
-        onlineMachines: online,
-        totalMachines: machines.length,
-        onlineRate: +((online / machines.length) * 100).toFixed(1)
-      },
-      insights: clone(db.aiInsights), activities: clone(db.activities), heatPoints: clone(db.heatPoints),
-      machines, lands: byDistrict(clone(db.lands)), tasks,
-      districtRank: clone(db.reportData.district).sort((a, b) => b.rate - a.rate),
-      machineRank: clone(db.reportData.machineEff).slice(0, 5),
-      trend: clone(db.reportData.trend7)
-    }
+  const [landRes, machineRes, heatRes, areaRes, completionRes, activeRes, agentAuditRes] = await Promise.all([
+    dashboardCall(() => remote.remoteLandList()),
+    dashboardCall(() => remote.remoteMachineList()),
+    dashboardCall(() => remote.remoteLandHeatmap()),
+    dashboardCall(() => remote.remoteScreen.totalArea()),
+    dashboardCall(() => remote.remoteScreen.farmWork()),
+    dashboardCall(() => remote.remoteScreen.activeUser()),
+    // 仅取真实分页总数，pageSize=1 避免拉取无用明细；total 为后端 TableDataInfo 原值
+    dashboardCall(() => listAgentAuditLogs({ pageNum: 1, pageSize: 1 }))
+  ])
+
+  const landRows = landRes.value ? rowsOf(landRes.value) : []
+  const lands = landRows.map(landFromBackend)
+
+  const machineRows = machineRes.value ? rowsOf(machineRes.value) : []
+  const machines = machineRows.map(machineFromBackend)
+  const machineTotal = dashboardNumber(machineRes.value?.total)
+  const listedCount = machines.filter((m) => m.available).length
+
+  const heatPoints = (heatRes.value ? rowsOf(heatRes.value) : [])
+    .map((h) => {
+      const lng = Number(h.longitude ?? h.lng)
+      const lat = Number(h.latitude ?? h.lat)
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
+      const weight = Number(h.weight ?? h.count ?? 1)
+      return [lng, lat, Number.isFinite(weight) ? weight : 1]
+    })
+    .filter(Boolean)
+
+  return {
+    lands: {
+      list: lands,
+      // GET /landPlot 不返回 total，固定请求 1000 条；达到上限即视为可能不完整
+      truncated: landRows.length >= 1000,
+      error: landRes.error
+    },
+    machines: {
+      list: machines,
+      total: machineTotal ?? machines.length,
+      listedCount,
+      truncated: machines.length >= 1000,
+      error: machineRes.error
+    },
+    heat: { points: heatPoints, error: heatRes.error },
+    totalArea: { value: dashboardNumber(areaRes.value?.landArea), error: areaRes.error },
+    completionRate: { value: dashboardNumber(completionRes.value?.percent), error: completionRes.error },
+    activeRate: { value: dashboardNumber(activeRes.value?.percent), error: activeRes.error },
+    // Agent 交互审计记录数（分页 total，不是工具调用次数/tokens）
+    agentAudit: { total: dashboardNumber(agentAuditRes.value?.total), error: agentAuditRes.error }
   }
-  const realFn = async () => {
-    // 基础业务数据 + 文档中的真实统计接口（/screen/*、/analysis/*）
-    const [landRes, machineRes, workRes, heatRes, plotMonth, trajMonth, finishedRate, activeRate, screenStat, mostCrop, mostProvince] = await Promise.all([
-      remote.remoteLandList(),
-      remote.remoteMachineList(),
-      remote.remoteEffectiveTrajectory({}),
-      remote.remoteLandHeatmap().catch(() => null),
-      remote.remoteScreen.landPlotNum().catch(() => null),
-      remote.remoteScreen.trajectory().catch(() => null),
-      remote.remoteScreen.farmWork().catch(() => null),
-      remote.remoteScreen.activeUser().catch(() => null),
-      remote.remoteScreen.statistics().catch(() => null),
-      remote.remoteScreen.mostCrop().catch(() => null),
-      remote.remoteScreen.mostFarmWorkProvince().catch(() => null)
-    ])
-    const lands = byDistrict(rowsOf(landRes).map(landFromBackend))
-    const machines = byDistrict(rowsOf(machineRes).map(machineFromBackend))
-    const works = rowsOf(workRes).map(workorderFromBackend)
-    const online = machines.filter((m) => m.online).length
-    const heatPoints = heatRes
-      ? rowsOf(heatRes).map((h) => [h.longitude ?? h.lng, h.latitude ?? h.lat, Number(h.weight ?? h.count ?? 0.5)])
-      : []
-
-    // 月度序列：接口返回 [{name, value}]，转成图表需要的 {days, area, tasks, abnormal}
-    const monthRows = (p) => rowsOf(p).map((x) => ({ name: str(x.name ?? x.month), value: Number(x.value ?? x.count ?? 0) }))
-    const plotRows = monthRows(plotMonth)
-    const trajRows = monthRows(trajMonth)
-    const trendFallback = clone(db.reportData.trend7)
-    const trend = plotRows.length || trajRows.length
-      ? {
-          days: (plotRows.length ? plotRows : trajRows).map((x) => x.name),
-          area: plotRows.length ? plotRows.map((x) => x.value) : trendFallback.area,
-          tasks: trajRows.length ? trajRows.map((x) => x.value) : trendFallback.tasks,
-          abnormal: trendFallback.abnormal
-        }
-      : trendFallback
-
-    const pick = (p, keys, fallback) => {
-      const d = p?.data ?? p ?? {}
-      for (const k of keys) if (d[k] !== undefined && d[k] !== null) return d[k]
-      return fallback
-    }
-    const completion = pick(finishedRate, ['percent', 'value', 'data'], db.org.stats.completionRate)
-    const activePercent = pick(activeRate, ['percent', 'value', 'data'], db.org.stats.onlineRate)
-    const statData = screenStat?.data ?? screenStat ?? {}
-
-    return {
-      stats: {
-        ...db.org.stats,
-        totalArea: +lands.reduce((s, l) => s + l.area, 0).toFixed(1),
-        activeLands: lands.length,
-        todayTasks: works.length,
-        doneTasks: works.filter((w) => ['已完成', '已复核', '已结算'].includes(w.status)).length,
-        pendingTasks: works.filter((w) => ['待核算', '待复核'].includes(w.status)).length,
-        onlineMachines: online,
-        totalMachines: machines.length,
-        onlineRate: machines.length ? +((online / machines.length) * 100).toFixed(1) : Number(activePercent) || 0,
-        completionRate: Number(completion) || db.org.stats.completionRate,
-        mostCrop: mostCrop?.data?.workName || mostCrop?.workName || '-',
-        mostFarmWorkProvince: mostProvince?.data?.name || mostProvince?.name || '-',
-        screenTotal: statData.landPlotCount ?? statData.totalLandPlot ?? statData.total ?? null
-      },
-      insights: clone(db.aiInsights), activities: clone(db.activities), heatPoints,
-      machines, lands, tasks: clone(db.tasks),
-      districtRank: clone(db.reportData.district).sort((a, b) => b.rate - a.rate),
-      machineRank: clone(db.reportData.machineEff).slice(0, 5),
-      trend
-    }
-  }
-  return via(realFn, mockFn)
 }
 
 /* ================= 地块 ================= */
 export async function listLands(params = {}) {
-  const mockFn = async () => {
-    await wait(200)
-    let list = byDistrict(clone(db.lands))
-    if (params.district && params.district !== '全部') list = list.filter((l) => l.district === params.district)
-    if (params.status && params.status !== '全部') list = list.filter((l) => l.status === params.status)
-    if (params.crop && params.crop !== '全部') list = list.filter((l) => l.crop === params.crop)
-    if (params.keyword) {
-      const k = params.keyword.trim()
-      list = list.filter((l) => matchText(l.name, k) || matchText(l.code, k) || matchText(l.village, k))
-    }
-    return list
-  }
-  const realFn = async () => {
-    const query = {}
-    if (params.district && params.district !== '全部') query.address = params.district
-    const payload = params.keyword ? await remote.remoteLandQuery({ ...query, landName: params.keyword }) : await remote.remoteLandList(query)
-    let list = rowsOf(payload).map(landFromBackend)
-    if (params.status && params.status !== '全部') list = list.filter((l) => l.status === params.status)
-    if (params.crop && params.crop !== '全部') list = list.filter((l) => l.crop === params.crop)
-    return byDistrict(list)
-  }
-  return via(realFn, mockFn)
+  const query = {}
+  if (params.district && params.district !== '全部') query.address = params.district
+  const payload = params.keyword ? await remote.remoteLandQuery({ ...query, landName: params.keyword }) : await remote.remoteLandList(query)
+  let list = rowsOf(payload).map(landFromBackend)
+  if (params.status && params.status !== '全部') list = list.filter((l) => l.status === params.status)
+  if (params.crop && params.crop !== '全部') list = list.filter((l) => l.crop === params.crop)
+  return byDistrict(list)
 }
 
-export function getLand(id) {
-  const mockFn = () => {
-    const item = db.lands.find((l) => l.id === id)
-    return Promise.resolve(item ? clone(item) : null)
-  }
-  const realFn = async () => landFromBackend(await remote.remoteLandGet(id), 0)
-  return via(realFn, mockFn)
+export async function getLand(id) {
+  return landFromBackend(await remote.remoteLandGet(id), 0)
 }
 
 /**
@@ -200,36 +187,23 @@ export async function mergeLands(ids = []) {
 
 /* ================= 农机 / 机手 ================= */
 export async function listMachines(params = {}) {
-  const mockFn = async () => {
-    await wait(200)
-    let list = byDistrict(clone(db.machines))
-    if (params.district && params.district !== '全部') list = list.filter((m) => m.district === params.district)
-    if (params.type && params.type !== '全部') list = list.filter((m) => m.type === params.type)
-    if (params.status && params.status !== '全部') list = list.filter((m) => m.workStatus === params.status)
-    if (params.keyword) list = list.filter((m) => matchText(m.id, params.keyword) || matchText(m.model, params.keyword) || matchText(m.operatorName, params.keyword))
-    return list
+  // 后端 POST /agriculturalMachinery/list 接受的筛选：name / typeId / status(0|1) /
+  // phoneNumber / location / cropId / havingGrainCarrier / myAgriculturalMachinery。
+  // 注意：前端 type 是“拖拉机/收割机”文案，后端 typeId 是类型表主键，语义不同不可直传；
+  //       前端 workStatus 是作业态文案，后端 status 只有 0(上架)/1(下架)，也不可直传。
+  // 因此这里只把「关键字」下推为后端 name 模糊查询，其余仍在结果集内前端过滤。
+  const body = {}
+  if (params.keyword) body.name = params.keyword
+  const payload = await remote.remoteMachineList(body)
+  let list = rowsOf(payload).map(machineFromBackend)
+  if (params.district && params.district !== '全部') list = list.filter((m) => m.district === params.district)
+  if (params.type && params.type !== '全部') list = list.filter((m) => m.type === params.type)
+  if (params.status && params.status !== '全部') list = list.filter((m) => m.workStatus === params.status)
+  if (params.keyword) {
+    const k = params.keyword
+    list = list.filter((m) => matchText(m.id, k) || matchText(m.model, k) || matchText(m.operatorName, k) || matchText(m.code, k))
   }
-  const realFn = async () => {
-    // 后端 POST /agriculturalMachinery/list 接受的筛选：name / typeId / status(0|1) /
-    // phoneNumber / location / cropId / havingGrainCarrier / myAgriculturalMachinery。
-    // 注意：前端 type 是“拖拉机/收割机”文案，后端 typeId 是类型表主键，语义不同不可直传；
-    //       前端 workStatus 是作业态文案，后端 status 只有 0(上架)/1(下架)，也不可直传。
-    // 因此这里只把「关键字」下推为后端 name 模糊查询，其余仍在结果集内前端过滤。
-    const body = {}
-    if (params.keyword) body.name = params.keyword
-    const payload = await remote.remoteMachineList(body)
-    let list = rowsOf(payload).map(machineFromBackend)
-    if (params.district && params.district !== '全部') list = list.filter((m) => m.district === params.district)
-    if (params.type && params.type !== '全部') list = list.filter((m) => m.type === params.type)
-    if (params.status && params.status !== '全部') list = list.filter((m) => m.workStatus === params.status)
-    if (params.keyword) {
-      const k = params.keyword
-      // 后端已按 name 过滤，这里再兜住编号/机手，保证与 mock 分支行为一致
-      list = list.filter((m) => matchText(m.id, k) || matchText(m.model, k) || matchText(m.operatorName, k) || matchText(m.code, k))
-    }
-    return byDistrict(list)
-  }
-  return via(realFn, mockFn)
+  return byDistrict(list)
 }
 
 export async function listOperators(params = {}) {
@@ -240,7 +214,7 @@ export async function listOperators(params = {}) {
     return list
   }
   // 后端无农机手独立接口（AgriculturalMachineryController 只有农机找活，无机手档案）。
-  // 原实现无条件 return mockFn()，即使 VITE_FALLBACK_MOCK=false 也会静默返回假数据；
+  // 原实现无条件 return mockFn()，即使 VITE_APP_FALLBACK_MOCK=false 也会静默返回假数据；
   // 现改为：开启真实接口且禁止回退时抛错，由页面提示“后端待补充”，不再伪造机手档案。
   if (USE_REAL && !FALLBACK) {
     throw new Error('农机手档案：后端待补充（无农机手档案接口）')
@@ -249,23 +223,14 @@ export async function listOperators(params = {}) {
 }
 
 export async function getMachine(id) {
-  const mockFn = async () => {
-    await wait(150)
-    const machine = db.machines.find((m) => m.id === id)
-    if (!machine) return null
-    return { ...clone(machine), records: db.workorders.filter((w) => w.machineId === id).map((w) => ({ id: w.id, landName: w.landName, date: w.startAt.slice(0, 10), area: w.effectiveArea, status: w.status })) }
-  }
-  const realFn = async () => {
-    // 后端 AgriculturalMachineryController 无任何 @GetMapping，不存在 GET /agriculturalMachinery/{id}。
-    // 原实现直连该路径必然 404，现改为复用 /agriculturalMachinery/list 结果按 id 匹配。
-    const payload = await remote.remoteMachineList()
-    const row = rowsOf(payload).find((m) => str(m.id) === str(id))
-    if (!row) return null
-    const machine = machineFromBackend(row, 0)
-    // 后端无 machineId 关联字段（TrajectoryInfo 只存 phoneNumber），历史作业无真实来源
-    return { ...machine, records: [] }
-  }
-  return via(realFn, mockFn)
+  // 后端 AgriculturalMachineryController 无任何 @GetMapping，不存在 GET /agriculturalMachinery/{id}。
+  // 复用 /agriculturalMachinery/list 结果按 id 匹配。
+  const payload = await remote.remoteMachineList()
+  const row = rowsOf(payload).find((m) => str(m.id) === str(id))
+  if (!row) return null
+  const machine = machineFromBackend(row, 0)
+  // 后端无 machineId 关联字段（TrajectoryInfo 只存 phoneNumber），历史作业无真实来源
+  return { ...machine, records: [] }
 }
 
 /* ================= 任务 / 调度 =================
@@ -343,35 +308,23 @@ function buildFarmWorkQuery(params = {}) {
  * 返回 { list, total }；total 只在后端真的给了 total 时才是数字，否则为 null。
  */
 export async function listTasks(params = {}) {
-  const mockFn = async () => {
-    await wait(200)
-    let list = byDistrict(clone(db.tasks))
-    if (params.status && params.status !== '全部') list = list.filter((t) => t.status === params.status)
-    if (params.type && params.type !== '全部') list = list.filter((t) => t.type === params.type)
-    if (params.keyword) list = list.filter((t) => matchText(t.id, params.keyword) || matchText(t.landName, params.keyword) || matchText(t.operatorName, params.keyword))
-    // mock 分支无真实分页，明确返回 total=null，避免页面把 length 当总数
-    return { list, total: null }
+  const pageNum = Number(params.pageNum) > 0 ? Number(params.pageNum) : 1
+  // 页面未显式分页时取一个足够大的页，保持“一次拿全量”的既有行为
+  const pageSize = Number(params.pageSize) > 0 ? Number(params.pageSize) : 1000
+  const body = buildFarmWorkQuery(params)
+  const payload = await remote.remoteFarmWorkList({ ...body, pageNum, pageSize })
+  const { list, total } = pageOf(payload)
+  let rows = list.map(farmWorkTaskFromBackend)
+  // 前端对后端不支持的条件做结果集内过滤
+  if (params.type && params.type !== '全部') {
+    rows = rows.filter((t) => t.workTypeName.includes(params.type))
   }
-  const realFn = async () => {
-    const pageNum = Number(params.pageNum) > 0 ? Number(params.pageNum) : 1
-    // 页面未显式分页时取一个足够大的页，保持“一次拿全量”的既有行为
-    const pageSize = Number(params.pageSize) > 0 ? Number(params.pageSize) : 1000
-    const body = buildFarmWorkQuery(params)
-    const payload = await remote.remoteFarmWorkList({ ...body, pageNum, pageSize })
-    const { list, total } = pageOf(payload)
-    let rows = list.map(farmWorkTaskFromBackend)
-    // 前端对后端不支持的条件做结果集内过滤（与 mock 分支语义保持一致）
-    if (params.type && params.type !== '全部') {
-      rows = rows.filter((t) => t.workTypeName.includes(params.type))
-    }
-    if (params.keyword) {
-      const k = String(params.keyword).trim()
-      // 后端已按 name 过滤，这里再兜住 id / 地块名，不涉无人机手（后端无该字段）
-      rows = rows.filter((t) => matchText(t.id, k) || t.name.includes(k) || t.landPlotName.some((n) => matchText(n, k)))
-    }
-    return { list: rows, total }
+  if (params.keyword) {
+    const k = String(params.keyword).trim()
+    // 后端已按 name 过滤，这里再兜住 id / 地块名，不涉无人机手（后端无该字段）
+    rows = rows.filter((t) => matchText(t.id, k) || t.name.includes(k) || t.landPlotName.some((n) => matchText(n, k)))
   }
-  return via(realFn, mockFn)
+  return { list: rows, total }
 }
 
 /**
@@ -391,31 +344,194 @@ export async function listTaskRows(params = {}) {
 export async function revokeTask(id) {
   const taskId = toStringId(id)
   if (!taskId) throw new Error('撤回任务失败：缺少合法的任务 id')
-  const mockFn = async () => {
-    await wait(400)
-    return { id: taskId, message: '任务已下架（模拟数据）' }
-  }
-  const realFn = async () => {
-    await remote.remoteFarmWorkDelete(taskId)
-    return { id: taskId, message: '任务已下架：状态置为「已结束」，列表不再可接单' }
-  }
-  return via(realFn, mockFn)
+  await remote.remoteFarmWorkDelete(taskId)
+  return { id: taskId, message: '任务已下架：状态置为「已结束」，列表不再可接单' }
 }
 
-/**
- * 批量派单：后端【没有】任何批量派单接口（无 DispatchController，FarmWork 也无批量状态变更端点）。
- * 原实现 setTimeout 后返回“已向 N 个任务下发派单”，属于无请求的假成功，本次移除。
+/* ================= 作业调度（/dispatch，10 个真实端点） =================
+ * 注意（读触发写）：GET /dispatch/list 与 GET /dispatch/stats 在后端会先执行 markTimeout()，
+ * 可能更新派单超时状态，禁止轮询，也不要把它当成纯只读接口。
+ * 权限：派单/批量/取消/建议仅 admin；接单/完成由后端校验 assigneeId 本人；
+ * 前端按钮显隐不构成权限保障，403 与业务异常必须原样提示后端 msg。
  */
-export async function batchDispatch(ids = []) {
-  throw new Error('批量派单：后端待补充（不存在 /dispatch/batch 及任何批量派单接口，无法下发至农机手）')
+
+/** 当前登录用户 id（雪花值，按字符串返回） */
+function currentDispatchUserId() {
+  const userStore = useUserStore()
+  return toStringId(userStore.userId ?? userStore.user?.userId)
+}
+
+/** 机手 userId 校验：只接受数字字符串，禁止 Number 转换以避免雪花精度丢失 */
+function normalizeAssigneeId(value) {
+  const raw = value === null || value === undefined ? '' : String(value).trim()
+  if (!/^\d+$/.test(raw)) throw new Error('派单失败：机手 userId 非法')
+  return raw
+}
+
+function normalizeDeadline(value) {
+  const raw = value === null || value === undefined ? '' : String(value).trim()
+  if (!raw) throw new Error('派单失败：请选择截止时间（格式 yyyy-MM-dd HH:mm:ss）')
+  return raw
+}
+
+/** 统一取 AjaxResult.data，兼容后端直接返回实体的情况 */
+function unwrapData(payload) {
+  return payload && typeof payload === 'object' && 'data' in payload ? payload.data : payload
 }
 
 /**
- * AI 调度建议：后端【没有】推荐/建议类接口，也没有机器学习调度能力。
- * 原实现无条件返回 3 条硬编码建议（db.dispatchSuggestions），本次改为显式空能力。
+ * 派单列表：GET /dispatch/list
+ * - 非管理员强制附加当前登录用户 assigneeId，忽略页面传入值；
+ * - 缺少 userId 直接抛错，绝不发起无条件查询；
+ * - 管理员可传 assigneeId 过滤，也可不传查全部。
+ */
+export async function listDispatches(params = {}) {
+  const query = {
+    pageNum: Number(params.pageNum) > 0 ? Number(params.pageNum) : 1,
+    pageSize: Number(params.pageSize) > 0 ? Number(params.pageSize) : 10
+  }
+  if (params.status) query.status = params.status
+  if (params.farmWorkId) query.farmWorkId = toStringId(params.farmWorkId)
+  if (isAdminUser()) {
+    if (params.assigneeId) query.assigneeId = toStringId(params.assigneeId)
+  } else {
+    const userId = currentDispatchUserId()
+    if (!userId) throw new Error('未获取到当前登录用户，无法查询个人派单')
+    query.assigneeId = userId
+  }
+  const payload = await dispatchApi.getDispatchList(query)
+  const { list, total } = pageOf(payload)
+  return { list: list.map(workDispatchFromBackend), total }
+}
+
+/** 派单详情：GET /dispatch/{id} */
+export async function getDispatch(id) {
+  const dispatchId = toStringId(id)
+  if (!dispatchId) throw new Error('查询派单详情失败：缺少合法的派单 id')
+  return workDispatchFromBackend(unwrapData(await dispatchApi.getDispatchById(dispatchId)))
+}
+
+/** 单选派单：POST /dispatch（仅 admin） */
+export async function dispatchOne(payload = {}) {
+  const farmWorkId = toStringId(payload.farmWorkId)
+  if (!farmWorkId) throw new Error('派单失败：请选择作业需求')
+  const body = {
+    farmWorkId,
+    assigneeId: normalizeAssigneeId(payload.assigneeId),
+    deadline: normalizeDeadline(payload.deadline)
+  }
+  if (payload.remark) body.remark = String(payload.remark)
+  const res = await dispatchApi.postDispatch(body)
+  return { ...workDispatchFromBackend(unwrapData(res)), message: res?.msg || '' }
+}
+
+/**
+ * 批量派单：POST /dispatch/batch（仅 admin）
+ * 后端任一子单失败会整体报错，且已成功的子单不回滚，
+ * 调用方必须提示“可能已部分成功，请刷新列表核对”并重新加载列表与统计。
+ */
+export async function dispatchBatch(payload = {}) {
+  const farmWorkIds = toStringIdList(payload.farmWorkIds)
+  if (!farmWorkIds.length) throw new Error('批量派单失败：请至少选择一条作业需求')
+  const body = {
+    farmWorkIds,
+    assigneeId: normalizeAssigneeId(payload.assigneeId),
+    deadline: normalizeDeadline(payload.deadline)
+  }
+  if (payload.remark) body.remark = String(payload.remark)
+  const res = await dispatchApi.postDispatchBatch(body)
+  const list = rowsOf(unwrapData(res)).map(workDispatchFromBackend)
+  return { list, count: list.length, message: res?.msg || '' }
+}
+
+/** 接单：PUT /dispatch/{id}/accept（仅 assigneeId 本人） */
+export async function acceptDispatch(id) {
+  const dispatchId = toStringId(id)
+  if (!dispatchId) throw new Error('接单失败：缺少合法的派单 id')
+  await dispatchApi.putDispatchAcceptById(dispatchId)
+  return { id: dispatchId }
+}
+
+/** 完成：PUT /dispatch/{id}/complete（仅 assigneeId 本人，须先接单） */
+export async function completeDispatch(id) {
+  const dispatchId = toStringId(id)
+  if (!dispatchId) throw new Error('完成派单失败：缺少合法的派单 id')
+  await dispatchApi.putDispatchCompleteById(dispatchId)
+  return { id: dispatchId }
+}
+
+/** 取消：PUT /dispatch/{id}/cancel（仅 admin） */
+export async function cancelDispatch(id) {
+  const dispatchId = toStringId(id)
+  if (!dispatchId) throw new Error('取消派单失败：缺少合法的派单 id')
+  await dispatchApi.putDispatchCancelById(dispatchId)
+  return { id: dispatchId }
+}
+
+/** 刷新超时：POST /dispatch/timeout（后端允许登录用户调用，前端仅向 admin 展示入口） */
+export async function refreshDispatchTimeout() {
+  const res = await dispatchApi.postDispatchTimeout()
+  const count = Number(unwrapData(res))
+  return { count: Number.isFinite(count) ? count : 0, message: res?.msg || '' }
+}
+
+/**
+ * 全局派单统计：GET /dispatch/stats
+ * 后端无参数且不按人过滤，机手账号不提供“个人统计”，
+ * 避免把全局数字伪装成个人数据（按人统计接口后端待补充）。
+ */
+export async function getDispatchStats() {
+  if (!isAdminUser()) {
+    throw new Error('派单统计为全局口径，机手账号不提供（后端无按人统计接口）')
+  }
+  const data = unwrapData(await dispatchApi.getDispatchStats()) || {}
+  return {
+    total: Number(data.total) || 0,
+    completed: Number(data.completed) || 0,
+    accepted: Number(data.accepted) || 0,
+    dispatched: Number(data.dispatched) || 0,
+    timeout: Number(data.timeout) || 0,
+    cancelled: Number(data.cancelled) || 0,
+    completionRate: optionalNum(data.completionRate),
+    timeoutRate: optionalNum(data.timeoutRate)
+  }
+}
+
+/**
+ * 调度建议：GET /dispatch/suggestion（仅 admin）
+ * operatorCandidates 是后端基于全量用户的评估结果，未按机手角色过滤：
+ * 原样返回，调用方必须标注说明，不得前端过滤或伪造机手数据。
  */
 export async function getDispatchSuggestions() {
-  throw new Error('AI 调度建议：后端待补充（无调度建议/推荐接口，无法基于真实距离与效率生成建议）')
+  const data = unwrapData(await dispatchApi.getDispatchSuggestion()) || {}
+  const strList = (v) => (Array.isArray(v) ? v.filter((x) => x !== null && x !== undefined && x !== '') : [])
+  const pendingTasks = (Array.isArray(data.pendingTasks) ? data.pendingTasks : []).map((t) => ({
+    ...t,
+    farmWorkId: toStringId(t.farmWorkId),
+    plotId: toStringId(t.plotId)
+  }))
+  const operatorCandidates = (Array.isArray(data.operatorCandidates) ? data.operatorCandidates : []).map((o) => ({
+    ...o,
+    userId: toStringId(o.userId)
+  }))
+  return {
+    pendingTasks,
+    operatorCandidates,
+    machineryOptions: Array.isArray(data.machineryOptions) ? data.machineryOptions : [],
+    recommendations: strList(data.recommendations),
+    dataGaps: strList(data.dataGaps)
+  }
+}
+
+/**
+ * 兼容旧调用：AgentChat 的 AI 审批传入的是地块 id 数组，缺少机手与时限，
+ * 不能当作 farmWorkIds 直接派单，因此显式拒绝而不是伪造成功。
+ */
+export async function batchDispatch(input = []) {
+  if (Array.isArray(input)) {
+    throw new Error('AI 批量派单已停用：缺少机手与截止时间，请在作业调度台选择作业需求后派单')
+  }
+  return dispatchBatch(input)
 }
 
 /**
@@ -435,16 +551,9 @@ export async function createTask(payload = {}) {
     cropId: toLongIdList(payload.cropId),
     workTypeId: toLongIdList(payload.workTypeId)
   }
-  const mockFn = async () => {
-    await wait(500)
-    return { id: `RW-20261123-${String(100 + Math.floor(Math.random() * 800))}`, ...payload }
-  }
-  const realFn = async () => {
-    // 后端 add 只返回 AjaxResult.success()，不回传新 id；新增后需重新查询列表才能拿到真实 id
-    await remote.remoteFarmWorkAdd(body)
-    return { ok: true, message: '作业需求已发布' }
-  }
-  return via(realFn, mockFn)
+  // 后端 add 只返回 AjaxResult.success()，不回传新 id；新增后需重新查询列表才能拿到真实 id
+  await remote.remoteFarmWorkAdd(body)
+  return { ok: true, message: '作业需求已发布' }
 }
 
 /**
@@ -466,15 +575,8 @@ export async function updateTask(payload = {}) {
     cropId: toLongIdList(payload.cropId),
     workTypeId: toLongIdList(payload.workTypeId)
   }
-  const mockFn = async () => {
-    await wait(400)
-    return { ...payload }
-  }
-  const realFn = async () => {
-    await remote.remoteFarmWorkUpdate(body)
-    return { ok: true, message: '作业需求已更新' }
-  }
-  return via(realFn, mockFn)
+  await remote.remoteFarmWorkUpdate(body)
+  return { ok: true, message: '作业需求已更新' }
 }
 
 /**
@@ -483,46 +585,33 @@ export async function updateTask(payload = {}) {
  * 该接口带 @PreAuthorize('field:work:check')，无权限时后端返回 code=403，页面需给出空态提示。
  */
 export async function listWorkTypes() {
-  const mockFn = async () => {
-    await wait(120)
-    return db.org.workTypes.map((name, i) => ({ id: `MOCK-WT-${i + 1}`, name }))
-  }
-  const realFn = async () => {
-    const payload = await remote.remoteWorkTypeList()
-    return rowsOf(payload).map((r) => ({
-      id: toStringId(r.id),
-      name: r.workName || r.name || ''
-    })).filter((w) => w.id && w.name)
-  }
-  return via(realFn, mockFn)
+  const payload = await remote.remoteWorkTypeList()
+  return rowsOf(payload).map((r) => ({
+    id: toStringId(r.id),
+    name: r.workName || r.name || ''
+  })).filter((w) => w.id && w.name)
 }
 
-/* ================= 作业单 / 轨迹 ================= */
+/* ================= 作业单 / 轨迹 =================
+ * 口径说明：后端没有作业单（WorkOrder）表与接口。本函数返回的是
+ * POST /effectiveTrajectory/conditions 的有效轨迹记录，经 workorderFromBackend
+ * 映射成页面所需的视图字段（id 由轨迹 id 派生）。它只能作为“有效作业轨迹”展示，
+ * 不得用于作业单数量、完成率等业务统计，也不代表已结算作业单。
+ */
 export async function listWorkorders(params = {}) {
-  const mockFn = async () => {
-    await wait(220)
-    let list = byDistrict(clone(db.workorders))
-    if (params.status && params.status !== '全部') list = list.filter((w) => w.status === params.status)
-    if (params.district && params.district !== '全部') list = list.filter((w) => w.district === params.district)
-    if (params.keyword) list = list.filter((w) => matchText(w.id, params.keyword) || matchText(w.landName, params.keyword) || matchText(w.operatorName, params.keyword))
-    return list
+  const query = {
+    pageNum: Number(params.pageNum) > 0 ? Number(params.pageNum) : 1,
+    pageSize: Number(params.pageSize) > 0 ? Number(params.pageSize) : 1000
   }
-  const realFn = async () => {
-    const query = {
-      pageNum: Number(params.pageNum) > 0 ? Number(params.pageNum) : 1,
-      pageSize: Number(params.pageSize) > 0 ? Number(params.pageSize) : 1000
-    }
-    for (const key of ['localDate', 'beginTime', 'endTime', 'workType', 'address', 'phone']) {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') query[key] = params[key]
-    }
-    const payload = await remote.remoteEffectiveTrajectory(query)
-    let list = rowsOf(payload).map(workorderFromBackend)
-    if (params.status && params.status !== '全部') list = list.filter((w) => w.status === params.status)
-    if (params.district && params.district !== '全部') list = list.filter((w) => w.district === params.district)
-    if (params.keyword) list = list.filter((w) => matchText(w.id, params.keyword) || matchText(w.landName, params.keyword) || matchText(w.operatorName, params.keyword))
-    return byDistrict(list)
+  for (const key of ['localDate', 'beginTime', 'endTime', 'workType', 'address', 'phone']) {
+    if (params[key] !== undefined && params[key] !== null && params[key] !== '') query[key] = params[key]
   }
-  return via(realFn, mockFn)
+  const payload = await remote.remoteEffectiveTrajectory(query)
+  let list = rowsOf(payload).map(workorderFromBackend)
+  if (params.status && params.status !== '全部') list = list.filter((w) => w.status === params.status)
+  if (params.district && params.district !== '全部') list = list.filter((w) => w.district === params.district)
+  if (params.keyword) list = list.filter((w) => matchText(w.id, params.keyword) || matchText(w.landName, params.keyword) || matchText(w.operatorName, params.keyword))
+  return byDistrict(list)
 }
 
 export async function getWorkorder(id, preloadedList = null) {
@@ -530,16 +619,9 @@ export async function getWorkorder(id, preloadedList = null) {
     const hit = preloadedList.find((w) => w.id === id)
     if (hit) return hit
   }
-  const mockFn = async () => {
-    await wait(180)
-    const item = db.workorders.find((w) => w.id === id)
-    return item ? clone(item) : null
-  }
-  const realFn = async () => {
-    const list = rowsOf(await remote.remoteEffectiveTrajectory({})).map(workorderFromBackend)
-    return list.find((w) => w.id === id) || null
-  }
-  return via(realFn, mockFn)
+  // 与 listWorkorders 相同：数据源为有效轨迹，不是独立作业单详情接口。
+  const list = rowsOf(await remote.remoteEffectiveTrajectory({})).map(workorderFromBackend)
+  return list.find((w) => w.id === id) || null
 }
 
 /* ================= 复核申请 ================= */
@@ -549,7 +631,7 @@ export async function listReviewRequests(params = {}) {
     return rowsOf(payload).map(reviewRequestFromBackend)
   }
   // 复核无 mock 兜底；空数组代表无复核申请。
-  if (!import.meta.env.VITE_USE_REAL_API) return []
+  if (String(import.meta.env.VITE_APP_USE_REAL_API ?? 'true') === 'false') return []
   return realFn()
 }
 
@@ -605,29 +687,14 @@ export async function getOriginalTrajectory({ phone, startTime, endTime } = {}) 
  * 返回 TableDataInfo (List + total)；periodType=1 月 / 2 季；status 0 已生成 / 1 已确认 / 2 已付款。
  */
 export async function listStatements(params = {}) {
-  const mockFn = async () => {
-    await wait(220)
-    let list = clone(db.statements)
-    if (params.status !== undefined && params.status !== null && params.status !== '') {
-      const raw = list.map((s) => s.statusRaw)
-      list = list.filter((s) => (s.statusRaw ?? s.status) === Number(params.status))
-    }
-    if (params.keyword) {
-      const k = params.keyword.trim()
-      list = list.filter((s) => s.id.includes(k) || s.operatorName.includes(k) || s.phoneNumber.includes(k))
-    }
-    return list
-  }
-  const realFn = async () => {
-    const query = {}
-    if (params.settlementNo) query.settlementNo = params.settlementNo
-    if (params.phoneNumber) query.phoneNumber = params.phoneNumber
-    if (params.periodType !== undefined && params.periodType !== null && params.periodType !== '') query.periodType = Number(params.periodType)
-    if (params.status !== undefined && params.status !== null && params.status !== '') query.status = Number(params.status)
-    const payload = await remote.remoteSettlementList(query)
-    return rowsOf(payload).map(statementFromBackend)
-  }
-  return via(realFn, mockFn)
+  const query = { ...pageQuery(params) }
+  if (params.settlementNo) query.settlementNo = params.settlementNo
+  if (params.phoneNumber) query.phoneNumber = params.phoneNumber
+  if (params.periodType !== undefined && params.periodType !== null && params.periodType !== '') query.periodType = Number(params.periodType)
+  if (params.status !== undefined && params.status !== null && params.status !== '') query.status = Number(params.status)
+  const payload = await remote.remoteSettlementList(query)
+  const { list, total } = pageOf(payload)
+  return { list: list.map(statementFromBackend), total }
 }
 
 /** 结算单详情：后端 GET /settlement/{id}，参数为结算单 Long 主键（已序列化为字符串） */
@@ -637,31 +704,16 @@ export async function getStatement(id, preloadedList = null) {
     const hit = preloadedList.find((s) => s.id === id || String(s.raw?.id) === String(id))
     if (hit) return hit
   }
-  const mockFn = async () => {
-    await wait(160)
-    const item = db.statements.find((s) => s.id === id)
-    return item ? clone(item) : null
-  }
-  const realFn = async () => {
-    // 用 settlementNo 或 Long 主键去查独立详情接口
-    const payload = await remote.remoteSettlementDetail(id)
-    const item = rowsOf(payload)[0] || (payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : null)
-    return item ? statementFromBackend(item) : null
-  }
-  return via(realFn, mockFn)
+  // 用 settlementNo 或 Long 主键去查独立详情接口
+  const payload = await remote.remoteSettlementDetail(id)
+  const item = rowsOf(payload)[0] || (payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : null)
+  return item ? statementFromBackend(item) : null
 }
 
 /** 结算明细：后端 GET /settlement/items/{id}，参数结算单 Long 主键 */
 export async function getStatementItems(id) {
-  const mockFn = async () => {
-    await wait(140)
-    return clone(db.statementItems || [])
-  }
-  const realFn = async () => {
-    const payload = await remote.remoteSettlementItems(id)
-    return rowsOf(payload).map(settlementItemFromBackend)
-  }
-  return via(realFn, mockFn)
+  const payload = await remote.remoteSettlementItems(id)
+  return rowsOf(payload).map(settlementItemFromBackend)
 }
 
 /**
@@ -682,19 +734,12 @@ export async function generateStatements({ periodType, periodStart, periodEnd, p
   if (!phoneNumber) throw new Error('机手手机号必填')
   if (!periodType) throw new Error('结算周期类型必填')
   if (!periodStart || !periodEnd) throw new Error('结算周期起止日期必填')
-  const mockFn = async () => {
-    await wait(900)
-    return { periodType, periodStart, periodEnd, phoneNumber, count: 3, amount: 128640, message: '已生成 3 份结算单（演示）' }
-  }
-  const realFn = async () => {
-    const payload = await remote.remoteSettlementGenerate({ periodType: Number(periodType), periodStart, periodEnd, phoneNumber })
-    const result = payload?.data || payload
-    const period = `${periodStart} ~ ${periodEnd}`
-    const count = 1
-    const amount = result?.totalAmount ?? 0
-    return { period, periodType, periodStart, periodEnd, phoneNumber, count, amount, message: `已为 ${phoneNumber} 生成 ${period} 结算单` }
-  }
-  return via(realFn, mockFn)
+  const payload = await remote.remoteSettlementGenerate({ periodType: Number(periodType), periodStart, periodEnd, phoneNumber })
+  const result = payload?.data || payload
+  const period = `${periodStart} ~ ${periodEnd}`
+  const count = 1
+  const amount = result?.totalAmount ?? 0
+  return { period, periodType, periodStart, periodEnd, phoneNumber, count, amount, message: `已为 ${phoneNumber} 生成 ${period} 结算单` }
 }
 
 /**
@@ -702,22 +747,18 @@ export async function generateStatements({ periodType, periodStart, periodEnd, p
  *   RequestParam id(结算单 Long 主键) + status(Short: 0=已生成 / 1=已确认 / 2=已付款)
  */
 export async function confirmStatement(id, status) {
-  const mockFn = async () => { await wait(300); return { id, status } }
-  const realFn = async () => {
-    await remote.remoteSettlementConfirm(id, Number(status))
-    return { id, status }
-  }
-  return via(realFn, mockFn)
+  await remote.remoteSettlementConfirm(id, Number(status))
+  return { id, status }
 }
 
 /**
  * 单价规则列表：后端 GET /pricingRule/list
  * 扣减规则（deductRules）后端无对应表，前端不再伪造，改为空数组。
  */
-export async function listPriceRules() {
-  const mockFn = async () => { await wait(180); return { rules: clone(db.priceRules), deductions: [] } }
-  const realFn = async () => ({ rules: rowsOf(await remote.remotePriceRuleList()).map(priceRuleFromBackend), deductions: [] })
-  return via(realFn, mockFn)
+export async function listPriceRules(params = {}) {
+  const payload = await remote.remotePriceRuleList(pageQuery(params))
+  const { list, total } = pageOf(payload)
+  return { rules: list.map(priceRuleFromBackend), total, deductions: [] }
 }
 
 /**
@@ -725,12 +766,8 @@ export async function listPriceRules() {
  * PricingRule 实体包含：id, workType(Long), minArea, maxArea, unitPrice, grade, status(0 启用 / 1 停用)
  */
 export async function updatePriceRule(rule) {
-  const mockFn = async () => { await wait(400); return { id: rule?.id, message: '单价规则已更新（演示）' } }
-  const realFn = async () => {
-    await remote.remotePriceRuleUpdate(rule)
-    return { id: rule?.id, message: '单价规则已更新，已记录审计日志' }
-  }
-  return via(realFn, mockFn)
+  await remote.remotePriceRuleUpdate(rule)
+  return { id: rule?.id, message: '单价规则已更新，已记录审计日志' }
 }
 
 /* ================= 报表 ================= */
@@ -812,4 +849,148 @@ export function quickSearch(keyword) {
   return db.quickSearchIndex
     .filter((i) => i.name.toLowerCase().includes(k) || i.id.toLowerCase().includes(k) || i.meta.includes(k))
     .slice(0, 8)
+}
+
+/* ==========================================================================
+ * 系统管理真实数据访问层（S10.2）
+ * --------------------------------------------------------------------------
+ * 约束：
+ *   - 仅新增真实 Service，不替换 getSystemData() / getAgentMonitor()；
+ *   - 列表统一返回 { list, total }，total 为 null 表示后端未提供总数（不伪造）；
+ *   - 服务端分页：把 pageNum/pageSize 原样交给后端，不在前端 slice 模拟；
+ *   - 保留原始请求错误，不把 403 转成功，不 catch 后返回 mock；
+ *   - 管理员判断统一复用 isAdminUser()，未加载时其返回 false，天然 fail-closed。
+ * ========================================================================== */
+
+const SYS_USER_FILTERS = ['userName', 'phonenumber', 'status', 'deptId']
+const SYS_ROLE_FILTERS = ['roleName', 'roleKey', 'status']
+const LOGIN_LOG_FILTERS = ['userName', 'status', 'ipaddr']
+const OPER_LOG_FILTERS = ['title', 'operName', 'businessType', 'status']
+const AGENT_AUDIT_FILTERS = ['userName', 'intent', 'status', 'side']
+
+/** 统一分页参数，未传时给后端约定的默认值（pageNum=1/pageSize=10）。 */
+function pageQuery(params = {}) {
+  const pageNum = Number(params.pageNum) > 0 ? Number(params.pageNum) : 1
+  const pageSize = Number(params.pageSize) > 0 ? Number(params.pageSize) : 10
+  return { pageNum, pageSize }
+}
+
+/** 只透传契约允许的筛选条件，空值不发送。 */
+function pickFilters(params = {}, allowed = []) {
+  const query = {}
+  allowed.forEach((key) => {
+    const value = params[key]
+    if (value !== undefined && value !== null && value !== '') query[key] = value
+  })
+  return query
+}
+
+/**
+ * 若依 BaseEntity.params 日期区间。
+ * 后端参数名形如 params.beginTime / params.endTime，自定义 request 层按扁平查询串序列化，
+ * 因此使用 Spring Map 绑定语法 params[beginTime] / params[endTime]。
+ */
+function dateRangeQuery(params = {}) {
+  const query = {}
+  if (params.beginTime) query['params[beginTime]'] = params.beginTime
+  if (params.endTime) query['params[endTime]'] = params.endTime
+  return query
+}
+
+/**
+ * 用户列表：GET /system/user/list
+ * @param {object} params pageNum / pageSize / userName / phonenumber / status / deptId
+ * @returns {Promise<{ list: object[], total: number|null }>}
+ */
+export async function listSysUsers(params = {}) {
+  const query = { ...pageQuery(params), ...pickFilters(params, SYS_USER_FILTERS) }
+  const payload = await listUserApi(query)
+  const { list, total } = pageOf(payload)
+  return { list: list.map(sysUserFromBackend), total }
+}
+
+/**
+ * 角色列表：GET /system/role/list
+ * @param {object} params pageNum / pageSize / roleName / roleKey / status
+ * @returns {Promise<{ list: object[], total: number|null }>}
+ */
+export async function listSysRoles(params = {}) {
+  const query = { ...pageQuery(params), ...pickFilters(params, SYS_ROLE_FILTERS) }
+  const payload = await listRoleApi(query)
+  const { list, total } = pageOf(payload)
+  return { list: list.map(sysRoleFromBackend), total }
+}
+
+/**
+ * 登录日志：GET /monitor/logininfor/list
+ * @param {object} params pageNum / pageSize / userName / status / ipaddr / beginTime / endTime
+ * @returns {Promise<{ list: object[], total: number|null }>}
+ */
+export async function listLoginLogs(params = {}) {
+  const query = {
+    ...pageQuery(params),
+    ...pickFilters(params, LOGIN_LOG_FILTERS),
+    ...dateRangeQuery(params)
+  }
+  const payload = await listLogininforApi(query)
+  const { list, total } = pageOf(payload)
+  return { list: list.map(loginLogFromBackend), total }
+}
+
+/**
+ * 操作日志：GET /monitor/operlog/list
+ * @param {object} params pageNum / pageSize / title / operName / businessType / status / beginTime / endTime
+ * @returns {Promise<{ list: object[], total: number|null }>}
+ */
+export async function listOperationLogs(params = {}) {
+  const query = {
+    ...pageQuery(params),
+    ...pickFilters(params, OPER_LOG_FILTERS),
+    ...dateRangeQuery(params)
+  }
+  const payload = await listOperlogApi(query)
+  const { list, total } = pageOf(payload)
+  return { list: list.map(operationLogFromBackend), total }
+}
+
+/**
+ * 权限审计快照：GET /permission/audit
+ * 仅管理员可用；非管理员或登录信息未加载时直接拒绝，不发送请求。
+ * @returns {Promise<object>} permissionAuditFromBackend 转换后的单一审计对象
+ */
+export async function getPermissionAuditSnapshot() {
+  if (!isAdminUser()) {
+    const err = new Error('仅管理员可查看权限审计')
+    err.code = 403
+    throw err
+  }
+  const payload = await getPermissionAudit()
+  return permissionAuditFromBackend(unwrapData(payload))
+}
+
+/**
+ * Agent 调用日志：GET /agent/audit/list
+ * 该接口的 beginTime / endTime 为顶层参数，不是 params[]。
+ * @param {object} params pageNum / pageSize / userName / intent / status / side / beginTime / endTime
+ * @returns {Promise<{ list: object[], total: number|null }>}
+ */
+export async function listAgentAuditLogs(params = {}) {
+  const query = { ...pageQuery(params), ...pickFilters(params, AGENT_AUDIT_FILTERS) }
+  if (params.beginTime) query.beginTime = params.beginTime
+  if (params.endTime) query.endTime = params.endTime
+  const payload = await getAgentAuditList(query)
+  const { list, total } = pageOf(payload)
+  return { list: list.map(agentAuditLogFromBackend), total }
+}
+
+/**
+ * Agent 调用日志详情：GET /agent/audit/{id}
+ * @param {string|number} id 审计记录 id（雪花值按字符串处理）
+ * @returns {Promise<object>} agentAuditLogFromBackend 转换后的单条记录
+ */
+export async function getAgentAuditLogDetail(id) {
+  const auditId = toStringId(id)
+  if (!auditId) throw new Error('查询 Agent 审计详情失败：缺少合法的记录 id')
+  const payload = await getAgentAuditById(auditId)
+  return agentAuditLogFromBackend(unwrapData(payload))
 }

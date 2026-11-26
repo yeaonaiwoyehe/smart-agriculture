@@ -140,13 +140,9 @@ function confirmBind() {
             // 获取用户信息
             userStore.getInfo()
               .then(() => {
-                // 生成路由
+                // 路由注册已由 permission store 统一完成，这里只负责跳转
                 permissionStore.generateRoutes()
-                  .then(accessRoutes => {
-                    // 添加路由
-                    accessRoutes.forEach(accessRoute => {
-                      router.addRoute(accessRoute)
-                    })
+                  .then(() => {
                     // 跳转到首页
                     router.push({ path: '/' })
                       .catch(err => {

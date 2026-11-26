@@ -1,18 +1,20 @@
 <template>
   <div class="page" v-loading="loading">
-    <PageHeader title="作业调度管理" code="MP-03" group="业务管理" desc="汇聚后端真实「作业需求」数据（/farmWork），依据地块、面积与截止时间人工确认调度；后端暂无机手档案与派单接口，相关能力见页面提示。">
+    <PageHeader title="作业调度管理" code="MP-03" group="业务管理" desc="作业需求来自 /farmWork，派单记录来自 /dispatch：管理员可派单、批量派单、取消与刷新超时；机手只能查看并接单/完成分配给自己的派单。">
       <template #actions>
         <el-button :icon="Plus" @click="openCreate">发布作业需求</el-button>
         <el-button :icon="Refresh" :loading="loading" @click="load()">刷新</el-button>
       </template>
     </PageHeader>
 
+    <el-tabs v-model="activeTab" class="mt-3" @tab-change="handleTabChange">
+      <el-tab-pane label="作业需求" name="tasks">
     <!-- 后端能力说明：不使用假成功，明确告知哪些能力缺失 -->
     <el-alert type="info" :closable="false" class="mt-2" show-icon>
       <template #title>
         真实数据源：<b>POST /farmWork/list</b>（作业需求，status: 0=可接单 / 1=已结束）。
-        后端<b>不存在</b> DispatchController，也没有农机派单、机手档案、作业进度与批量调度接口，
-        因此「建议农机 / 批量派单 / 重新分配」在本系统内为<span class="warn-text">后端待补充</span>，页面不再展示模拟值。
+        「派单调度」页签对接后端 <b>/dispatch</b>（10 个真实端点）；派单、批量派单、取消、刷新超时、调度建议仅管理员可用，
+        机手仅能查看分配给自己的派单并接单/完成。后端未提供的字段（如派单的作业类型）显示“—”，不做推算。
       </template>
     </el-alert>
 
@@ -117,6 +119,137 @@
         />
       </div>
     </PanelCard>
+      </el-tab-pane>
+
+      <el-tab-pane label="派单调度" name="dispatch" lazy>
+        <div v-if="admin" class="grid cols-4 mt-3">
+          <StatCard label="总派单数" :value="stats.total" unit="单" icon="Tickets" foot="GET /dispatch/stats" />
+          <StatCard label="待接单" :value="stats.dispatched" unit="单" icon="Promotion" tone="amber" foot="DISPATCHED" />
+          <StatCard label="进行中" :value="stats.accepted" unit="单" icon="Van" tone="blue" foot="ACCEPTED" />
+          <StatCard label="已完成" :value="stats.completed" unit="单" icon="CircleCheck" tone="green" foot="COMPLETED" />
+          <StatCard label="已超时" :value="stats.timeout" unit="单" icon="Warning" tone="red" foot="TIMEOUT" />
+          <StatCard label="已取消" :value="stats.cancelled" unit="单" icon="CircleClose" foot="CANCELLED" />
+          <StatCard label="完成率" :value="rateText(stats.completionRate)" unit="%" icon="DataLine" foot="后端返回百分比，前端不再换算" />
+          <StatCard label="超时率" :value="rateText(stats.timeoutRate)" unit="%" icon="Timer" tone="amber" foot="后端返回百分比，前端不再换算" />
+        </div>
+
+        <PanelCard title="派单记录" sub="GET /dispatch/list · 后端已按派单时间倒序；该查询会触发后端 markTimeout()" class="mt-3">
+          <template #extra>
+            <div class="flex center" style="gap: 8px">
+              <el-button v-if="admin" size="small" type="primary" :icon="Plus" @click="openAssign('single')">新建派单</el-button>
+              <el-button v-if="admin" size="small" :icon="DocumentAdd" @click="openAssign('batch')">批量派单</el-button>
+              <el-button v-if="admin" size="small" :icon="Timer" :loading="timeoutLoading" @click="refreshTimeout">刷新超时状态</el-button>
+            </div>
+          </template>
+
+          <div class="filter-bar flat">
+            <el-select v-model="dispatchStatus" size="small" style="width: 130px" @change="handleDispatchQuery">
+              <el-option label="全部状态" value="" />
+              <el-option v-for="s in DISPATCH_STATUS_OPTIONS" :key="s.value" :label="s.label" :value="s.value" />
+            </el-select>
+            <span class="filter-hint grow">
+              {{ admin ? '管理员可查看全部派单' : '仅展示分配给当前账号的派单' }} ·
+              共 {{ dispatchTotal === null ? '后端未返回总数' : dispatchTotal }} 条
+            </span>
+          </div>
+
+          <el-table :data="dispatches" size="small" row-key="id" style="width: 100%" v-loading="dispatchLoading">
+            <el-table-column label="派单单号" min-width="152">
+              <template #default="{ row }"><span class="mono" style="font-size: 11px">{{ row.dispatchNo || row.id || '-' }}</span></template>
+            </el-table-column>
+            <el-table-column label="作业名称" min-width="130">
+              <template #default="{ row }">{{ row.farmWorkName || '-' }}</template>
+            </el-table-column>
+            <el-table-column label="地块 ID" min-width="110">
+              <template #default="{ row }"><span class="mono" style="font-size: 11px">{{ row.plotId || '-' }}</span></template>
+            </el-table-column>
+            <el-table-column label="作业类型" width="94">
+              <template #default="{ row }">{{ row.workType || '—' }}</template>
+            </el-table-column>
+            <el-table-column label="机手" width="118">
+              <template #default="{ row }">{{ row.assigneeNick || row.assigneeName || row.assigneeId || '-' }}</template>
+            </el-table-column>
+            <el-table-column label="截止时间" width="126">
+              <template #default="{ row }"><span class="mono" style="font-size: 11px">{{ fmtTime(row.deadline) }}</span></template>
+            </el-table-column>
+            <el-table-column label="状态" width="88">
+              <template #default="{ row }"><StatusTag :status="row.statusLabel || row.status" /></template>
+            </el-table-column>
+            <el-table-column label="派单时间" width="126">
+              <template #default="{ row }"><span class="mono" style="font-size: 11px">{{ fmtTime(row.dispatchTime) }}</span></template>
+            </el-table-column>
+            <el-table-column label="操作" width="156" align="right">
+              <template #default="{ row }">
+                <el-button link type="primary" size="small" @click="openDispatchDetail(row)">详情</el-button>
+                <el-button v-if="canAccept(row)" link type="success" size="small" @click="doAccept(row)">接单</el-button>
+                <el-button v-if="canComplete(row)" link type="success" size="small" @click="doComplete(row)">完成</el-button>
+                <el-button v-if="canCancel(row)" link type="danger" size="small" @click="doCancel(row)">取消</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="pager-wrap" v-if="admin ? dispatchTotal !== null : true">
+            <el-pagination
+              background
+              layout="total, sizes, prev, pager, next"
+              :total="dispatchTotal ?? dispatches.length"
+              :current-page="dispatchPage"
+              :page-size="dispatchPageSize"
+              :page-sizes="[10, 20, 50]"
+              @current-change="handleDispatchPage"
+              @size-change="handleDispatchSize"
+            />
+          </div>
+        </PanelCard>
+
+        <PanelCard v-if="admin" title="调度建议" sub="GET /dispatch/suggestion · 后端规则化建议（非机器学习）" class="mt-3">
+          <div v-if="suggestionsLoading" class="hint">加载中…</div>
+          <template v-else>
+            <div class="panel-title" style="font-size: 13px"><span class="dot" />待派作业（{{ pendingTasks.length }}）</div>
+            <el-table :data="pendingTasks" size="small" style="width: 100%; margin-top: 6px">
+              <el-table-column label="作业" min-width="150"><template #default="{ row }">{{ row.name || row.farmWorkId || '-' }}</template></el-table-column>
+              <el-table-column label="面积(亩)" width="92" align="right"><template #default="{ row }">{{ row.area ?? '—' }}</template></el-table-column>
+              <el-table-column label="地块" min-width="130"><template #default="{ row }">{{ row.plotName || row.plotId || '—' }}</template></el-table-column>
+              <el-table-column label="历史" min-width="160"><template #default="{ row }">{{ row.historyNote || '—' }}</template></el-table-column>
+            </el-table>
+            <div v-if="!pendingTasks.length" class="hint" style="padding: 6px 0">后端未返回待派作业</div>
+
+            <div class="panel-title" style="font-size: 13px; margin-top: 14px"><span class="dot" />候选人员（{{ operatorCandidates.length }}）</div>
+            <el-alert type="warning" :closable="false" show-icon style="margin: 6px 0">
+              <template #title>候选来自后端全量用户评估，未按机手角色过滤，请管理员核实人员身份后再派单。</template>
+            </el-alert>
+            <el-table :data="operatorCandidates" size="small" style="width: 100%">
+              <el-table-column label="姓名" min-width="120"><template #default="{ row }">{{ row.nickName || row.userName || row.userId }}</template></el-table-column>
+              <el-table-column label="空闲" width="72"><template #default="{ row }">{{ row.idle ? '是' : '否' }}</template></el-table-column>
+              <el-table-column label="完成率" width="88" align="right"><template #default="{ row }">{{ row.completionRate ?? '—' }}%</template></el-table-column>
+              <el-table-column label="接单/完成/超时" width="150" align="center"><template #default="{ row }">{{ row.accepted ?? 0 }} / {{ row.completed ?? 0 }} / {{ row.timeout ?? 0 }}</template></el-table-column>
+              <el-table-column label="说明" min-width="140"><template #default="{ row }">{{ row.note || '—' }}</template></el-table-column>
+            </el-table>
+            <div v-if="!operatorCandidates.length" class="hint" style="padding: 6px 0">后端未返回候选人员</div>
+
+            <div class="panel-title" style="font-size: 13px; margin-top: 14px"><span class="dot" />农机信息（{{ machineryOptions.length }}）</div>
+            <div v-if="machineryOptions.length" class="hint" style="line-height: 1.9">
+              <span v-for="m in machineryOptions" :key="m.machineryId" class="tag violet no-dot" style="margin-right: 6px; margin-bottom: 4px">
+                {{ m.name || m.machineryId }}<template v-if="m.location"> · {{ m.location }}</template>
+              </span>
+            </div>
+            <div v-else class="hint" style="padding: 6px 0">后端未返回农机信息</div>
+
+            <div class="panel-title" style="font-size: 13px; margin-top: 14px"><span class="dot" />调度建议（{{ recommendations.length }}）</div>
+            <ul v-if="recommendations.length" class="hint" style="margin: 6px 0 0 18px; line-height: 1.9">
+              <li v-for="(r, i) in recommendations" :key="i">{{ r }}</li>
+            </ul>
+            <div v-else class="hint">后端未返回调度建议</div>
+
+            <div class="panel-title" style="font-size: 13px; margin-top: 14px"><span class="dot" />数据缺口（{{ dataGaps.length }}）</div>
+            <ul v-if="dataGaps.length" class="hint" style="margin: 6px 0 0 18px; line-height: 1.9">
+              <li v-for="(g, i) in dataGaps" :key="i">{{ g }}</li>
+            </ul>
+            <div v-else class="hint">后端未报告数据缺口</div>
+          </template>
+        </PanelCard>
+      </el-tab-pane>
+    </el-tabs>
 
     <!-- 新建 / 编辑 -->
     <el-dialog v-model="formVisible" :title="formMode === 'edit' ? '编辑作业需求' : '发布作业需求'" width="620px">
@@ -212,6 +345,73 @@
         <el-button type="primary" :disabled="isEnded(detail?.status)" @click="openEdit(detail)">编辑</el-button>
       </template>
     </el-drawer>
+
+    <!-- 派单 -->
+    <el-dialog v-model="assignVisible" :title="assignMode === 'batch' ? '批量派单' : '新建派单'" width="560px" :close-on-click-modal="false">
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom: 12px">
+        <template #title>
+          派单仅管理员可提交；机手候选取自 GET /dispatch/suggestion，<b>后端未按机手角色过滤</b>，请核实身份后再派单。
+        </template>
+      </el-alert>
+      <el-form label-width="92px">
+        <el-form-item v-if="assignMode === 'single'" label="作业需求" required>
+          <el-select v-model="assignForm.farmWorkId" filterable placeholder="选择待派作业需求" style="width: 100%">
+            <el-option v-for="t in assignTaskOptions" :key="t.id" :label="t.name" :value="t.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-else label="作业需求" required>
+          <el-select v-model="assignForm.farmWorkIds" multiple filterable collapse-tags collapse-tags-tooltip placeholder="可多选待派作业需求" style="width: 100%">
+            <el-option v-for="t in assignTaskOptions" :key="t.id" :label="t.name" :value="t.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="机手" required>
+          <el-select v-model="assignForm.assigneeId" filterable placeholder="选择机手（后端全量用户候选）" style="width: 100%">
+            <el-option v-for="o in operatorCandidates" :key="o.userId" :label="candidateLabel(o)" :value="o.userId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="截止时间" required>
+          <el-date-picker v-model="assignForm.deadline" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm" placeholder="必须晚于当前时间" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="assignForm.remark" maxlength="120" show-word-limit placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <div class="hint-line"><el-icon :size="13"><InfoFilled /></el-icon><span>派单单号由后端生成；同一作业已存在待接单/进行中派单时会被后端拒绝，请以返回信息为准。</span></div>
+      <template #footer>
+        <el-button :disabled="assignSubmitting" @click="assignVisible = false">取消</el-button>
+        <el-button type="primary" :loading="assignSubmitting" @click="submitAssign">确认派单</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 派单详情 -->
+    <el-drawer v-model="dispatchDetailVisible" title="派单详情" size="520px">
+      <template v-if="dispatchDetail">
+        <div class="detail-head">
+          <div style="min-width: 0">
+            <div class="detail-title">{{ dispatchDetail.farmWorkName || dispatchDetail.dispatchNo || '-' }}</div>
+            <div class="detail-sub mono" style="font-size: 10.5px">{{ dispatchDetail.dispatchNo || dispatchDetail.id }}</div>
+          </div>
+          <div style="margin-left: auto"><StatusTag :status="dispatchDetail.statusLabel || dispatchDetail.status" /></div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-field"><div class="detail-label">机手</div><div class="detail-value">{{ dispatchDetail.assigneeNick || dispatchDetail.assigneeName || dispatchDetail.assigneeId || '-' }}</div></div>
+          <div class="detail-field"><div class="detail-label">作业类型</div><div class="detail-value">{{ dispatchDetail.workType || '—' }}</div></div>
+          <div class="detail-field"><div class="detail-label">截止时间</div><div class="detail-value mono">{{ fmtTime(dispatchDetail.deadline) }}</div></div>
+          <div class="detail-field"><div class="detail-label">派单时间</div><div class="detail-value mono">{{ fmtTime(dispatchDetail.dispatchTime) }}</div></div>
+          <div class="detail-field"><div class="detail-label">接单时间</div><div class="detail-value mono">{{ fmtTime(dispatchDetail.acceptTime) }}</div></div>
+          <div class="detail-field"><div class="detail-label">完成时间</div><div class="detail-value mono">{{ fmtTime(dispatchDetail.completeTime) }}</div></div>
+          <div class="detail-field"><div class="detail-label">作业 ID</div><div class="detail-value mono" style="font-size: 11px">{{ dispatchDetail.farmWorkId || '-' }}</div></div>
+          <div class="detail-field"><div class="detail-label">地块 ID</div><div class="detail-value mono" style="font-size: 11px">{{ dispatchDetail.plotId || '-' }}</div></div>
+          <div class="detail-field" style="grid-column: 1 / -1"><div class="detail-label">备注</div><div class="detail-value">{{ dispatchDetail.remark || '—' }}</div></div>
+        </div>
+        <el-alert type="info" :closable="false" show-icon style="margin-top: 10px">
+          <template #title>派单记录中的作业类型后端暂未写入，显示“—”；状态与时间均由后端返回，页面不做推算。</template>
+        </el-alert>
+      </template>
+      <template #footer>
+        <el-button @click="dispatchDetailVisible = false">关闭</el-button>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
@@ -219,7 +419,15 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowDown, InfoFilled, Plus, Refresh, Search } from '@element-plus/icons-vue'
-import { createTask, listLands, listTasks, listWorkTypes, revokeTask, updateTask } from '@/services/api'
+import {
+  acceptDispatch, cancelDispatch, completeDispatch,
+  createTask, dispatchBatch, dispatchOne,
+  getDispatchStats, getDispatchSuggestions, listDispatches,
+  listLands, listTasks, listWorkTypes, refreshDispatchTimeout,
+  revokeTask, updateTask
+} from '@/services/api'
+import { useUserStore } from '@/stores/user'
+import { isAdminUser } from '@/stores/permission'
 import { listCrops } from '@/api/crop'
 import { toLongIdList, toStringId, toStringIdList } from '@/utils/adapter'
 import PageHeader from '@/components/PageHeader.vue'
@@ -539,6 +747,271 @@ function onMapLand(l) {
   } else {
     ElMessage.info(`${l.name}：暂无关联作业需求`)
   }
+}
+
+/* ================= 派单调度（第二阶段，复用 services/api 与 adapter） =================
+ * 权限：admin 判定复用 isAdminUser()；机手 userId 取自 userStore，列表隔离由服务层强制附加。
+ * 副作用：GET /dispatch/list 与 /dispatch/stats 会触发后端 markTimeout()，只在切页签与写操作后按需加载，
+ * 页面不做轮询，也不在初始化时无条件请求。
+ */
+const userStore = useUserStore()
+const admin = computed(() => isAdminUser())
+const currentUserId = computed(() => toStringId(userStore.userId ?? userStore.user?.userId))
+
+const activeTab = ref('tasks')
+const dispatchLoaded = ref(false)
+const dispatches = ref([])
+const dispatchTotal = ref(null)
+const dispatchPage = ref(1)
+const dispatchPageSize = ref(10)
+const dispatchStatus = ref('')
+const dispatchLoading = ref(false)
+const timeoutLoading = ref(false)
+const stats = ref(emptyStats())
+const suggestions = ref(null)
+const suggestionsLoading = ref(false)
+
+const DISPATCH_STATUS_OPTIONS = [
+  { value: 'DISPATCHED', label: '待接单' },
+  { value: 'ACCEPTED', label: '进行中' },
+  { value: 'COMPLETED', label: '已完成' },
+  { value: 'TIMEOUT', label: '已超时' },
+  { value: 'CANCELLED', label: '已取消' }
+]
+
+const pendingTasks = computed(() => suggestions.value?.pendingTasks || [])
+const operatorCandidates = computed(() => suggestions.value?.operatorCandidates || [])
+const machineryOptions = computed(() => suggestions.value?.machineryOptions || [])
+const recommendations = computed(() => suggestions.value?.recommendations || [])
+const dataGaps = computed(() => suggestions.value?.dataGaps || [])
+
+function emptyStats() {
+  return { total: 0, completed: 0, accepted: 0, dispatched: 0, timeout: 0, cancelled: 0, completionRate: null, timeoutRate: null }
+}
+function rateText(v) {
+  return v === null || v === undefined || v === '' ? '—' : v
+}
+function errText(error) {
+  return error?.msg || error?.payload?.msg || error?.message || '未知错误'
+}
+function candidateLabel(o) {
+  const name = o.nickName || o.userName || o.userId
+  const idle = o.idle ? '空闲' : '忙碌'
+  const rate = o.completionRate === null || o.completionRate === undefined ? '—' : o.completionRate
+  return `${name} · ${idle} · 完成率 ${rate}%`
+}
+
+function handleTabChange(name) {
+  if (name !== 'dispatch' || dispatchLoaded.value) return
+  dispatchLoaded.value = true
+  loadDispatchTab()
+}
+async function loadDispatchTab() {
+  await Promise.all([
+    loadDispatches(),
+    admin.value ? loadStats() : Promise.resolve(),
+    admin.value ? loadSuggestions() : Promise.resolve()
+  ])
+}
+async function loadDispatches() {
+  dispatchLoading.value = true
+  try {
+    const res = await listDispatches({
+      pageNum: dispatchPage.value,
+      pageSize: dispatchPageSize.value,
+      status: dispatchStatus.value
+    })
+    dispatches.value = res.list
+    // 后端未返回 total 时保持 null，不用列表长度冒充
+    dispatchTotal.value = res.total
+  } catch (error) {
+    dispatches.value = []
+    dispatchTotal.value = null
+    ElMessage.error('查询派单失败：' + errText(error))
+  } finally {
+    dispatchLoading.value = false
+  }
+}
+async function loadStats() {
+  try {
+    stats.value = await getDispatchStats()
+  } catch (error) {
+    stats.value = emptyStats()
+    ElMessage.error('派单统计加载失败：' + errText(error))
+  }
+}
+async function loadSuggestions() {
+  suggestionsLoading.value = true
+  try {
+    suggestions.value = await getDispatchSuggestions()
+  } catch (error) {
+    suggestions.value = null
+    ElMessage.error('调度建议加载失败：' + errText(error))
+  } finally {
+    suggestionsLoading.value = false
+  }
+}
+
+function handleDispatchQuery() {
+  dispatchPage.value = 1
+  loadDispatches()
+}
+function handleDispatchPage(page) {
+  dispatchPage.value = Number(page)
+  loadDispatches()
+}
+function handleDispatchSize(size) {
+  dispatchPageSize.value = Number(size)
+  dispatchPage.value = 1
+  loadDispatches()
+}
+
+/* 按钮显隐只做交互层过滤，权限仍由后端 @PreAuthorize 与本人校验决定 */
+function isMine(row) {
+  return !!currentUserId.value && row.assigneeId === currentUserId.value
+}
+function canAccept(row) {
+  return !admin.value && row.status === 'DISPATCHED' && isMine(row)
+}
+function canComplete(row) {
+  return !admin.value && row.status === 'ACCEPTED' && isMine(row)
+}
+function canCancel(row) {
+  return admin.value && (row.status === 'DISPATCHED' || row.status === 'ACCEPTED')
+}
+
+async function confirmAction(text) {
+  try {
+    await ElMessageBox.confirm(text, '操作确认', { type: 'warning', confirmButtonText: '确认', cancelButtonText: '取消' })
+    return true
+  } catch {
+    return false
+  }
+}
+async function afterWrite(message) {
+  if (message) ElMessage.success(message)
+  await loadDispatches()
+  if (admin.value) await loadStats()
+}
+async function doAccept(row) {
+  if (!(await confirmAction(`确认接单「${row.dispatchNo || row.id}」？`))) return
+  try {
+    await acceptDispatch(row.id)
+    await afterWrite('已接单')
+  } catch (error) {
+    ElMessage.error('接单失败：' + errText(error))
+  }
+}
+async function doComplete(row) {
+  if (!(await confirmAction(`确认完成「${row.dispatchNo || row.id}」？`))) return
+  try {
+    await completeDispatch(row.id)
+    await afterWrite('已完成')
+  } catch (error) {
+    ElMessage.error('完成失败：' + errText(error))
+  }
+}
+async function doCancel(row) {
+  if (!(await confirmAction(`确认取消派单「${row.dispatchNo || row.id}」？取消后不可恢复。`))) return
+  try {
+    await cancelDispatch(row.id)
+    await afterWrite('已取消')
+  } catch (error) {
+    ElMessage.error('取消失败：' + errText(error))
+  }
+}
+async function refreshTimeout() {
+  if (!(await confirmAction('刷新超时状态会触发后端 markTimeout() 写库，确认执行？'))) return
+  timeoutLoading.value = true
+  try {
+    const res = await refreshDispatchTimeout()
+    ElMessage.success(res.message || `已标记超时派单 ${res.count} 条`)
+    await loadDispatches()
+    if (admin.value) await loadStats()
+  } catch (error) {
+    ElMessage.error('刷新超时失败：' + errText(error))
+  } finally {
+    timeoutLoading.value = false
+  }
+}
+
+/* ---------------- 派单弹窗 ---------------- */
+const assignVisible = ref(false)
+const assignMode = ref('single')
+const assignSubmitting = ref(false)
+const assignForm = reactive({ farmWorkId: '', farmWorkIds: [], assigneeId: '', deadline: '', remark: '' })
+const assignTaskOptions = computed(() => {
+  const fromSuggestions = pendingTasks.value.map((t) => ({ id: t.farmWorkId, name: t.name || t.farmWorkId }))
+  if (fromSuggestions.length) return fromSuggestions
+  return tasks.value
+    .filter((t) => Number(t.status) === 0)
+    .map((t) => ({ id: t.id, name: t.name || t.id }))
+})
+
+function openAssign(mode) {
+  assignMode.value = mode
+  Object.assign(assignForm, { farmWorkId: '', farmWorkIds: [], assigneeId: '', deadline: '', remark: '' })
+  assignVisible.value = true
+  if (admin.value && !suggestions.value && !suggestionsLoading.value) loadSuggestions()
+}
+
+async function submitAssign() {
+  if (assignSubmitting.value) return
+  if (assignMode.value === 'single' && !assignForm.farmWorkId) return ElMessage.warning('请选择作业需求')
+  if (assignMode.value === 'batch' && !assignForm.farmWorkIds.length) return ElMessage.warning('请至少选择一条作业需求')
+  if (!assignForm.assigneeId) return ElMessage.warning('请选择机手')
+  if (!assignForm.deadline) return ElMessage.warning('请选择截止时间')
+  const deadlineTs = parseTime(assignForm.deadline)
+  if (deadlineTs === null || deadlineTs <= Date.now()) return ElMessage.warning('截止时间必须晚于当前时间')
+
+  const batch = assignMode.value === 'batch'
+  const target = operatorCandidates.value.find((o) => o.userId === assignForm.assigneeId)
+  const who = target ? (target.nickName || target.userName || target.userId) : assignForm.assigneeId
+  if (!(await confirmAction(batch ? `确认向「${who}」批量派单？` : `确认向「${who}」派单？`))) return
+
+  assignSubmitting.value = true
+  try {
+    if (batch) {
+      const res = await dispatchBatch({
+        farmWorkIds: assignForm.farmWorkIds,
+        assigneeId: assignForm.assigneeId,
+        deadline: assignForm.deadline,
+        remark: assignForm.remark
+      })
+      ElMessage.success(res.message || `批量派单成功，共 ${res.count} 单`)
+    } else {
+      const res = await dispatchOne({
+        farmWorkId: assignForm.farmWorkId,
+        assigneeId: assignForm.assigneeId,
+        deadline: assignForm.deadline,
+        remark: assignForm.remark
+      })
+      ElMessage.success(res.message || '派单成功')
+    }
+    assignVisible.value = false
+    await loadDispatches()
+    if (admin.value) await loadStats()
+  } catch (error) {
+    if (batch) {
+      // 后端批量派单可能部分成功且不回滚：不得提示“全部失败”，必须让管理员刷新核对
+      ElMessage.error(`${errText(error)}。后端可能已部分成功，请刷新列表核对实际结果。`)
+      assignVisible.value = false
+      await loadDispatches()
+      if (admin.value) await loadStats()
+    } else {
+      ElMessage.error('派单失败：' + errText(error))
+    }
+  } finally {
+    assignSubmitting.value = false
+  }
+}
+
+/* ---------------- 派单详情（直接用列表返回的真实字段，不额外发请求） ---------------- */
+const dispatchDetailVisible = ref(false)
+const dispatchDetail = ref(null)
+function openDispatchDetail(row) {
+  dispatchDetail.value = row
+  dispatchDetailVisible.value = true
 }
 </script>
 

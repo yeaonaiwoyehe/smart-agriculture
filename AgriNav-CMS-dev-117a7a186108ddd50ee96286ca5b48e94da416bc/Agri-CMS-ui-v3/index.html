@@ -6,131 +6,53 @@
   <meta name="renderer" content="webkit">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="icon" href="/favicon.ico">
-  <title>农业土地与作物种植面积监测系统</title>
+  <title>田界智航 · 农机作业管控智能管理平台</title>
   <style>
+    /* 首屏占位：与新版设计令牌保持一致，避免加载瞬间出现旧版样式 */
     html,
     body,
     #app {
       height: 100%;
-      margin: 0px;
-      padding: 0px;
+      margin: 0;
+      padding: 0;
     }
 
-    #loader-wrapper {
+    body {
+      background: #f2f5f3;
+    }
+
+    .app-loading {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 999999;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: #f2f5f3;
+      color: #6b7a72;
+      font: 13px/1.6 system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
 
-    #loader {
-      display: block;
-      position: relative;
-      left: 50%;
-      top: 50%;
-      width: 150px;
-      height: 150px;
-      margin: -75px 0 0 -75px;
+    .app-loading__spinner {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      border: 3px solid transparent;
-      border-top-color: #FFF;
-      animation: spin 2s linear infinite;
-      z-index: 1001;
+      border: 3px solid #d8e9e0;
+      border-top-color: #1fae6b;
+      animation: app-spin 0.8s linear infinite;
     }
 
-    #loader:before {
-      content: "";
-      position: absolute;
-      top: 5px;
-      left: 5px;
-      right: 5px;
-      bottom: 5px;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      border-top-color: #FFF;
-      animation: spin 3s linear infinite;
-    }
-
-    #loader:after {
-      content: "";
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      right: 15px;
-      bottom: 15px;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      border-top-color: #FFF;
-      animation: spin 1.5s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    #loader-wrapper .loader-section {
-      position: fixed;
-      top: 0;
-      width: 51%;
-      height: 100%;
-      background: #7171C6;
-      z-index: 1000;
-      transform: translateX(0);
-    }
-
-    #loader-wrapper .loader-section.section-left {
-      left: 0;
-    }
-
-    #loader-wrapper .loader-section.section-right {
-      right: 0;
-    }
-
-    .loaded #loader-wrapper .loader-section.section-left {
-      transform: translateX(-100%);
-      transition: all 0.7s 0.3s cubic-bezier(0.645, 0.045, 0.355, 1.000);
-    }
-
-    .loaded #loader-wrapper .loader-section.section-right {
-      transform: translateX(100%);
-      transition: all 0.7s 0.3s cubic-bezier(0.645, 0.045, 0.355, 1.000);
-    }
-
-    .loaded #loader {
-      opacity: 0;
-      transition: all 0.3s ease-out;
-    }
-
-    .loaded #loader-wrapper {
-      visibility: hidden;
-      transform: translateY(-100%);
-      transition: all 0.3s 1s ease-out;
-    }
-
-    #loader-wrapper .load_title {
-      font-family: 'Open Sans', sans-serif;
-      color: #FFF;
-      font-size: 19px;
-      width: 100%;
-      text-align: center;
-      z-index: 9999999999999;
-      position: absolute;
-      top: 60%;
-      opacity: 1;
-      line-height: 30px;
+    @keyframes app-spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
 <div id="app">
-  <div id="loader-wrapper">
-    <div id="loader"></div>
-    <div class="loader-section section-left"></div>
-    <div class="loader-section section-right"></div>
-    <div class="load_title">正在加载系统资源，请耐心等待</div>
+  <div class="app-loading">
+    <div class="app-loading__spinner"></div>
+    <div>田界智航 · 正在加载</div>
   </div>
 </div>
 <script type="module" src="/src/main.js"></script>

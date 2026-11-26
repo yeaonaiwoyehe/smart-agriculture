@@ -188,7 +188,7 @@ defineEmits(['select-land', 'select-machine'])
 // 有真实经纬度（后端 WKT 解析结果）且开关打开时，自动切换到老版本的高德地图；
 // 否则（mock 的像素坐标 / 离线演示）继续使用内置 SVG 示意图。
 const useAmap = computed(() => {
-  const enabled = String(import.meta.env.VITE_USE_AMAP ?? 'false') === 'true'
+  const enabled = String(import.meta.env.VITE_APP_USE_AMAP ?? 'false') === 'true'
   if (!enabled) return false
   const isLngLat = (p) => Array.isArray(p) && p.length >= 2 &&
     Number(p[0]) >= -180 && Number(p[0]) <= 180 &&

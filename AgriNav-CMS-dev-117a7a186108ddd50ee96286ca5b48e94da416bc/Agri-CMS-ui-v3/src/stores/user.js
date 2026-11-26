@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { login as loginApi, getInfo as getInfoApi, logout as logoutApi } from '@/api/login'
-import { getToken, setToken } from '@/utils/request'
+import { getToken, setToken } from '@/utils/auth'
 import defaultAvatar from '@/assets/images/profile.jpg'
 
 // 并发退出只发一次 /logout，但所有调用方都等待同一个 Promise。
@@ -76,7 +76,7 @@ export const useUserStore = defineStore('user', {
         try {
           await logoutApi()
         } catch (err) {
-          console.warn('[logout] 后端退出失败，继续清理本地登录态', err)
+          console.warn('[logout] 后端退出失败，继续清理本地登录态', err?.message)
         } finally {
           this.clearLocal()
           logoutPromise = null

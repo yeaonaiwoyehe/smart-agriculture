@@ -1,6 +1,6 @@
 // ============================================================
 // 高德地图统一加载模块
-// key 与安全密钥统一从环境变量读取（.env.* 中的 VUE_APP_AMAP_*）
+// key 与安全密钥统一从环境变量读取（.env.* 中的 VITE_APP_AMAP_*）
 // 各页面不再硬编码 key，统一调用 loadAMap(plugins)
 // ============================================================
 import AMapLoader from '@amap/amap-jsapi-loader'
@@ -16,6 +16,10 @@ export const AMAP_SECURITY_CODE = import.meta.env.VITE_APP_AMAP_SECURITY_CODE ||
  * @returns {Promise<object>} AMap
  */
 export function loadAMap(plugins = []) {
+  // Key 缺失时快速失败，避免高德返回 INVALID_USER_KEY 后只留一片白屏
+  if (!AMAP_KEY) {
+    throw new Error('未配置高德地图 Key（VITE_APP_AMAP_KEY），请检查对应环境的 .env 文件')
+  }
   // 安全密钥必须在 AMapLoader.load 之前配置
   window._AMapSecurityConfig = {
     securityJsCode: AMAP_SECURITY_CODE

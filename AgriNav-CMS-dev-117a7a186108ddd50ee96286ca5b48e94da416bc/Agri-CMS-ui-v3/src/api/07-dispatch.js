@@ -1,21 +1,25 @@
 /**
- * 07-作业调度（9 个接口）
- * 依据 AgriNav接口清单.md 自动生成，方法与路径逐条对应。
+ * 07-作业调度（10 个真实接口）
+ * 依据后端 DispatchController.java（Agri-CMS-admin/.../web/controller/dispatch/DispatchController.java）
+ * 逐条核对，类级 @RequestMapping("/dispatch") 下共 10 个端点：
  *
- * ⚠️【S6 核查结论：后端全部未实现，本文件当前不可用，请勿在新代码中调用】
- * 逐条核对后端源码（Agri-CMS-admin/src 下 47 个 *Controller.java）：
- *   - 不存在 DispatchController；对全部 Controller 执行 grep 'dispatch|Dispatch' 命中 0 次。
- *   - 因此下列 9 个路径（/dispatch、/dispatch/{id}、/accept、/cancel、/complete、
- *     /dispatch/batch、/dispatch/list、/dispatch/stats、/dispatch/timeout）均返回 404，
- *     它们是依据文档生成的占位定义，不代表后端能力。
+ *   POST   /dispatch                 单选派单（仅 admin）
+ *   POST   /dispatch/batch           批量派单（仅 admin）
+ *   GET    /dispatch/list            分页查询（登录态；后端会先执行 markTimeout()，属“读触发写”）
+ *   GET    /dispatch/{id}            派单详情
+ *   PUT    /dispatch/{id}/accept     接单（仅 assigneeId 本人）
+ *   PUT    /dispatch/{id}/complete   完成（仅 assigneeId 本人）
+ *   PUT    /dispatch/{id}/cancel     取消（仅 admin）
+ *   POST   /dispatch/timeout         刷新超时（登录态；前端仅向 admin 展示入口）
+ *   GET    /dispatch/stats           全局统计（无参数；后端会先执行 markTimeout()）
+ *   GET    /dispatch/suggestion      调度建议（仅 admin）
  *
- * 真实的调度相关能力只在 FarmWorkController（/farmWork）：
- *   POST /farmWork/list、POST /farmWork/add、PUT /farmWork、DELETE /farmWork/{id}
- * 前端实际接入见 services/api.js 的 listTasks / createTask / updateTask / revokeTask。
- *
- * 按约束（未经单独授权不得删除旧 API 文件）本文件保留不删，仅作标注。
+ * 注意：
+ *   - 不是 11 个端点，也不存在 /dispatch/my、/dispatch/export 等路径；
+ *   - 所有写操作仍需后端鉴权，前端按钮显隐不构成权限保障；
+ *   - 雪花 ID 一律按字符串处理，禁止 Number 化。
  */
-import { get, post, put, del, patch } from '@/utils/request'
+import { get, post, put } from '@/utils/request'
 
 export const postDispatch = (...args) => post('/dispatch', ...args)
 export const getDispatchById = (id, ...rest) => get(`/dispatch/${encodeURIComponent(id)}`, ...rest)
@@ -26,6 +30,7 @@ export const postDispatchBatch = (...args) => post('/dispatch/batch', ...args)
 export const getDispatchList = (...args) => get('/dispatch/list', ...args)
 export const getDispatchStats = (...args) => get('/dispatch/stats', ...args)
 export const postDispatchTimeout = (...args) => post('/dispatch/timeout', ...args)
+export const getDispatchSuggestion = (...args) => get('/dispatch/suggestion', ...args)
 
 export const dispatchApi = {
   postDispatch,
@@ -37,5 +42,6 @@ export const dispatchApi = {
   getDispatchList,
   getDispatchStats,
   postDispatchTimeout,
+  getDispatchSuggestion,
 }
 export default dispatchApi

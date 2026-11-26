@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import Cookies from 'js-cookie' // 保留同事的 Cookies 引入
 
-import { users } from '@/mock/platform'
 import { useUserStore } from '@/stores/user'
 import { usePermissionStore } from '@/stores/permission'
 
@@ -71,7 +70,7 @@ export const useAppStore = defineStore('app', {
       }
     },
     roleOptions: () => Object.entries(ROLE_META).map(([value, v]) => ({ value, ...v })),
-    currentUser: (s) => s.userInfo || users.find((u) => u.role === s.role) || users[0],
+    currentUser: (s) => s.userInfo || {},
     districtScope: (s) => (s.role === 'leader' ? '河东片区' : '全公司')
   },
   actions: {

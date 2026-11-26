@@ -46,7 +46,7 @@ const num = (v, d = 0) => {
   const n = Number(v)
   return Number.isFinite(n) ? n : d
 }
-const optionalNum = (v) => {
+export const optionalNum = (v) => {
   if (v === undefined || v === null || v === '') return null
   const n = Number(v)
   return Number.isFinite(n) ? n : null
@@ -82,7 +82,7 @@ export function imageUrl(value, fallback = '') {
   if (/^(https?:|data:|blob:)/.test(value)) return value
   if (value.startsWith('/')) {
     // /profile/ 是后端的静态资源路径（老版本由 Nginx /profile -> cms:8088）
-    const base = (import.meta.env.VITE_API_BASE || '/dev-api').trim().replace(/\/$/, '')
+    const base = (import.meta.env.VITE_APP_BASE_API || '/dev-api').trim().replace(/\/$/, '')
     return value.startsWith('/profile') ? base + value : value
   }
   return value
@@ -424,6 +424,52 @@ export function priceRuleFromBackend(row = {}) {
   }
 }
 
+/**
+ * 后端 WorkDispatch（/dispatch/list、/dispatch/{id}、派单接口返回值）-> 调度视图模型
+ *
+ * 真实字段（WorkDispatch.java）：
+ *   id(Long→ToStringSerializer→字符串) / dispatchNo / farmWorkId(String) / farmWorkName /
+ *   plotId(Long，未做字符串序列化) / workType / assigneeId(String) / assigneeName / assigneeNick /
+ *   deadline / status / dispatchBy / dispatchTime / acceptTime / completeTime / remark
+ *
+ * 约定：
+ *   - 所有 ID 一律字符串化，页面禁止对 ID 做数值运算；
+ *   - status 为后端字符串枚举，中文文案只做展示映射，不改写原值；
+ *   - workType 目前后端 doDispatch 未赋值，恒为 null，这里保留空串，页面显示“—”；
+ *   - 后端不存在的字段不补造。
+ */
+const DISPATCH_STATUS_LABEL = {
+  DISPATCHED: '待接单',
+  ACCEPTED: '进行中',
+  COMPLETED: '已完成',
+  TIMEOUT: '已超时',
+  CANCELLED: '已取消'
+}
+
+export function workDispatchFromBackend(row = {}) {
+  const status = row.status || ''
+  return {
+    id: toStringId(row.id),
+    dispatchNo: row.dispatchNo || '',
+    farmWorkId: toStringId(row.farmWorkId),
+    farmWorkName: row.farmWorkName || '',
+    plotId: toStringId(row.plotId),
+    workType: row.workType || '',
+    assigneeId: toStringId(row.assigneeId),
+    assigneeName: row.assigneeName || '',
+    assigneeNick: row.assigneeNick || '',
+    deadline: row.deadline || '',
+    status,
+    statusLabel: DISPATCH_STATUS_LABEL[status] || status,
+    dispatchBy: toStringId(row.dispatchBy),
+    dispatchTime: row.dispatchTime || '',
+    acceptTime: row.acceptTime || '',
+    completeTime: row.completeTime || '',
+    remark: row.remark || '',
+    raw: row
+  }
+}
+
 /** 后端通用分页响应 -> 数组 */
 export function rowsOf(payload) {
   if (!payload) return []
@@ -443,4 +489,264 @@ export function pageOf(payload) {
   const raw = payload?.total
   const total = raw === undefined || raw === null || raw === '' ? null : num(raw, 0)
   return { list, total }
+}
+
+/* ==========================================================================
+ * 系统管理（S10.2）数据契约适配
+ * --------------------------------------------------------------------------
+ * 约束：
+ *   - 仅做字段白名单转换，禁止把后端对象整体透传给页面；
+ *   - 严禁返回 password / delFlag 等敏感字段；
+ *   - ID 一律按字符串安全处理；
+ *   - 后端不存在的字段不补造，不用 mock 默认值填充业务信息。
+ * ========================================================================== */
+
+const asObject = (value) => (value && typeof value === 'object' ? value : {})
+const asList = (value) => (Array.isArray(value) ? value : [])
+
+/** 数据权限码值（来源：DataScopeAspect 常量 / SysRole 字段注释 / PermissionAuditService） */
+const DATA_SCOPE_LABEL = {
+  '1': '全部数据',
+  '2': '自定义数据',
+  '3': '本部门数据',
+  '4': '本部门及以下数据',
+  '5': '仅本人数据'
+}
+
+/** dataScope 码值 -> 中文标签；未知码值显式返回“未知数据范围”，不做猜测归类。 */
+export function dataScopeLabel(code) {
+  const key = str(code).trim()
+  return DATA_SCOPE_LABEL[key] || '未知数据范围'
+}
+
+/** 通用启用状态：0 正常 / 1 停用（sys_normal_disable） */
+const sysStatusLabel = (value) => ({ '0': '正常', '1': '停用' }[str(value).trim()] || '未知状态')
+
+/** 登录结果：0 成功 / 1 失败 */
+const loginResultLabel = (value) => ({ '0': '成功', '1': '失败' }[str(value).trim()] || '未知结果')
+
+/** 操作日志状态：0 正常 / 1 异常 */
+const operationStatusLabel = (value) => ({ '0': '正常', '1': '异常' }[str(value).trim()] || '未知状态')
+
+/**
+ * 后端 SysUser -> 系统用户视图模型（严格白名单）
+ *
+ * 真实字段：userId / userName / nickName / email / phonenumber / status /
+ *          loginIp / loginDate / deptId / dept.deptName
+ * 禁止输出：password / delFlag / roles 等未展示字段。
+ */
+export function sysUserFromBackend(row = {}) {
+  const source = asObject(row)
+  const dept = asObject(source.dept)
+  return {
+    id: toStringId(source.userId),
+    userName: str(source.userName),
+    nickName: str(source.nickName),
+    phone: str(source.phonenumber),
+    email: str(source.email),
+    deptId: toStringId(source.deptId),
+    deptName: dept.deptName ? str(dept.deptName) : '',
+    status: str(source.status),
+    statusLabel: sysStatusLabel(source.status),
+    loginDate: str(source.loginDate),
+    loginIp: str(source.loginIp)
+  }
+}
+
+/**
+ * 后端 SysRole -> 系统角色视图模型
+ *
+ * 真实字段：roleId / roleName / roleKey / roleSort / dataScope / status
+ * 角色权限菜单集合必须由菜单树接口单独获取，不能假设列表已含完整 permissions。
+ */
+export function sysRoleFromBackend(row = {}) {
+  const source = asObject(row)
+  return {
+    id: toStringId(source.roleId),
+    roleName: str(source.roleName),
+    roleKey: str(source.roleKey),
+    roleSort: optionalNum(source.roleSort),
+    dataScope: str(source.dataScope),
+    dataScopeLabel: dataScopeLabel(source.dataScope),
+    status: str(source.status),
+    statusLabel: sysStatusLabel(source.status)
+  }
+}
+
+/**
+ * 后端 SysLogininfor -> 登录日志视图模型
+ *
+ * 真实字段：infoId / userName / status / ipaddr / loginLocation / browser / os / msg / loginTime
+ * 后端无角色字段，不得补充。
+ */
+export function loginLogFromBackend(row = {}) {
+  const source = asObject(row)
+  const browser = str(source.browser)
+  const os = str(source.os)
+  return {
+    id: toStringId(source.infoId),
+    userName: str(source.userName),
+    status: str(source.status),
+    result: loginResultLabel(source.status),
+    ip: str(source.ipaddr),
+    location: str(source.loginLocation),
+    browserInfo: [browser, os].filter(Boolean).join(' / '),
+    message: str(source.msg),
+    loginTime: str(source.loginTime)
+  }
+}
+
+/** 业务操作类型：Backend BusinessType 枚举序号（0-9） */
+const BUSINESS_TYPE_LABEL = {
+  '0': '其他',
+  '1': '新增',
+  '2': '修改',
+  '3': '删除',
+  '4': '授权',
+  '5': '导出',
+  '6': '导入',
+  '7': '强退',
+  '8': '生成代码',
+  '9': '清空数据'
+}
+
+/** businessType 码值 -> 中文；未知码值返回“未知类型”，不推测为新增/修改。 */
+export function businessTypeLabel(value) {
+  const key = str(value).trim()
+  if (!key) return '未知类型'
+  return BUSINESS_TYPE_LABEL[key] || '未知类型'
+}
+
+/**
+ * 后端 SysOperLog -> 操作日志视图模型
+ *
+ * 真实字段：operId / title / businessType / operName / operIp / operLocation /
+ *          status / operTime / costTime / operUrl / operParam / errorMsg
+ * 不拼造后端不存在的业务详情。
+ */
+export function operationLogFromBackend(row = {}) {
+  const source = asObject(row)
+  return {
+    id: toStringId(source.operId),
+    title: str(source.title),
+    businessType: optionalNum(source.businessType),
+    businessTypeLabel: businessTypeLabel(source.businessType),
+    operator: str(source.operName),
+    ip: str(source.operIp),
+    location: str(source.operLocation),
+    status: str(source.status),
+    statusLabel: operationStatusLabel(source.status),
+    operTime: str(source.operTime),
+    costTime: optionalNum(source.costTime),
+    operUrl: str(source.operUrl),
+    operParam: str(source.operParam),
+    errorMsg: str(source.errorMsg)
+  }
+}
+
+/** Agent 审计状态：REPLY / NEED_CONFIRM / NEED_PARAMS / FAILED（ToolConversation 枚举） */
+const AGENT_AUDIT_STATUS_LABEL = {
+  REPLY: '已回复',
+  NEED_CONFIRM: '待确认',
+  NEED_PARAMS: '待补充参数',
+  FAILED: '失败'
+}
+
+/** Agent 审计状态 -> 中文；未知状态优先显示原始状态，其次“未知状态”。 */
+export function agentAuditStatusLabel(status) {
+  const key = str(status).trim()
+  return AGENT_AUDIT_STATUS_LABEL[key] || key || '未知状态'
+}
+
+/**
+ * 后端 AgentAuditLog -> Agent 调用日志视图模型
+ *
+ * 真实字段：id / userName / nickName / side / intent / message / toolName /
+ *          toolArguments / toolResult / status / reply / errorMsg / costMs /
+ *          createTime / receiptNo
+ * 后端不存在 agentId / tokens / toolCalls，禁止补造。
+ */
+export function agentAuditLogFromBackend(row = {}) {
+  const source = asObject(row)
+  const userName = str(source.userName)
+  const nickName = str(source.nickName)
+  return {
+    id: toStringId(source.id),
+    userName,
+    nickName,
+    user: nickName || userName || '',
+    side: str(source.side),
+    intent: str(source.intent),
+    question: str(source.message),
+    toolName: str(source.toolName),
+    toolArguments: str(source.toolArguments),
+    toolResult: str(source.toolResult),
+    status: str(source.status),
+    statusLabel: agentAuditStatusLabel(source.status),
+    reply: str(source.reply),
+    error: str(source.errorMsg),
+    costMs: optionalNum(source.costMs),
+    createTime: str(source.createTime),
+    receiptNo: str(source.receiptNo)
+  }
+}
+
+/**
+ * 后端权限审计对象 -> 视图模型（对象，不是分页响应）
+ *
+ * 结构：summary / userPermissions / roles / violations / risks
+ * 传入 null/undefined 时返回 null，不用空对象掩盖接口异常。
+ */
+export function permissionAuditFromBackend(data) {
+  if (!data || typeof data !== 'object') return null
+  const summary = data.summary && typeof data.summary === 'object' ? data.summary : null
+  return {
+    summary: summary
+      ? {
+          userCount: optionalNum(summary.userCount),
+          roleCount: optionalNum(summary.roleCount),
+          usersWithoutRole: optionalNum(summary.usersWithoutRole),
+          violationCount: optionalNum(summary.violationCount)
+        }
+      : null,
+    userPermissions: asList(data.userPermissions).map((item) => {
+      const row = asObject(item)
+      return {
+        userId: toStringId(row.userId),
+        userName: str(row.userName),
+        nickName: str(row.nickName),
+        roleId: toStringId(row.roleId),
+        roleName: str(row.roleName),
+        roleKey: str(row.roleKey),
+        dataScope: str(row.dataScope),
+        dataScopeLabel: str(row.dataScopeName) || dataScopeLabel(row.dataScope),
+        validRole: row.validRole === true,
+        risk: str(row.risk)
+      }
+    }),
+    roles: asList(data.roles).map((item) => {
+      const row = asObject(item)
+      return {
+        roleId: toStringId(row.roleId),
+        roleName: str(row.roleName),
+        roleKey: str(row.roleKey),
+        dataScope: str(row.dataScope),
+        dataScopeLabel: str(row.dataScopeName) || dataScopeLabel(row.dataScope),
+        userCount: optionalNum(row.userCount)
+      }
+    }),
+    violations: asList(data.violations).map((item) => {
+      const row = asObject(item)
+      return {
+        userId: toStringId(row.userId),
+        userName: str(row.userName),
+        toolName: str(row.toolName),
+        status: str(row.status),
+        statusLabel: agentAuditStatusLabel(row.status),
+        detail: str(row.detail),
+        createTime: str(row.createTime)
+      }
+    }),
+    risks: asList(data.risks).map((item) => str(item)).filter(Boolean)
+  }
 }

@@ -4,285 +4,264 @@
       title="Agent 运行监控"
       code="AI-CENTER"
       group="AI 智能体"
-      desc="监控 Agent 调用量、成功率、响应时延、Token 消耗与工具失败情况，支持会话回溯与错误定位。"
+      desc="基于智能体指令审计记录的真实只读监控；卡片统计范围仅限当前页，总数以筛选条件下的后端分页 total 为准。"
     >
       <template #actions>
-        <div class="seg">
-          <button v-for="r in ['今日', '近7天', '近30天']" :key="r" :class="{ active: range === r }" @click="range = r">{{ r }}</button>
-        </div>
-        <el-button :icon="Refresh" @click="load">刷新</el-button>
+        <el-button :icon="Refresh" :loading="loading" @click="load">刷新</el-button>
       </template>
     </PageHeader>
 
-    <div class="grid cols-6">
-      <StatCard label="调用总次数" :value="totals.calls.toLocaleString()" unit="次" icon="DataLine" :delta="12.4" foot="较上周期" />
-      <StatCard label="调用成功率" :value="totals.successRate" unit="%" icon="CircleCheck" :delta="0.8" foot="目标 ≥ 97%" />
-      <StatCard label="平均响应" :value="totals.avgLatency" unit="s" icon="Timer" tone="blue" :delta="-0.3" foot="P95 4.8s" />
-      <StatCard label="Token 消耗" :value="(totals.tokens / 1000000).toFixed(2)" unit="M" icon="Coin" tone="violet" :delta="8.1" foot="本月预算 62%" />
-      <StatCard label="工具调用" :value="totals.toolCalls.toLocaleString()" unit="次" icon="Tools" tone="amber" :delta="15.2" foot="平均 3.6 次/会话" />
-      <StatCard label="失败调用" :value="totals.failures" unit="次" icon="Warning" tone="red" delta="18" delta-tone="down" foot="已自动熔断 2 次" />
+    <div class="grid stat-grid">
+      <StatCard label="审计记录总数" :value="totalText" unit="条" icon="DataLine"
+        foot="筛选条件下的后端分页 total" />
+      <StatCard label="当前页失败" :value="failedCount" unit="条" icon="Warning" tone="red"
+        :foot="pageFoot" />
+      <StatCard label="当前页待确认" :value="confirmCount" unit="条" icon="Tickets" tone="amber"
+        :foot="pageFoot" />
+      <StatCard label="当前页待补充参数" :value="paramsCount" unit="条" icon="Tickets" tone="amber"
+        :foot="pageFoot" />
+      <StatCard label="当前页已回复" :value="replyCount" unit="条" icon="CircleCheck"
+        :foot="pageFoot" />
+      <StatCard label="当前页平均耗时" :value="avgCostText" unit="ms" icon="Timer" tone="blue"
+        foot="仅统计有耗时字段的记录" />
     </div>
 
-    <div class="grid cols-2 mt-3">
-      <PanelCard title="调用量与失败趋势" sub="近 7 天 · 单位：次">
-        <ChartPanel :option="trendOption" :height="238" />
-      </PanelCard>
-      <PanelCard title="Agent 调用占比" sub="按累计调用次数">
-        <ChartPanel :option="donutOption" :height="238" />
-      </PanelCard>
+    <div class="filter-bar mt-3">
+      <el-input v-model="filters.userName" placeholder="用户账号" clearable style="width: 150px"
+        :prefix-icon="Search" @keyup.enter="apply" />
+      <el-input v-model="filters.intent" placeholder="意图" clearable style="width: 130px"
+        @keyup.enter="apply" />
+      <el-select v-model="filters.status" style="width: 140px" @change="apply">
+        <el-option label="全部状态" value="" />
+        <el-option label="已回复" value="REPLY" />
+        <el-option label="待确认" value="NEED_CONFIRM" />
+        <el-option label="待补充参数" value="NEED_PARAMS" />
+        <el-option label="失败" value="FAILED" />
+      </el-select>
+      <el-select v-model="filters.side" style="width: 120px" @change="apply">
+        <el-option label="全部端" value="" />
+        <el-option label="农机端" value="ag" />
+        <el-option label="管理端" value="ma" />
+      </el-select>
+      <el-date-picker v-model="filters.dateRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss"
+        start-placeholder="开始时间" end-placeholder="结束时间" style="width: 330px" />
+      <el-button type="primary" @click="apply">查询</el-button>
+      <el-button @click="reset">重置</el-button>
     </div>
 
-    <div class="grid cols-2 mt-3">
-      <PanelCard title="响应时间分布" sub="P50 / P95 · 单位：秒">
-        <ChartPanel :option="latencyOption" :height="232" />
-      </PanelCard>
-      <PanelCard title="失败原因分布" sub="近 7 天错误日志聚合">
-        <ChartPanel :option="errorOption" :height="232" />
-      </PanelCard>
+    <div v-if="error" class="state-block">
+      <el-alert :type="error.kind === 'forbidden' ? 'warning' : 'error'" :closable="false" show-icon
+        :title="error.message" />
+      <el-button v-if="error.kind !== 'forbidden'" size="small" @click="load">重新加载</el-button>
     </div>
 
-    <PanelCard title="Agent 运行状态" :sub="`${agents.length} 个 Agent · 2 个业务域`" class="mt-3" flush>
-      <el-table :data="agents" size="small">
-        <el-table-column label="Agent" min-width="190">
-          <template #default="{ row }">
-            <div style="display: flex; align-items: center; gap: 8px">
-              <div class="agent-avatar" style="width: 28px; height: 28px; font-size: 10px">{{ row.id.replace('MA-', 'M') }}</div>
-              <div>
-                <div class="cell-main" style="font-size: 12px">{{ row.name }}</div>
-                <div class="cell-sub mono">{{ row.id }} · {{ row.model }}</div>
-              </div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="86">
-          <template #default="{ row }"><StatusTag :status="row.status" /></template>
-        </el-table-column>
-        <el-table-column prop="calls" label="调用" width="86" align="right">
-          <template #default="{ row }"><span class="num">{{ row.calls.toLocaleString() }}</span></template>
-        </el-table-column>
-        <el-table-column prop="successRate" label="成功率" width="86" align="right">
-          <template #default="{ row }"><span class="num">{{ row.successRate }}%</span></template>
-        </el-table-column>
-        <el-table-column prop="latency" label="平均响应" width="86" align="right">
-          <template #default="{ row }"><span class="num">{{ row.latency }}s</span></template>
-        </el-table-column>
-        <el-table-column label="Token" width="96" align="right">
-          <template #default="{ row }"><span class="num">{{ (row.tokens / 1000).toFixed(0) }}k</span></template>
-        </el-table-column>
-        <el-table-column label="健康度" width="120">
-          <template #default="{ row }">
-            <div class="bar-track"><div class="bar-fill" :class="{ amber: row.successRate < 97 }" :style="{ width: row.successRate + '%' }" /></div>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="90" fixed="right">
-          <template #default="{ row }"><el-button size="small" text type="primary" @click="openAgent(row)">详情</el-button></template>
-        </el-table-column>
-      </el-table>
+    <PanelCard v-else title="审计记录" sub="按创建时间倒序 · 只读" flush>
+      <div v-loading="loading">
+        <el-table v-if="list.length" :data="list" size="small" style="width: 100%">
+          <el-table-column label="时间" min-width="140">
+            <template #default="{ row }"><span class="mono">{{ row.createTime || '—' }}</span></template>
+          </el-table-column>
+          <el-table-column prop="user" label="用户" min-width="100">
+            <template #default="{ row }">{{ row.user || '—' }}</template>
+          </el-table-column>
+          <el-table-column label="端" width="86" align="center">
+            <template #default="{ row }">{{ sideText(row.side) }}</template>
+          </el-table-column>
+          <el-table-column prop="intent" label="意图" min-width="110">
+            <template #default="{ row }">{{ row.intent || '—' }}</template>
+          </el-table-column>
+          <el-table-column prop="question" label="用户问题" min-width="200" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.question || '—' }}</template>
+          </el-table-column>
+          <el-table-column label="工具" min-width="120">
+            <template #default="{ row }">{{ row.toolName || '—' }}</template>
+          </el-table-column>
+          <el-table-column label="状态" width="110" align="center">
+            <template #default="{ row }"><StatusTag :status="row.statusLabel" /></template>
+          </el-table-column>
+          <el-table-column label="耗时" width="90" align="right">
+            <template #default="{ row }"><span class="mono">{{ row.costMs ?? '—' }}{{ row.costMs === null ? '' : ' ms' }}</span></template>
+          </el-table-column>
+          <el-table-column label="回执号" min-width="120">
+            <template #default="{ row }"><span class="mono">{{ row.receiptNo || '—' }}</span></template>
+          </el-table-column>
+          <el-table-column label="操作" width="80" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" size="small" @click="openDetail(row)">详情</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-empty v-else-if="!loading" description="暂无审计记录" />
+      </div>
+      <div v-if="total !== null" class="panel-pager">
+        <el-pagination v-model:current-page="page" v-model:page-size="size"
+          :page-sizes="[10, 20, 50]" :total="total"
+          layout="total, sizes, prev, pager, next" small
+          @current-change="load" @size-change="onSize" />
+      </div>
     </PanelCard>
 
-    <div class="grid mt-3" style="grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr)">
-      <PanelCard title="失败调用记录" sub="可定位具体会话与错误原因" flush>
-        <el-table :data="failedLogs" size="small">
-          <el-table-column prop="at" label="时间" width="120" />
-          <el-table-column prop="agent" label="Agent" width="72" />
-          <el-table-column prop="user" label="用户" width="72" />
-          <el-table-column prop="question" label="任务" show-overflow-tooltip min-width="180" />
-          <el-table-column prop="ms" label="耗时" width="76">
-            <template #default="{ row }">{{ row.ms }}ms</template>
-          </el-table-column>
-          <el-table-column label="错误" min-width="200">
-            <template #default="{ row }"><span class="err-text">{{ row.error }}</span></template>
-          </el-table-column>
-        </el-table>
-      </PanelCard>
+    <PanelCard class="mt-3" title="聚合统计与趋势" sub="接口待接入">
+      <div class="hint-line">
+        调用量趋势、Agent 占比、响应时延分布、失败原因聚合暂无后端统计接口；本页不使用 Mock 或前端推算数据。
+      </div>
+    </PanelCard>
 
-      <PanelCard title="最近会话" sub="点击查看完整对话与执行链">
-        <div v-for="s in sessions" :key="s.id" class="session-row" @click="openSession(s)">
-          <div class="session-avatar">{{ s.agent.replace('MA-', 'M') }}</div>
-          <div style="min-width: 0">
-            <div class="session-title">{{ s.title }}</div>
-            <div class="session-meta">{{ s.user }} · {{ s.turns }} 轮 · {{ s.at.slice(5, 16) }}</div>
-          </div>
-          <StatusTag :status="s.status" style="margin-left: auto" />
+    <el-drawer v-model="detailOpen" size="520px" title="审计记录详情">
+      <div v-loading="detailLoading">
+        <div v-if="detailError" class="state-block">
+          <el-alert :type="detailError.kind === 'forbidden' ? 'warning' : 'error'" :closable="false" show-icon
+            :title="detailError.message" />
+          <el-button v-if="detailError.kind !== 'forbidden'" size="small" @click="retryDetail">重新加载</el-button>
         </div>
-        <div class="hint-line mt-2">
-          <el-icon :size="12"><InfoFilled /></el-icon>
-          <span>会话状态保存在 Redis（TTL 24h），长期运行记录落库并纳入审计。</span>
-        </div>
-      </PanelCard>
-    </div>
-
-    <el-drawer v-model="agentOpen" :title="`${current?.id} · ${current?.name}`" size="520px">
-      <div v-if="current" class="agent-detail">
-        <div class="detail-grid">
-          <div class="detail-field"><div class="detail-label">状态</div><StatusTag :status="current.status" /></div>
-          <div class="detail-field"><div class="detail-label">模型</div><div class="detail-value mono">{{ current.model }}</div></div>
-          <div class="detail-field"><div class="detail-label">成功率</div><div class="detail-value">{{ current.successRate }}%</div></div>
-          <div class="detail-field"><div class="detail-label">平均响应</div><div class="detail-value">{{ current.latency }}s</div></div>
-          <div class="detail-field"><div class="detail-label">数据范围</div><div class="detail-value">{{ current.scope }}</div></div>
-          <div class="detail-field"><div class="detail-label">累计 Token</div><div class="detail-value">{{ (current.tokens / 1000).toFixed(0) }}k</div></div>
-        </div>
-        <div class="divider" />
-        <div class="detail-label" style="margin-bottom: 6px">最近调用</div>
-        <el-table :data="agentLogs" size="small">
-          <el-table-column prop="at" label="时间" width="116" />
-          <el-table-column prop="user" label="用户" width="66" />
-          <el-table-column prop="question" label="任务" show-overflow-tooltip />
-          <el-table-column prop="result" label="结果" width="64">
-            <template #default="{ row }"><StatusTag :status="row.result" /></template>
-          </el-table-column>
-        </el-table>
+        <template v-else-if="detail">
+          <div class="detail-row"><span class="detail-label">时间</span><span class="mono">{{ detail.createTime || '—' }}</span></div>
+          <div class="detail-row"><span class="detail-label">用户</span><span>{{ detail.user || '—' }}</span></div>
+          <div class="detail-row"><span class="detail-label">端类型</span><span>{{ sideText(detail.side) }}</span></div>
+          <div class="detail-row"><span class="detail-label">意图</span><span>{{ detail.intent || '—' }}</span></div>
+          <div class="detail-row"><span class="detail-label">状态</span><StatusTag :status="detail.statusLabel" /></div>
+          <div class="detail-row"><span class="detail-label">耗时</span><span class="mono">{{ detail.costMs ?? '—' }}{{ detail.costMs === null ? '' : ' ms' }}</span></div>
+          <div class="detail-row"><span class="detail-label">回执号</span><span class="mono">{{ detail.receiptNo || '—' }}</span></div>
+          <div class="detail-row"><span class="detail-label">工具</span><span>{{ detail.toolName || '—' }}</span></div>
+          <div class="detail-block"><span class="detail-label">用户问题</span><div class="detail-text">{{ detail.question || '—' }}</div></div>
+          <div class="detail-block"><span class="detail-label">工具参数</span><pre class="detail-pre">{{ detail.toolArguments || '—' }}</pre></div>
+          <div class="detail-block"><span class="detail-label">工具结果</span><pre class="detail-pre">{{ detail.toolResult || '—' }}</pre></div>
+          <div class="detail-block"><span class="detail-label">回复</span><div class="detail-text">{{ detail.reply || '—' }}</div></div>
+          <div class="detail-block"><span class="detail-label">错误信息</span><div class="detail-text err-text">{{ detail.error || '—' }}</div></div>
+        </template>
       </div>
     </el-drawer>
-
-    <el-dialog v-model="sessionOpen" :title="sessionDetail?.title" width="620px">
-      <div v-if="sessionDetail">
-        <div class="hint" style="font-size: 11px; margin-bottom: 10px">
-          {{ sessionDetail.agent }} · {{ sessionDetail.user }} · {{ sessionDetail.at }} · 状态 {{ sessionDetail.status }}
-        </div>
-        <div v-for="(m, i) in sessionDetail.messages" :key="i" class="msg" :class="m.role" style="margin-bottom: 10px">
-          <div class="msg-avatar">{{ m.role === 'user' ? '我' : 'AI' }}</div>
-          <div class="msg-body"><div class="bubble">{{ m.text }}</div></div>
-        </div>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { Refresh } from '@element-plus/icons-vue'
-import { getAgentMonitor } from '@/services/api'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { Refresh, Search } from '@element-plus/icons-vue'
+import { listAgentAuditLogs, getAgentAuditLogDetail } from '@/services/api'
 import PageHeader from '@/components/PageHeader.vue'
 import StatCard from '@/components/StatCard.vue'
 import PanelCard from '@/components/PanelCard.vue'
 import StatusTag from '@/components/StatusTag.vue'
-import ChartPanel from '@/components/ChartPanel.vue'
 
-const range = ref('近7天')
-const agents = ref([])
-const logs = ref([])
-const sessions = ref([])
-const totals = ref({ calls: 0, successRate: 0, avgLatency: 0, tokens: 0, toolCalls: 0, failures: 0 })
-const agentOpen = ref(false)
-const sessionOpen = ref(false)
-const current = ref(null)
-const sessionDetail = ref(null)
+const loading = ref(false)
+const error = ref(null)
+const list = ref([])
+const total = ref(null)
+const page = ref(1)
+const size = ref(10)
 
-const failedLogs = computed(() => logs.value.filter((l) => l.result === '失败'))
-const agentLogs = computed(() => logs.value.filter((l) => l.agent === current.value?.id))
-const trendOption = computed(() => ({
-  tooltip: { trigger: 'axis' },
-  legend: { right: 0, top: 0, itemWidth: 9, itemHeight: 9, textStyle: { fontSize: 10.5 } },
-  xAxis: { type: 'category', data: ['11-17', '11-18', '11-19', '11-20', '11-21', '11-22', '11-23'] },
-  yAxis: [{ type: 'value', splitLine: { lineStyle: { color: '#eef3f0' } } }, { type: 'value', splitLine: { show: false } }],
-  series: [
-    { name: '调用次数', type: 'bar', data: [620, 702, 756, 810, 884, 912, 542], barWidth: 16, itemStyle: { borderRadius: [4, 4, 0, 0], color: '#146b45' } },
-    { name: '失败次数', type: 'line', yAxisIndex: 1, data: [6, 8, 5, 9, 4, 7, 3], smooth: true, symbolSize: 5, lineStyle: { color: '#e04b4b', width: 2 }, itemStyle: { color: '#e04b4b' } }
-  ]
-}))
-const donutOption = computed(() => ({
-  legend: { bottom: 0, itemWidth: 9, itemHeight: 9, textStyle: { fontSize: 10 } },
-  series: [
-    {
-      type: 'pie',
-      radius: ['48%', '70%'],
-      center: ['50%', '44%'],
-      avoidLabelOverlap: true,
-      label: { show: false },
-      itemStyle: { borderColor: '#fff', borderWidth: 2 },
-      data: agents.value.map((a) => ({ name: a.id, value: a.calls }))
-    }
-  ]
-}))
-const latencyOption = computed(() => ({
-  tooltip: { trigger: 'axis' },
-  legend: { right: 0, top: 0, itemWidth: 9, itemHeight: 9, textStyle: { fontSize: 10.5 } },
-  xAxis: { type: 'category', data: agents.value.map((a) => a.id) },
-  yAxis: { type: 'value', splitLine: { lineStyle: { color: '#eef3f0' } } },
-  series: [
-    { name: 'P50', type: 'bar', data: [2.1, 2.6, 1.5, 2.4, 3.8], barWidth: 12, itemStyle: { borderRadius: [3, 3, 0, 0], color: '#1fae6b' } },
-    { name: 'P95', type: 'bar', data: [3.6, 4.8, 2.9, 4.2, 6.4], barWidth: 12, itemStyle: { borderRadius: [3, 3, 0, 0], color: '#e08a12' } }
-  ]
-}))
-const errorOption = computed(() => ({
-  tooltip: { trigger: 'item' },
-  legend: { bottom: 0, itemWidth: 9, itemHeight: 9, textStyle: { fontSize: 10 } },
-  series: [
-    {
-      type: 'pie',
-      radius: ['42%', '68%'],
-      center: ['50%', '43%'],
-      label: { show: true, fontSize: 10, formatter: '{b}\n{d}%' },
-      data: [
-        { name: '工具超时', value: 26, itemStyle: { color: '#e04b4b' } },
-        { name: '模型超时', value: 14, itemStyle: { color: '#e08a12' } },
-        { name: '权限拒绝', value: 11, itemStyle: { color: '#3b7cf0' } },
-        { name: '参数错误', value: 7, itemStyle: { color: '#8b5cf6' } }
-      ]
-    }
-  ]
-}))
+const filters = reactive({ userName: '', intent: '', status: '', side: '', dateRange: [] })
+
+const detailOpen = ref(false)
+const detailLoading = ref(false)
+const detailError = ref(null)
+const detail = ref(null)
+const detailId = ref('')
+
+function toError(err) {
+  if (err?.status === 403 || err?.code === 403) {
+    return { kind: 'forbidden', message: '当前账号没有访问该模块的权限。' }
+  }
+  if (err?.raw || /连接异常/.test(err?.message || '')) {
+    return { kind: 'network', message: '网络或服务异常，请稍后重试。' }
+  }
+  return { kind: 'error', message: err?.payload?.msg || err?.message || '加载失败，请稍后重试。' }
+}
+
+function sideText(side) {
+  return { ag: '农机端', ma: '管理端' }[side] || side || '—'
+}
+
+function buildQuery() {
+  const query = { pageNum: page.value, pageSize: size.value }
+  if (filters.userName.trim()) query.userName = filters.userName.trim()
+  if (filters.intent.trim()) query.intent = filters.intent.trim()
+  if (filters.status) query.status = filters.status
+  if (filters.side) query.side = filters.side
+  if (Array.isArray(filters.dateRange) && filters.dateRange.length === 2) {
+    query.beginTime = filters.dateRange[0]
+    query.endTime = filters.dateRange[1]
+  }
+  return query
+}
 
 async function load() {
-  const d = await getAgentMonitor()
-  agents.value = d.agents
-  logs.value = d.logs
-  sessions.value = d.sessions
-  totals.value = d.totals
+  loading.value = true
+  error.value = null
+  try {
+    const res = await listAgentAuditLogs(buildQuery())
+    list.value = res.list
+    total.value = res.total
+  } catch (err) {
+    list.value = []
+    total.value = null
+    error.value = toError(err)
+  } finally {
+    loading.value = false
+  }
 }
+
+function apply() {
+  page.value = 1
+  load()
+}
+function reset() {
+  Object.assign(filters, { userName: '', intent: '', status: '', side: '', dateRange: [] })
+  page.value = 1
+  load()
+}
+function onSize() {
+  page.value = 1
+  load()
+}
+
+/* 以下统计仅针对当前加载页，不代表全量口径 */
+const countByStatus = (status) => list.value.filter((row) => row.status === status).length
+const failedCount = computed(() => countByStatus('FAILED'))
+const confirmCount = computed(() => countByStatus('NEED_CONFIRM'))
+const paramsCount = computed(() => countByStatus('NEED_PARAMS'))
+const replyCount = computed(() => countByStatus('REPLY'))
+const totalText = computed(() => (total.value === null ? '—' : String(total.value)))
+const pageFoot = computed(() => (list.value.length ? `当前页 ${list.value.length} 条` : '当前页暂无记录'))
+const avgCostText = computed(() => {
+  const values = list.value
+    .map((row) => row.costMs)
+    .filter((value) => typeof value === 'number' && Number.isFinite(value))
+  if (!values.length) return '—'
+  return String(Math.round(values.reduce((sum, value) => sum + value, 0) / values.length))
+})
+
+async function openDetail(row) {
+  detailId.value = row.id
+  detailOpen.value = true
+  detail.value = null
+  detailError.value = null
+  detailLoading.value = true
+  try {
+    detail.value = await getAgentAuditLogDetail(row.id)
+  } catch (err) {
+    detailError.value = toError(err)
+  } finally {
+    detailLoading.value = false
+  }
+}
+function retryDetail() {
+  if (detailId.value) openDetail({ id: detailId.value })
+}
+
 onMounted(load)
-function openAgent(a) {
-  current.value = a
-  agentOpen.value = true
-}
-function openSession(s) {
-  sessionDetail.value = s
-  sessionOpen.value = true
-}
 </script>
 
 <style scoped>
-.err-text {
-  color: #c53030;
-  font-size: 11px;
-}
-.session-row {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.session-row:hover {
-  background: var(--surface-2);
-}
-.session-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--ai-gradient);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-size: 10px;
-  font-weight: 700;
-  flex: none;
-}
-.session-title {
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.session-meta {
-  font-size: 10px;
-  color: var(--text-3);
-  margin-top: 1px;
-}
-.agent-detail {
-  padding: 2px;
-}
+.stat-grid { grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+.filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.state-block { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin: 8px 0; }
+.panel-pager { padding: 6px 14px 10px; display: flex; justify-content: flex-end; }
+.detail-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+.detail-block { padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.detail-label { flex: none; width: 84px; color: var(--text-2); font-size: 12px; }
+.detail-text { margin-top: 4px; font-size: 12.5px; line-height: 1.7; word-break: break-word; }
+.detail-pre { margin: 4px 0 0; padding: 8px 10px; background: var(--surface-2); border-radius: 8px; font-size: 11.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+.err-text { color: #c53030; font-size: 11.5px; }
+.mono { font-variant-numeric: tabular-nums; }
 </style>
