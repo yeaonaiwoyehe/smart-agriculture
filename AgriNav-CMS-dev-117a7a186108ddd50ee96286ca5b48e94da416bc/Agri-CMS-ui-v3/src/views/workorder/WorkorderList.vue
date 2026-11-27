@@ -2,6 +2,7 @@
   <div class="page" v-loading="loading">
     <PageHeader title="轨迹与面积核算" code="MP-03" group="业务管理" desc="轨迹裁剪 · 有效面积 · 异常可追溯：基于 GPS 轨迹、地块边界与核算规则生成作业单，异常点位可定位回放并提交人工复核。">
       <template #actions>
+        <el-button v-if="demoAvailable" :loading="demoLoading" :icon="VideoPlay" @click="openDemo">查看演示轨迹</el-button>
         <el-button :icon="Download" @click="exportCsv">导出核算清单</el-button>
         <el-button type="primary" :icon="MagicStick" @click="openAiReview">异常研判</el-button>
       </template>
@@ -65,20 +66,21 @@
           </div>
           <div style="margin-left: auto; display: flex; gap: 6px; align-items: center">
             <span v-if="(detail.anomalies || []).length" class="tag red">{{ detail.anomalies.length }} 项异常</span>
-            <StatusTag :status="webStatus(detail)" />
+            <span v-if="detail.isDemo" class="tag amber no-dot">演示数据</span>
+            <StatusTag v-else :status="webStatus(detail)" />
           </div>
         </div>
 
         <div class="top-metrics">
-          <div class="mini-metric"><div class="v num">{{ fmtArea(detail.gpsArea) }} <small>亩</small></div><div class="l">轨迹面积</div></div>
-          <div class="mini-metric"><div class="v num">{{ fmtArea(detail.effectiveArea) }} <small>亩</small></div><div class="l">有效作业面积</div></div>
+          <div class="mini-metric"><div class="v num">{{ fmtMu(detail.gpsArea) }}</div><div class="l">轨迹面积</div></div>
+          <div class="mini-metric"><div class="v num">{{ fmtMu(detail.effectiveArea) }}</div><div class="l">有效作业面积</div></div>
           <div class="mini-metric"><div class="v num">{{ fmtDiffRate(detail.diffRate) }}</div><div class="l">面积差异率</div></div>
           <div class="mini-metric"><div class="v num">{{ durationText(detail) }}</div><div class="l">作业时长</div></div>
         </div>
 
         <div class="wo-body">
-          <div class="wo-left">
-            <FarmMap :lands="landShape" :active-track="displayTrack" :play-index="playIndex" :anomalies="displayAnomalies" :selected-land="detail.landId" :height="352" :show-legend="false" live="轨迹回放" />
+          <div v-if="displayTrack.length" class="wo-left">
+            <FarmMap :lands="landShape" :active-track="mapTrack" :break-before="detail.breakBefore" :play-index="playIndex" :anomalies="displayAnomalies" :selected-land="detail.landId" :height="352" :show-legend="false" :live="detail.isDemo ? '' : '轨迹回放'" />
             <div class="play-bar">
               <el-button :icon="playing ? VideoPause : VideoPlay" type="primary" circle size="small" @click="togglePlay" />
               <div class="seg">
@@ -86,8 +88,13 @@
               </div>
               <el-slider v-model="playIndex" :min="0" :max="maxIndex" :show-tooltip="false" size="small" class="grow" @input="stopPlay" />
               <div class="play-info"><span class="mono">{{ displayTrack.length ? playIndex + 1 : 0 }} / {{ displayTrack.length }} 点</span><span class="hint">{{ pointTime }}</span></div>
-              <div class="filter-switch"><span class="hint">轨迹滤波</span><el-switch v-model="filterOn" size="small" @change="onFilterChange" /><span v-if="filterOn" class="tag amber no-dot">滤波后 {{ displayTrack.length }} 点</span></div>
+              <div v-if="!detail.isDemo" class="filter-switch"><span class="hint">轨迹滤波</span><el-switch v-model="filterOn" size="small" @change="onFilterChange" /><span v-if="filterOn" class="tag amber no-dot">滤波后 {{ displayTrack.length }} 点</span></div>
             </div>
+          </div>
+          <div v-else class="trajectory-empty">
+            <el-empty :image-size="80" description="这条记录未返回可回放的轨迹点">
+              <el-button v-if="demoAvailable" :loading="demoLoading" @click="openDemo">查看演示轨迹</el-button>
+            </el-empty>
           </div>
 
           <div class="wo-right">
@@ -98,8 +105,8 @@
                 </div>
                 <div class="formula">
                   <div class="formula-title">面积关系说明</div>
-                  <div class="mono">轨迹面积 {{ fmtArea(detail.gpsArea) }} 亩 · 地块面积 {{ detail.landArea !== null && detail.landArea !== undefined ? fmtArea(detail.landArea) + ' 亩' : '—' }} · 有效作业面积 {{ fmtArea(detail.effectiveArea) }} 亩{{ deductArea !== null ? ` · 差异 ${Math.abs(deductArea)} 亩` : '' }}</div>
-                  <div class="hint">后端有效轨迹接口当前未返回 GPS 面积与差异率，以上数据为轨迹点集合面积与地块档案的对比参考。异常点位与操作日志也待后端补充。</div>
+                  <div class="mono">轨迹面积 {{ fmtMu(detail.gpsArea) }} · 地块面积 {{ fmtMu(detail.landArea) }} · 有效作业面积 {{ fmtMu(detail.effectiveArea) }}</div>
+                  <div class="hint">{{ detail.isDemo ? '面积由 B-10 根据合成轨迹和 3 米幅宽计算。回放保留漏采断点，跳点可单独定位。' : '“—”表示接口未提供该字段，0 表示接口返回的实际记录值。' }}</div>
                 </div>
               </el-tab-pane>
 
@@ -107,12 +114,12 @@
                 <div v-if="!(detail.anomalies || []).length" class="empty">后端当前未返回异常判定结果，无法认定无异常</div>
                 <div v-for="(a, i) in detail.anomalies" :key="i" class="abn-item">
                   <div class="abn-top"><span class="tag red no-dot">{{ a.type }}</span><span class="hint mono">轨迹点 #{{ a.point }}</span><el-button link type="primary" size="small" style="margin-left: auto" @click="locate(a)">定位</el-button></div>
-                  <div class="abn-meta">{{ a.at }} · 影响：{{ a.area ? `${a.area} 亩` : `${a.minutes} 分钟` }}</div>
+                  <div class="abn-meta">{{ a.at }}<template v-if="!detail.isDemo && (a.area != null || a.minutes != null)"> · 影响：{{ a.area != null ? `${a.area} 亩` : `${a.minutes} 分钟` }}</template></div>
                   <div class="abn-desc">{{ a.desc }}</div>
                 </div>
               </el-tab-pane>
 
-              <el-tab-pane label="操作日志" name="logs">
+              <el-tab-pane v-if="!detail.isDemo" label="操作日志" name="logs">
                 <el-timeline style="padding-left: 2px; margin-top: 4px">
                   <el-timeline-item v-for="(l, i) in detail.logs" :key="i" :timestamp="l.at">
                     <div class="strong" style="font-size: 12px">{{ l.action }}</div>
@@ -121,14 +128,14 @@
                 </el-timeline>
               </el-tab-pane>
 
-              <el-tab-pane label="AI 研判" name="ai">
+              <el-tab-pane v-if="!detail.isDemo" label="AI 研判" name="ai">
                 <AgentSidePanel agent-id="MA-02" title="MA-02 异常研判 Agent" desc="仅解释异常 · 不修改复核状态" :height="420" />
               </el-tab-pane>
             </el-tabs>
           </div>
         </div>
 
-        <div class="wo-actions">
+        <div v-if="!detail.isDemo" class="wo-actions">
           <span class="hint" style="margin-right: auto">复核结果将写入作业单并进入结算候选，操作全程留痕。</span>
           <el-button type="danger" plain :disabled="reviewLocked" @click="doReview('reject')">驳回</el-button>
           <el-button :disabled="reviewLocked" @click="openCorrect">人工修正</el-button>
@@ -154,6 +161,8 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Download, MagicStick, VideoPause, VideoPlay } from '@element-plus/icons-vue'
 import { getWorkorder, listWorkorders, listReviewRequests, reviewWorkorder } from '@/services/api'
+import { optionalNum } from '@/utils/adapter'
+import { getDemoWorkorder } from './demo'
 import PageHeader from '@/components/PageHeader.vue'
 import StatCard from '@/components/StatCard.vue'
 import PanelCard from '@/components/PanelCard.vue'
@@ -169,6 +178,8 @@ const districtFilter = ref('全部')
 const keyword = ref('')
 const page = ref(1)
 const pageSize = 8
+const demoAvailable = import.meta.env.DEV
+const demoLoading = ref(false)
 
 async function load() {
   loading.value = true
@@ -179,6 +190,8 @@ async function load() {
     ])
     allRows.value = ws
     reviewRequests.value = rs
+  } catch {
+    ElMessage.error('作业单列表加载失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -258,11 +271,11 @@ function durationText(w) {
   return `${Math.floor(d / 60)}h${String(Math.round(d) % 60).padStart(2, '0')}m`
 }
 
-const fmtNum = (v, digits = 1) => (Number.isFinite(Number(v)) ? Number(v).toFixed(digits) : '—')
-const fmtArea = (v) => (Number.isFinite(Number(v)) ? `${Number(v).toFixed(1)}` : '—')
+const fmtArea = (v) => optionalNum(v)?.toFixed(1) ?? '—'
+const fmtMu = (v) => optionalNum(v) === null ? '—' : `${fmtArea(v)} 亩`
 const fmtDiffRate = (v) => {
-  if (!Number.isFinite(Number(v))) return '—'
-  const n = Number(v)
+  const n = optionalNum(v)
+  if (n === null) return '—'
   return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`
 }
 
@@ -298,6 +311,21 @@ const displayTrack = computed(() => {
   const track = detail.value?.track || []
   return filterOn.value ? track.filter((_, i) => i % 2 === 0) : track
 })
+const mapProjection = computed(() => {
+  const points = [...(detail.value?.landPoints || []), ...(detail.value?.track || [])]
+  if (!points.length) return ([x, y]) => [x, y]
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const [x, y] of points) {
+    minX = Math.min(minX, x); minY = Math.min(minY, y)
+    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y)
+  }
+  const centreX = (minX + maxX) / 2, centreY = (minY + maxY) / 2
+  const longitudeScale = Math.abs(centreY) < 85 ? Math.cos(centreY * Math.PI / 180) : 1
+  const scale = Math.min(780 / Math.max((maxX - minX) * longitudeScale, 0.00001),
+    290 / Math.max(maxY - minY, 0.00001))
+  return ([x, y]) => [500 + (x - centreX) * longitudeScale * scale, 310 - (y - centreY) * scale]
+})
+const mapTrack = computed(() => displayTrack.value.map(mapProjection.value))
 const displayTrackTimes = computed(() => {
   const times = detail.value?.trackTimes || []
   return filterOn.value ? times.filter((_, i) => i % 2 === 0) : times
@@ -307,13 +335,6 @@ const displayAnomalies = computed(() => {
   return filterOn.value ? list.map((a) => ({ ...a, point: Math.floor(a.point / 2) })) : list
 })
 const maxIndex = computed(() => Math.max(displayTrack.value.length - 1, 0))
-const cutArea = computed(() => +((detail.value?.anomalies || []).reduce((s, a) => s + (Number.isFinite(Number(a.area)) ? Number(a.area) : 0), 0)).toFixed(1))
-const deductArea = computed(() => {
-  const d = detail.value
-  if (!d) return null
-  if (!Number.isFinite(Number(d.gpsArea)) || !Number.isFinite(Number(d.effectiveArea))) return null
-  return +(Number(d.gpsArea) - Number(d.effectiveArea)).toFixed(1)
-})
 const reviewLocked = computed(() => {
   const r = detail.value ? reviewFor(detail.value.id) : null
   if (!r) return false
@@ -322,15 +343,14 @@ const reviewLocked = computed(() => {
 const calcRows = computed(() => {
   const d = detail.value
   if (!d) return []
-  const width = d.width ? `${d.width} m` : '—'
-  const pointCount = d.pointCount || d.track?.length || '—'
-  const landArea = Number.isFinite(Number(d.landArea)) ? `${Number(d.landArea).toFixed(1)} 亩` : '—'
-  const boundaryCut = cutArea.value > 0 ? `− ${cutArea.value} 亩` : '—'
+  const width = d.width > 0 ? `${d.width / 100} m` : '—'
+  const pointCount = optionalNum(d.pointCount) ?? d.track?.length
+  const boundaryCut = optionalNum(d.boundaryCut)
   return [
     { label: '作业幅宽', value: width, tone: '' },
-    { label: '轨迹点数', value: `${pointCount} 点`, tone: '' },
-    { label: '地块面积', value: landArea, tone: '' },
-    { label: '边界裁剪', value: boundaryCut, tone: cutArea.value > 0 ? 'neg' : '' },
+    { label: '轨迹点数', value: pointCount == null ? '—' : `${pointCount} 点`, tone: '' },
+    { label: '地块面积', value: fmtMu(d.landArea), tone: '' },
+    { label: '边界裁剪', value: boundaryCut == null ? '—' : `− ${fmtMu(boundaryCut)}`, tone: boundaryCut > 0 ? 'neg' : '' },
     { label: 'GPS 面积', value: fmtArea(d.gpsArea), tone: '' },
     { label: '有效面积', value: fmtArea(d.effectiveArea), tone: '' }
   ]
@@ -338,11 +358,10 @@ const calcRows = computed(() => {
 const landShape = computed(() => {
   const d = detail.value
   if (!d) return []
-  const pts = d.landPoints || []
-  const center = pts.length
-    ? [Math.round(pts.reduce((s, p) => s + p[0], 0) / pts.length), Math.round(pts.reduce((s, p) => s + p[1], 0) / pts.length)]
-    : [500, 310]
-  return [{ id: d.landId, name: d.landName, points: pts, center, area: Number.isFinite(Number(d.landArea)) ? Number(d.landArea) : 0, status: '' }]
+  const pts = (d.landPoints || []).map(mapProjection.value)
+  if (!pts.length) return []
+  const center = [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length]
+  return [{ id: d.landId, name: d.landName, points: pts, center, area: fmtArea(d.landArea), status: '' }]
 })
 const pointTime = computed(() => {
   const t = displayTrackTimes.value[playIndex.value]
@@ -357,6 +376,19 @@ const pointTime = computed(() => {
 async function openDetail(row, defaultTab = 'calc') {
   const data = await getWorkorder(row.id, allRows.value)
   if (!data) return ElMessage.warning('作业单不存在')
+  showDetail(data, defaultTab)
+}
+async function openDemo() {
+  demoLoading.value = true
+  try {
+    showDetail(await getDemoWorkorder(), 'calc')
+  } catch {
+    ElMessage.error('无法加载演示轨迹，请确认本机 8091 演示服务已启动')
+  } finally {
+    demoLoading.value = false
+  }
+}
+function showDetail(data, defaultTab) {
   detail.value = data
   tab.value = defaultTab
   filterOn.value = false
@@ -368,6 +400,7 @@ watch(detailVisible, (v) => { if (!v) stopPlay() })
 
 function togglePlay() {
   if (playing.value) return stopPlay()
+  if (maxIndex.value < 1) return
   if (playIndex.value >= maxIndex.value) playIndex.value = 0
   playing.value = true
   timer = setInterval(() => {
@@ -402,7 +435,7 @@ onBeforeUnmount(stopPlay)
 /* ---------------- 复核与人工修正 ---------------- */
 async function doReview(action) {
   const d = detail.value
-  if (!d) return
+  if (!d || d.isDemo) return
   let note = '复核通过，面积在允许误差范围内'
   if (action === 'reject') {
     try {
@@ -439,6 +472,7 @@ async function doReview(action) {
 const correctVisible = ref(false)
 const correct = reactive({ area: 0, reason: '' })
 function openCorrect() {
+  if (detail.value?.isDemo) return
   correct.area = Number.isFinite(Number(detail.value?.effectiveArea)) ? Number(detail.value.effectiveArea) : 0
   correct.reason = ''
   correctVisible.value = true
@@ -468,6 +502,7 @@ function submitCorrect() {
 .mini-metric .v small { font-size: 10.5px; font-weight: 500; color: var(--text-3); }
 .wo-body { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .wo-left, .wo-right { min-width: 0; }
+.trajectory-empty { min-height: 352px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-md); }
 .play-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 9px 11px; margin-top: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
 .play-bar .grow { flex: 1; min-width: 120px; margin: 0 4px; }
 .play-info { display: flex; flex-direction: column; gap: 1px; font-size: 10.5px; line-height: 1.35; text-align: right; white-space: nowrap; }

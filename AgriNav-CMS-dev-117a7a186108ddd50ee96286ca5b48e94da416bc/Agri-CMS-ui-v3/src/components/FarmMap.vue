@@ -115,8 +115,8 @@
           />
         </g>
         <g v-if="activeTrack && activeTrack.length">
-          <polyline :points="toPoints(activeTrack)" fill="none" stroke="#c9d8cf" stroke-width="3" opacity="0.8" />
-          <polyline :points="progressPoints" fill="none" stroke="#0f5537" stroke-width="3" stroke-linecap="round" filter="url(#softGlow)" />
+          <polyline v-for="(line, i) in trackLines" :key="'full-' + i" :points="toPoints(line)" fill="none" stroke="#79998a" stroke-width="3" opacity="0.8" />
+          <polyline v-for="(line, i) in progressLines" :key="'progress-' + i" :points="toPoints(line)" fill="none" stroke="#0f5537" stroke-width="3" stroke-linecap="round" filter="url(#softGlow)" />
           <circle
             v-if="playIndex >= 0 && activeTrack[playIndex]"
             :cx="activeTrack[playIndex][0]"
@@ -175,6 +175,7 @@ const props = defineProps({
   heat: { type: Array, default: () => [] },
   tracks: { type: Array, default: () => [] },
   activeTrack: { type: Array, default: () => [] },
+  breakBefore: { type: Array, default: () => [] },
   playIndex: { type: Number, default: -1 },
   anomalies: { type: Array, default: () => [] },
   selectedLand: { type: String, default: '' },
@@ -203,12 +204,18 @@ const zoom = (d) => {
   scale.value = Math.min(2.2, Math.max(0.8, +(scale.value + d).toFixed(2)))
 }
 const toPoints = (pts) => (pts || []).map((p) => p.join(',')).join(' ')
-const progressPoints = computed(() => {
-  const arr = props.activeTrack
-  if (!arr.length) return ''
-  const end = props.playIndex < 0 ? arr.length : props.playIndex + 1
-  return toPoints(arr.slice(0, Math.max(1, end)))
-})
+function splitTrack(points) {
+  const breaks = new Set(props.breakBefore)
+  const lines = []
+  for (const [index, point] of points.entries()) {
+    if (index === 0 || breaks.has(index)) lines.push([])
+    lines[lines.length - 1].push(point)
+  }
+  return lines.filter((line) => line.length >= 2)
+}
+const trackLines = computed(() => splitTrack(props.activeTrack))
+const progressLines = computed(() => splitTrack(props.activeTrack.slice(
+  0, props.playIndex < 0 ? props.activeTrack.length : props.playIndex + 1)))
 const shortName = (n) => n.replace('村', '·').replace('号地', '号')
 const landFill = (l) => {
   if (props.selectedLand === l.id) return 'url(#fieldActive)'

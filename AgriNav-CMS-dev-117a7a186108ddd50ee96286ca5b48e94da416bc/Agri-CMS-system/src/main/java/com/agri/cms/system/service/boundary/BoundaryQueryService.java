@@ -39,6 +39,9 @@ public class BoundaryQueryService {
         } catch(IllegalArgumentException invalid){throw new ServiceException(invalid.getMessage());}
     }
     public record AccountingBoundary(org.postgis.Polygon boundary,List<org.postgis.Polygon> exclusions) { }
+    public org.locationtech.jts.geom.prep.PreparedGeometry outerBoundary(Long plotId, Actor actor) {
+        return clipping.prepareOuterBoundary(load(plotId, actor).getBoundary());
+    }
     /** 与 B-09 共用权限、删除状态及插花地排除规则。 */
     public AccountingBoundary accountingBoundary(Long plotId,Actor actor) {
         LandPlot plot=load(plotId,actor);List<org.postgis.Polygon> holes=new ArrayList<>();

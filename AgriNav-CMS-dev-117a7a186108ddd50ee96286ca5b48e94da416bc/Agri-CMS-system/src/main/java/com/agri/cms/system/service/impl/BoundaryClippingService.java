@@ -61,6 +61,13 @@ public class BoundaryClippingService {
         if(point==null)throw new IllegalArgumentException("定位点不能为空");
         return clip(List.of(point),boundary,exclusions).pointPositions().get(0);
     }
+
+    /** B-11 转场只看地块外环，原生空洞和排除区不视为离开地块。 */
+    public org.locationtech.jts.geom.prep.PreparedGeometry prepareOuterBoundary(org.postgis.Polygon boundary) {
+        Polygon field = (Polygon) read(boundary);
+        return org.locationtech.jts.geom.prep.PreparedGeometryFactory.prepare(
+                geometries.createPolygon(field.getExteriorRing()));
+    }
     private Position position(Geometry field,Geometry excluded,org.locationtech.jts.geom.Point point) {
         if(!field.covers(point))return Position.OUTSIDE;
         if(excluded.covers(point))return Position.EXCLUDED;

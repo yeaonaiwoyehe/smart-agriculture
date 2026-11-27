@@ -53,7 +53,13 @@ export default defineConfig(({ mode }) => {
       port: 5180,
       strictPort: true,
       open: false,
-      proxy
+      proxy: {
+        ...proxy,
+        '/b11-demo-api': {
+          target: 'http://127.0.0.1:8091',
+          rewrite: (path) => path.replace(/^\/b11-demo-api/, '')
+        }
+      }
     },
     build: {
       outDir: 'dist',
